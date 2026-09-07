@@ -1,0 +1,23 @@
+# Private state and installation metadata never belong in this repository.
+profile.yaml
+sources.yaml
+shortlists.jsonl
+feedback.jsonl
+installation.json
+private/
+data/
+.hermes/
+.env
+.env.*
+*.pem
+*.key
+credentials.*
+secrets.*
+
+# Local environments and generated artifacts.
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.log
+.DS_Store

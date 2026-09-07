@@ -1,0 +1,18 @@
+# Blank template, not a configured family. No personal data belongs in Git.
+# Edit only the installed private copy of profile.yaml.
+schema_version: 1
+home:
+  label: null
+  latitude: null
+  longitude: null
+  timezone: null
+default_radius_km: 15
+# Keep stable, private identifiers; names and exact birth dates are optional.
+# Future member records include an id, age or age band, and relevant constraints.
+group_members: []
+preferences: []
+constraints: []
+# Future provenance records identify the field, source and reviewed_at date.
+provenance: []
+# A future travel context must include a location, timezone and explicit expiry.
+travel: null
