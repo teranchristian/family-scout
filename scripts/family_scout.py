@@ -963,7 +963,7 @@ def command_shortlist_save(data_dir, args):
             valid_url(url, "needs_checking source URL")
     tool_usage = payload.get("tool_usage", {})
     require(isinstance(tool_usage, dict), "tool_usage must be an object")
-    limits = {"search_queries": 4, "source_fetches": 8, "forecast_lookups": 1}
+    limits = {"search_queries": 6, "source_fetches": 12, "forecast_lookups": 1}
     effort_mode = payload.get("effort_mode", "normal")
     require(effort_mode in ("normal", "deep"), "effort_mode must be normal or deep")
     for key, limit in limits.items():

@@ -94,6 +94,22 @@ language, select good evidence or produce useful rankings on the live web.
 
 ## Phase 1 real-use validation — pending
 
+### Trial observation — 2026-09-08 UTC
+
+One real broad search covering two rainy weekdays produced a saved shortlist but
+failed the usefulness gate. The answer said indoor options should rank higher,
+yet all confirmed choices were outdoor. It relied heavily on one guide, stopped
+an important indoor path after an inaccessible PDF, omitted direct links and
+requested-date hours, gave little age-specific activity detail and did not turn
+the shortlist into a plan for each day.
+
+The demonstrated failure justified a narrow Phase 1 correction: `SKILL.md` is
+now a small router, while focused discovery, briefing and memory references own
+the detailed behavior. Normal discovery has slightly more room, and the briefing
+contract now requires weather-consistent ranking, direct links, concrete activity
+detail and day-specific plans. This is a failed-but-useful trial observation, not
+validation; rerun an equivalent privacy-safe request after installing the update.
+
 - [ ] Complete 3–5 real Family Scout searches with current source pages.
 - [ ] Give explicit feedback, then verify it affects a relevant recommendation
   in a later fresh Hermes conversation without weakening current constraints.

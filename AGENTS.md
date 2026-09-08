@@ -4,7 +4,7 @@
 
 Phase 0 is complete. Phase 1 implements one thin Hermes recommendation,
 shortlist and explicit-feedback cycle. Read `README.md`, `hermes-skill/SKILL.md`,
-both files under `hermes-skill/references/`, the helper and the blank templates
+all files under `hermes-skill/references/`, the helper and the blank templates
 before changing behavior. Together they are the in-repository contract.
 
 Phase 1 is **built; trial pending** until the real-use gate in `README.md` passes.
@@ -50,7 +50,7 @@ not a standalone search product.
 - Learn only from explicit feedback. Append corrections/retractions that
   supersede prior events; never rewrite JSONL. Current instructions override
   saved preferences, and contextual complaints must not become global bans.
-- Keep normal search within four queries, eight page fetches and one dated
+- Keep normal search within six queries, twelve page fetches and one dated
   forecast attempt. Report gaps honestly when the budget is exhausted.
 
 ## Skill and installer changes

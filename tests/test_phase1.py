@@ -156,7 +156,13 @@ class Phase1Test(unittest.TestCase):
         self.assertEqual(record["schema_version"], 2)
         self.assertEqual(
             set(record["skill_files"]),
-            {"SKILL.md", "references/behavior.md", "references/cli.md"},
+            {
+                "SKILL.md",
+                "references/briefing.md",
+                "references/cli.md",
+                "references/discovery.md",
+                "references/memory.md",
+            },
         )
         for relative in record["skill_files"]:
             self.assertTrue((target / relative).is_file())
@@ -169,7 +175,7 @@ class Phase1Test(unittest.TestCase):
         self.setup("install")
         self.assertEqual((self.data / "shortlists.jsonl").read_bytes(), opaque)
 
-        reference = target / "references" / "behavior.md"
+        reference = target / "references" / "briefing.md"
         reference.write_text(reference.read_text() + "\nlocal edit\n")
         self.setup("install", expected=1)
         self.setup("uninstall", expected=1)
@@ -375,7 +381,7 @@ class Phase1Test(unittest.TestCase):
         self.assertEqual(len((self.data / "shortlists.jsonl").read_text().splitlines()), 1)
 
         excessive = self.shortlist_payload("op-search-excessive")
-        excessive["tool_usage"]["source_fetches"] = 9
+        excessive["tool_usage"]["source_fetches"] = 13
         self.cli("shortlist-save", payload=excessive, expected=2)
 
         duplicate_session = self.shortlist_payload("op-search-duplicate")
@@ -480,27 +486,49 @@ class Phase1Test(unittest.TestCase):
         self.cli("shortlist-save", payload=self.shortlist_payload(), expected=2)
         self.assertEqual((self.data / "shortlists.jsonl").read_bytes(), malformed_history)
 
-    def test_skill_contains_phase_one_behavior_gates(self):
-        skill = " ".join((REPO / "hermes-skill" / "SKILL.md").read_text().split())
-        behavior = " ".join(
-            (REPO / "hermes-skill" / "references" / "behavior.md").read_text().split()
+    def test_skill_routes_phase_one_behavior_contracts(self):
+        skill_path = REPO / "hermes-skill" / "SKILL.md"
+        skill = " ".join(skill_path.read_text().split())
+        discovery = " ".join(
+            (REPO / "hermes-skill" / "references" / "discovery.md").read_text().split()
         )
+        briefing = " ".join(
+            (REPO / "hermes-skill" / "references" / "briefing.md").read_text().split()
+        )
+        memory = " ".join(
+            (REPO / "hermes-skill" / "references" / "memory.md").read_text().split()
+        )
+        self.assertLess(len(skill_path.read_text().split()), 600)
         for phrase in (
             "Never invent a fact",
-            "at most four search queries",
             "numerical match score",
-            "with the exact numbered options",
-            "explicit feedback",
+            "references/discovery.md",
+            "references/briefing.md",
+            "references/memory.md",
         ):
             self.assertIn(phrase, skill)
         for phrase in (
             "this weekend",
             "Unknown price does not pass",
             "straight-line distance",
-            "Return fewer when evidence is insufficient",
-            "Needs checking",
+            "six search queries",
+            "One failed page, PDF or reader path",
         ):
-            self.assertIn(phrase, behavior)
+            self.assertIn(phrase, discovery)
+        for phrase in (
+            "four or five genuinely useful confirmed options",
+            "Needs checking",
+            "What it is",
+            "recommended plan for each day",
+            "Final quality gate",
+        ):
+            self.assertIn(phrase, briefing)
+        for phrase in (
+            "explicit feedback",
+            "Never attach a default party",
+            "More like this",
+        ):
+            self.assertIn(phrase, memory)
 
 
 if __name__ == "__main__":
