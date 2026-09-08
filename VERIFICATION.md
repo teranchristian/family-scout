@@ -1,4 +1,4 @@
-# Phase 0 verification record
+# Verification record
 
 This record separates repository/local evidence from checks that must run in a
 fresh conversation on the actual Hermes host. Test data and paths were temporary
@@ -62,3 +62,46 @@ synthetic state. They were not repeated solely as host ceremony because the
 actual installation reported no material path or permission difference.
 
 **Phase 0 result: passed. Phase 1 may begin when requested.**
+
+## Phase 1 repository checks — 2026-09-08 UTC
+
+All automated fixtures use invented people, places, URLs, dates and currency.
+They run in temporary directories and do not read or modify the installed private
+profile on the Hermes host.
+
+| Check | Outcome | Evidence |
+| --- | --- | --- |
+| Python syntax | Passed | `python3 -m py_compile scripts/setup.py scripts/family_scout.py tests/test_phase1.py` |
+| Shell syntax | Passed | `bash -n install.sh uninstall.sh` |
+| Hermes skill structure | Passed | Skill Creator `quick_validate.py` reported `Skill is valid!` for the main skill and references |
+| Deterministic Phase 1 suite | Passed | `python3 -m unittest discover -s tests -v` ran 12 tests successfully |
+| Phase 0 → Phase 1 upgrade | Passed | A schema-1 installation record upgraded to schema 2 and installed the owned reference tree |
+| Repeat install and ownership safety | Passed | Private bytes survived repeat install; edited installed reference blocked both update and uninstall |
+| Interrupted setup recovery | Passed | A missing recorded file was restored on install and a partial uninstall completed without touching state |
+| Profile and travel | Passed | Explicit profile update was idempotent; travel, forced-home and expired-travel precedence resolved correctly |
+| Original blank migration | Passed | The exact Phase 0 blank profile loaded and converted to JSON-compatible YAML only on an explicit write |
+| Source lifecycle | Passed | Add/retry, disable/retry, enable, remove and repeat-remove behaved deterministically |
+| Hard constraints | Passed | Match, radius failure, unknown cost, ended session, age failure, unknown mandatory booking and closure classifications matched the contract |
+| Shortlist identity and retry | Passed | Exact option saved once; repeat operation did not duplicate; duplicate sessions, private address persistence and excess normal fetches were rejected |
+| Concurrent retry | Passed | Four simultaneous writes with one operation ID produced one JSONL record and three duplicate acknowledgements |
+| Cross-search references | Passed | Stable search resolution worked and an ambiguous conversation reference was refused rather than guessed |
+| Explicit feedback | Passed | Feedback retry was idempotent; correction and retraction stayed append-only; fresh context exposed only effective signals |
+| Malformed-state preservation | Passed | Malformed profile and JSONL writes failed without changing a byte |
+
+These checks establish that the Phase 1 code and deterministic contract are
+**built**. They do not establish that Hermes will consistently interpret natural
+language, select good evidence or produce useful rankings on the live web.
+
+## Phase 1 real-use validation — pending
+
+- [ ] Complete 3–5 real Family Scout searches with current source pages.
+- [ ] Give explicit feedback, then verify it affects a relevant recommendation
+  in a later fresh Hermes conversation without weakening current constraints.
+- [ ] Complete a practical search from a second explicit location.
+- [ ] Run at least two equivalent searches with ordinary Hermes and compare
+  evidence correctness, usefulness and latency.
+- [ ] Record page-reader and dated-forecast successes/failures, especially the
+  existing `curl`/`r.jina.ai` reader path observed in Phase 0.
+
+**Phase 1 result: built; trial pending.** Do not mark it validated or start
+Phase 1.5 solely because the deterministic suite passes.

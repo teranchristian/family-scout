@@ -1,17 +1,45 @@
 # Family Scout
 
-Family Scout is a planned Hermes skill for finding practical family outings
-using current sources and explicit feedback. **This repository implements Phase
-0 only:** installation, private state and instructions for setup verification.
-It does not yet generate recommendations or process feedback.
+Family Scout is a Hermes skill for finding practical family outings from current
+sources and remembering only explicit feedback.
+
+**Current status: Phase 1 is built; real-use trial pending.** The deterministic
+helper, persistence flow and skill contract are implemented and tested. The
+project is not yet validated: that requires 3–5 real searches in Hermes,
+including later feedback use and a side-by-side comparison with ordinary Hermes.
 
 Repository: <https://github.com/teranchristian/family-scout>
 
-## Prerequisites and installation
+## What Phase 1 does
+
+- Interprets today, tomorrow, weekend and named-date requests in the activity
+  location's timezone.
+- Searches the live web, reads current source pages and obtains a dated forecast
+  using the tools already available to Hermes.
+- Applies strict date, radius, group cost, indoor, age, closure and mandatory
+  booking checks without silently treating unknown facts as matches.
+- Normally returns up to three ranked options, fewer when evidence is weak, and
+  at most two clearly labelled **Needs checking** leads.
+- Saves the exact displayed options with stable activity/session identities.
+- Remembers explicit feedback across fresh conversations, including corrections
+  and retractions, and can use it for “more like this”.
+- Supports explicit home/travel context, profile corrections and custom source
+  add, enable, disable and removal.
+
+Hermes owns natural-language interpretation, live discovery, page reading,
+evidence selection and qualitative ranking. A standard-library Python helper
+owns validation, straight-line distance, stable references and safe persistence.
+It is not a separate search application.
+
+Phase 1 deliberately excludes databases, background scraping, provider
+frameworks, routing, booking integrations, web UI, accounts, machine learning
+and numerical match scores.
+
+## Install or update
 
 Use an existing Hermes installation, Bash and Python 3.9 or newer. The setup
-helper uses only the Python standard library. It installs no dependencies and
-does not change system Python, Hermes configuration or running services.
+helper installs no dependencies and does not change system Python, Hermes
+configuration or running services.
 
 From this checkout on the Hermes host:
 
@@ -19,14 +47,13 @@ From this checkout on the Hermes host:
 ./install.sh
 ```
 
-The preferred checkout location is `$HOME/repos/family-scout`; other locations
-work. The installer uses `--hermes-home`, then `HERMES_HOME`, then `~/.hermes`.
-If the default Hermes home indicates a named active profile, setup stops and
-requires its explicit directory rather than assuming the default profile.
-Confirm the actual profile on your host before installing. A directory existing
-does not, by itself, prove that Hermes is installed or can load the skill.
+The preferred checkout location is `$HOME/repos/family-scout`; other persistent
+locations work. Do not remove the checkout while the skill is installed because
+the installed skill invokes the helper through the recorded repository path.
 
-For an explicitly selected profile (the name below is invented):
+The installer uses `--hermes-home`, then `HERMES_HOME`, then `~/.hermes`. If the
+default Hermes home indicates a named active profile, setup stops rather than
+guessing. For an explicitly selected profile, using an invented example name:
 
 ```sh
 ./install.sh --hermes-home "$HOME/.hermes/profiles/demo-profile"
@@ -34,98 +61,116 @@ For an explicitly selected profile (the name below is invented):
 
 An optional `--data-dir /absolute/private/directory` changes the state location.
 It must be outside the checkout and separate from the installed skill directory.
-Use the same options after uninstalling to reuse custom state. While installed,
-a repeat install without `--data-dir` reuses the recorded directory. Profiles
-share the default state directory; choose separate data directories if needed.
+While installed, a repeat install without `--data-dir` reuses the recorded data
+directory. Profiles share the default state directory; choose separate data
+directories when they must not share context.
 
-The installer prints the selected paths and reports local setup checks separately
-from unverified live capabilities. Existing private files are never overwritten,
-even if malformed. Only missing state files are initialized. New data directories
-are created with mode `0700`, and new state files with mode `0600`; existing
-permissions are left unchanged.
+Running `install.sh` over a Phase 0 installation safely upgrades the ownership
+record and copies the Phase 1 reference files. Existing private files are never
+overwritten, parsed or repaired by the installer. New data directories use mode
+`0700`, and new state files use `0600`; existing permissions are unchanged.
 
-## Files and ownership
+## Private state
 
 | Location | Purpose |
 | --- | --- |
-| `hermes-skill/SKILL.md` in this checkout | Canonical skill instructions, tracked in Git |
-| `<hermes-home>/skills/family-scout/SKILL.md` | Installed copy loaded by Hermes |
-| `<hermes-home>/skills/family-scout/installation.json` | Local ownership, source path, state path and installed checksum |
-| `~/.local/share/family-scout/profile.yaml` | Private origin, group and preferences; initially blank |
-| `~/.local/share/family-scout/sources.yaml` | Private source list; initially empty |
-| `~/.local/share/family-scout/shortlists.jsonl` | Private shortlist history; initially empty |
-| `~/.local/share/family-scout/feedback.jsonl` | Private explicit feedback history; initially empty |
+| `hermes-skill/SKILL.md` | Canonical concise Hermes instructions |
+| `hermes-skill/references/` | Evidence rules and helper contract |
+| `scripts/family_scout.py` | Deterministic validation and persistence helper |
+| `<hermes-home>/skills/family-scout/` | Installed copy of the skill instruction tree |
+| `<hermes-home>/skills/family-scout/installation.json` | Owned-file hashes plus repository and private-state paths |
+| `~/.local/share/family-scout/profile.yaml` | Private origin, group, preferences, constraints and travel context |
+| `~/.local/share/family-scout/sources.yaml` | Private custom source list |
+| `~/.local/share/family-scout/shortlists.jsonl` | Append-only exact shortlist history |
+| `~/.local/share/family-scout/feedback.jsonl` | Append-only explicit feedback and corrections |
 
-The installed skill is a **copy**, refreshed explicitly by `install.sh`. This
-uses Hermes' documented skill directory and avoids assuming a particular host
-version discovers directory symlinks. A fresh conversation must still verify
-discovery. The installer refuses an existing skill without its ownership record.
+The `.yaml` documents use indented JSON, which is valid YAML and can be handled
+without an added YAML package. Exact blank files created by Phase 0 are accepted
+and migrated on their first helper write. A nonblank file manually converted to
+another YAML style is preserved but rejected with an explanatory error; convert
+it to JSON-compatible YAML deliberately rather than allowing an automatic rewrite.
 
-The `examples/` templates intentionally contain no people, precise locations or
-credentials. Edit the private installed profile when ready; never put personal
-details into the templates or skill instructions. A blank origin remains unknown.
-An empty source list is valid. Phase 0 checks file access without validating or
-implementing the future recommendation data model.
+The templates contain no people, precise locations or credentials. Never commit
+private runtime state. The helper's `status` command is redacted; its `context`
+command intentionally returns private context to Hermes and must not be copied
+into web queries, logs or public reports.
 
-The initial YAML files have `schema_version: 1`. Home includes a label,
-latitude, longitude and timezone; the default radius is 15 km. Group identifiers,
-age information, preferences, constraints and field provenance belong in private
-state. Any future travel context needs an explicit expiry. Future JSONL records
-will carry their own schema version and stable IDs; no records are created by
-Phase 0.
+## Try Phase 1 in Hermes
+
+After updating the installed copy, start a fresh Hermes conversation. For a
+privacy-safe smoke cycle, choose an arbitrary public test origin and replace the
+bracketed values below:
+
+> Load Family Scout. Using [public test location] as an explicit origin, find
+> free activities on [absolute future date] within [radius] km. Do not use or
+> save any private profile details. Show your interpreted place, date, attending
+> group and cost basis before searching.
+
+Check that Hermes:
+
+1. Reads live pages rather than relying only on snippets.
+2. Uses the right dated forecast or explicitly reports it unavailable.
+3. Rejects or labels unknown hard facts instead of assuming they pass.
+4. Shows sourced, numbered options without a match score.
+5. Saves the exact shortlist before presenting it.
+
+Then refer to an option by number and give explicit feedback. In a new
+conversation, ask for another search and confirm Hermes loads that feedback only
+as a preference signal—not as permission to weaken current constraints. Also run
+one search at a second explicit public location.
+
+For at least two searches, ask ordinary Hermes the same question without Family
+Scout. Compare evidence correctness, practical usefulness, latency and whether
+the persistent context materially improves the later result. Record failures as
+well as wins in `VERIFICATION.md` or the project plan.
+
+Phase 1 becomes **validated** only after:
+
+- 3–5 real Family Scout searches;
+- explicit feedback followed by a later fresh-conversation recommendation;
+- one second-location practical search; and
+- at least two side-by-side comparisons with ordinary Hermes.
+
+Until all four are observed, keep the label **built; trial pending**. The reader
+path used during Phase 0 (`curl` through `r.jina.ai`) is an explicit reliability
+risk to observe during this trial, not a reason to pre-build a provider system.
+
+## Helper and development checks
+
+Hermes should follow the documented interface in
+`hermes-skill/references/cli.md`. For a redacted manual check:
+
+```sh
+python3 scripts/family_scout.py --data-dir /absolute/private/directory status
+```
+
+Run the deterministic repository checks with:
+
+```sh
+python3 -m unittest discover -s tests -v
+python3 -m py_compile scripts/setup.py scripts/family_scout.py tests/test_phase1.py
+python3 /root/.codex/skills/.system/skill-creator/scripts/quick_validate.py hermes-skill
+```
+
+See `VERIFICATION.md` for recorded outcomes and the remaining live trial.
 
 ## Updates and removal
 
-Review repository changes, then run `./install.sh` again to refresh the skill.
-The installer leaves uncommitted repository edits intact. If Hermes edited the
-installed `SKILL.md`, both update and uninstall stop before overwriting it.
-Review the difference, remove any personal material from the proposed behavior
-change, reconcile the intended instructions into `hermes-skill/SKILL.md`, and
-commit them. Rerun setup only after preserving the installed changes you need.
+Review repository changes, then rerun `./install.sh` to refresh the installed
+copy. The installer owns only the files listed in `installation.json`. If any
+installed owned file has local edits, update and uninstall both stop before
+overwriting or removing it. Reconcile intended non-private behavior into the
+repository first.
 
-To remove the integration:
+To remove the integration while preserving the checkout and all private state:
 
 ```sh
 ./uninstall.sh
 ```
 
-Pass the same `--hermes-home` option when using a named or custom profile. This
-removes only the owned skill and installation record. It preserves the checkout,
-all private state and any unrelated files. If unrelated files remain in the
-skill directory, resolve that directory collision before a later reinstall.
-Repeated uninstall is harmless. Reinstall with the same options to reuse state.
-There is no purge option in Phase 0.
-
-## Phase 0 verification
-
-Repository and temporary-directory checks are recorded in `VERIFICATION.md`.
-They do not establish live host readiness. On the actual Hermes host:
-
-1. Install, run the same install again, and confirm the printed profile and data
-   paths are the intended ones. Review the private profile without copying its
-   contents into Git or public reports.
-2. Start a fresh Hermes conversation and ask: **“Load Family Scout and verify
-   Phase 0 setup. Use an arbitrary public location, with no personal details.”**
-3. Record skill loading and private profile reading separately. A blank profile
-   can pass file access while home/group configuration remains pending.
-4. Record a real public search, a successfully read result page, and a dated
-   forecast or an explicit unavailable result. Include check date and public
-   source URLs. Existing Hermes tools must do the work; no automatic replacement
-   services are installed.
-5. Record any remaining host or tool blocker before Phase 1. Data preservation
-   is covered by the synthetic fixture checks in `VERIFICATION.md`; repeat the
-   uninstall/reinstall cycle on the host only if its paths or permissions differ
-   materially. Do not make it ceremony after the relevant checks have passed.
-
-Missing search or source reading blocks Phase 1 live integration. Forecast
-unavailability is an acceptable recorded outcome. A missing private home origin
-can remain pending while a public origin is used for setup checks. **Phase 0 is
-not complete until the required actual-host checks have recorded outcomes.**
-
-Phase 1 is the thin recommendation probe and real search cycle. After its
-side-by-side trial, Phase 1.5 reviews setup friction before deciding whether a
-doctor command, purge workflow or broader installer automation is warranted.
-Deferred work is not an automatic backlog commitment.
+Pass the same `--hermes-home` option for a named or custom profile. Repeated
+uninstall is harmless. There is intentionally no purge command; reconsider that
+only in Phase 1.5 if the trial reveals real setup or removal friction.
 
 Hermes references: [skill discovery and management](https://hermes-agent.nousresearch.com/docs/user-guide/features/skills)
 and [profiles and configuration](https://hermes-agent.nousresearch.com/docs/reference/faq).

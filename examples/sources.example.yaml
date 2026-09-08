@@ -1,4 +1,4 @@
-# Blank template. Add sources only to the installed private sources.yaml.
-schema_version: 1
-# Future records: id, name, url, enabled, scope, added_at, query_guidance.
-sources: []
+{
+  "schema_version": 1,
+  "sources": []
+}

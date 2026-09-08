@@ -4,6 +4,7 @@ sources.yaml
 shortlists.jsonl
 feedback.jsonl
 installation.json
+.family-scout.lock
 private/
 data/
 .hermes/

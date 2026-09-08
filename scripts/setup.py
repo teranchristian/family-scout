@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Copy the setup skill into an existing Hermes home; preserve private state."""
+"""Copy the Family Scout skill into an existing Hermes home."""
 
 import argparse
 import hashlib
@@ -11,7 +11,7 @@ import tempfile
 
 
 REPO = Path(__file__).resolve().parent.parent
-SOURCE = REPO / "hermes-skill" / "SKILL.md"
+SKILL_SOURCE = REPO / "hermes-skill"
 STATE_FILES = {
     "profile.yaml": "profile.example.yaml",
     "sources.yaml": "sources.example.yaml",
@@ -35,6 +35,30 @@ def digest(content):
 
 def inside(path, parent):
     return path == parent or parent in path.parents
+
+
+def source_files():
+    files = {"SKILL.md": SKILL_SOURCE / "SKILL.md"}
+    references = SKILL_SOURCE / "references"
+    if references.is_dir():
+        for path in sorted(references.rglob("*.md")):
+            require(path.is_file() and not path.is_symlink(),
+                    "Skill references must be regular files inside the repository.")
+            files[str(path.relative_to(SKILL_SOURCE))] = path
+    require(files["SKILL.md"].is_file() and not files["SKILL.md"].is_symlink(),
+            "Repository SKILL.md is missing or is not a regular file.")
+    return files
+
+
+def owned_files(record):
+    if record["schema_version"] == 1:
+        return {"SKILL.md": record["skill_sha256"]}
+    return record["skill_files"]
+
+
+def safe_relative_path(value):
+    path = Path(value)
+    return bool(value) and not path.is_absolute() and ".." not in path.parts
 
 
 def resolve_home(explicit):
@@ -62,25 +86,51 @@ def read_installation(target):
         record = json.loads(marker.read_text())
     except (ValueError, UnicodeError) as exc:
         raise SetupError("Installation record is unreadable; leave it intact.") from exc
-    require(isinstance(record, dict) and record.get("project") == "family-scout"
-            and record.get("schema_version") == 1
-            and isinstance(record.get("skill_sha256"), str)
-            and isinstance(record.get("source_dir"), str)
-            and isinstance(record.get("data_dir"), str)
-            and Path(record["source_dir"]).is_absolute()
-            and Path(record["data_dir"]).is_absolute(),
+    schema = record.get("schema_version") if isinstance(record, dict) else None
+    common = (isinstance(record, dict)
+              and record.get("project") == "family-scout"
+              and schema in (1, 2)
+              and isinstance(record.get("source_dir"), str)
+              and isinstance(record.get("data_dir"), str)
+              and Path(record["source_dir"]).is_absolute()
+              and Path(record["data_dir"]).is_absolute())
+    versioned = ((schema == 1 and isinstance(record.get("skill_sha256"), str))
+                 or (schema == 2 and isinstance(record.get("skill_files"), dict)
+                     and bool(record["skill_files"])
+                     and all(safe_relative_path(path) and isinstance(value, str)
+                             for path, value in record["skill_files"].items())))
+    require(common and versioned,
             "Unrecognized installation record; leave it intact.")
-    skill = target / "SKILL.md"
-    require(skill.is_file() and not skill.is_symlink(),
-            "Installed SKILL.md is missing or is not a regular file; leave it intact.")
-    current = digest(skill.read_bytes())
-    accepted = {record["skill_sha256"]}
-    if SOURCE.is_file():
-        accepted.add(digest(SOURCE.read_bytes()))
-    require(current in accepted,
-            "Installed SKILL.md has local edits. Review them, copy the intended "
-            "non-private changes into hermes-skill/SKILL.md, then rerun. "
-            "Nothing was overwritten or removed.")
+    available_sources = {}
+    if (SKILL_SOURCE / "SKILL.md").is_file():
+        try:
+            available_sources = source_files()
+        except SetupError:
+            # Recorded hashes are sufficient to protect uninstall when the
+            # checkout is incomplete. A later install will report the source error.
+            available_sources = {}
+    for relative, recorded_hash in owned_files(record).items():
+        installed = target / relative
+        require(all(not parent.is_symlink() for parent in installed.parents
+                    if inside(parent, target) and parent != target),
+                "An installed skill subdirectory is a symlink; leave it intact.")
+        if not installed.exists():
+            require(not installed.is_symlink(),
+                    "An installed Family Scout path is a broken symlink; leave it intact.")
+            # An interrupted install/uninstall may leave the ownership marker
+            # after one of its files. The record still safely identifies the
+            # remaining paths; install can restore and uninstall can finish.
+            continue
+        require(installed.is_file() and not installed.is_symlink(),
+                "An installed Family Scout file is not regular; leave it intact.")
+        current = digest(installed.read_bytes())
+        accepted = {recorded_hash}
+        if relative in available_sources:
+            accepted.add(digest(available_sources[relative].read_bytes()))
+        require(current in accepted,
+                "An installed Family Scout file has local edits: " + relative +
+                ". Review it, copy intended non-private changes into hermes-skill, "
+                "then rerun. Nothing was overwritten or removed.")
     return record
 
 
@@ -117,6 +167,32 @@ def prepare_state(data):
             handle.write(content)
 
 
+def preflight_destinations(target, sources, previous):
+    for relative, source in sources.items():
+        destination = target / relative
+        if relative not in previous:
+            recoverable = (destination.is_file() and not destination.is_symlink()
+                           and digest(destination.read_bytes()) == digest(source.read_bytes()))
+            require((not destination.exists() and not destination.is_symlink()) or recoverable,
+                    "A new skill path is already occupied; leave it intact: " + relative)
+        parent = destination.parent
+        while parent != target:
+            require(not parent.is_symlink() and (not parent.exists() or parent.is_dir()),
+                    "A skill subdirectory path is unsafe; leave it intact: " + relative)
+            parent = parent.parent
+
+
+def remove_empty_parents(target, relative_paths):
+    parents = {parent for relative in relative_paths
+               for parent in (target / relative).parents if parent != target}
+    for parent in sorted(parents, key=lambda value: len(value.parts), reverse=True):
+        if inside(parent, target):
+            try:
+                parent.rmdir()
+            except OSError:
+                pass
+
+
 def install(args, hermes_home, target, record):
     chosen_data = (args.data_dir or (record and record["data_dir"])
                    or str(Path.home() / ".local" / "share" / "family-scout"))
@@ -128,16 +204,30 @@ def install(args, hermes_home, target, record):
     require(not record or data == Path(record["data_dir"]).resolve(),
             "This installation already uses another data directory. Uninstall "
             "first to change it; state migration is not automatic.")
-    content = SOURCE.read_bytes()
+    sources = source_files()
+    previous = owned_files(record) if record else {}
+    preflight_destinations(target, sources, previous)
     prepare_state(data)
     target.mkdir(parents=True, exist_ok=True)
-    atomic_write(target / "SKILL.md", content)
+    for relative, source in sources.items():
+        destination = target / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        atomic_write(destination, source.read_bytes())
+    stale = set(previous) - set(sources)
+    for relative in stale:
+        path = target / relative
+        if path.exists():
+            path.unlink()
+    remove_empty_parents(target, stale)
+    hashes = {relative: digest(source.read_bytes())
+              for relative, source in sources.items()}
     record = {
         "project": "family-scout",
-        "schema_version": 1,
+        "schema_version": 2,
         "source_dir": str(REPO),
         "data_dir": str(data),
-        "skill_sha256": digest(content),
+        "skill_sha256": hashes["SKILL.md"],
+        "skill_files": hashes,
     }
     atomic_write(target / "installation.json",
                  (json.dumps(record, indent=2) + "\n").encode())
@@ -146,17 +236,22 @@ def install(args, hermes_home, target, record):
     print("Installed skill (copy): " + str(target))
     print("Private data: " + str(data))
     print("Repository source: " + str(REPO))
-    print("SETUP PENDING: Review profile.yaml privately; new profiles are blank.")
-    print("UNVERIFIED: Fresh Hermes loading, profile reading, live search, "
-          "source reading and dated forecast handling still need host checks.")
+    print("PROFILE: Review profile.yaml privately; new profiles are blank.")
+    print("NEXT: In a fresh Hermes conversation, run one Phase 1 recommendation "
+          "cycle and record live source, forecast and persistence outcomes.")
 
 
 def uninstall(target, record):
     if record is None:
         print("OK: Family Scout is not installed at this Hermes home. State was untouched.")
         return
-    (target / "SKILL.md").unlink()
+    paths = list(owned_files(record))
+    for relative in paths:
+        path = target / relative
+        if path.exists():
+            path.unlink()
     (target / "installation.json").unlink()
+    remove_empty_parents(target, paths)
     if not any(target.iterdir()):
         target.rmdir()
     else:
