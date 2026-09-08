@@ -2,7 +2,9 @@
 
 Read this file in full before researching or refining an outing shortlist. The
 briefing reference owns ranking and presentation; the CLI reference owns
-deterministic calculations and persistence.
+deterministic calculations and persistence. Before live discovery, also read
+[runtime-tools.md](runtime-tools.md) for the tooling lessons about which
+available browser, search, fetching and geocoding tools work for which step.
 
 ## Interpret the request
 

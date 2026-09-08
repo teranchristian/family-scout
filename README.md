@@ -42,9 +42,9 @@ and numerical match scores.
 
 The installed skill uses progressive disclosure so its entry point stays small:
 `SKILL.md` routes recommendation work to separate discovery and briefing
-references, while feedback/profile work uses a memory reference. Hermes loads
-only the modules required for the current task instead of one increasingly large
-instruction file.
+references, discovery loads focused runtime-tool notes, and feedback/profile
+work uses a memory reference. Hermes loads only the modules required for the
+current task instead of one increasingly large instruction file.
 
 ## Install or update
 
@@ -86,7 +86,7 @@ overwritten, parsed or repaired by the installer. New data directories use mode
 | Location | Purpose |
 | --- | --- |
 | `hermes-skill/SKILL.md` | Thin task router and shared boundaries |
-| `hermes-skill/references/` | Focused discovery, briefing, memory and helper contracts |
+| `hermes-skill/references/` | Focused discovery, briefing, runtime, memory and helper contracts |
 | `scripts/family_scout.py` | Deterministic validation and persistence helper |
 | `<hermes-home>/skills/family-scout/` | Installed copy of the skill instruction tree |
 | `<hermes-home>/skills/family-scout/installation.json` | Owned-file hashes plus repository and private-state paths |

@@ -162,6 +162,7 @@ class Phase1Test(unittest.TestCase):
                 "references/cli.md",
                 "references/discovery.md",
                 "references/memory.md",
+                "references/runtime-tools.md",
             },
         )
         for relative in record["skill_files"]:
@@ -513,6 +514,7 @@ class Phase1Test(unittest.TestCase):
             "straight-line distance",
             "six search queries",
             "One failed page, PDF or reader path",
+            "[runtime-tools.md](runtime-tools.md)",
         ):
             self.assertIn(phrase, discovery)
         for phrase in (
