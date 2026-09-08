@@ -49,6 +49,22 @@ invent a fact or candidate to complete a list. Save the exact numbered options
 before displaying them and learn only from explicit feedback. Do not calculate
 or show a numerical match score.
 
+After `shortlist-save` succeeds, do not compose or rewrite numbered option cards
+freehand. Draft one URL-free body for each saved option, then run:
+
+```sh
+python3 <source_dir>/scripts/render_briefing.py --data-dir <data_dir> \
+  --search-id <search_id> --input <render-payload.json>
+```
+
+The render payload is `{"cards":[{"number":1,"body":"..."}, ...]}` and must
+contain exactly one body for every saved option. Paste the returned
+`numbered_options_markdown` **verbatim** into the answer. You may write an intro,
+weather summary, plan or practical notes around that block, but never remove,
+rewrite or add links inside it. The renderer appends only links already accepted
+by the saved option's `link_checks`. If rendering fails, repair the render input;
+do not fall back to freehand numbered cards.
+
 The helper validates and persists structured facts but cannot create evidence.
 Preserve malformed/private state and stop the affected write. Never install a
 provider, change Hermes configuration, claim a booking, or store private profile
