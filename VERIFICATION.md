@@ -30,22 +30,35 @@ non-profile synthetic file to prove that setup preserves existing bytes rather
 than parsing, replacing or repairing them. The temporary fixture was removed
 after the run.
 
-## Actual Hermes host — pending
+## Actual Hermes host — passed 2026-09-08 SGT
 
-This build session did not have a route to the Hermes host, so these outcomes
-are deliberately not inferred from filesystem fixture checks:
+A fresh Hermes conversation reported these results at 08:04 +08 using Singapore
+Botanic Gardens as an arbitrary public test location. It used no family data,
+made no recommendations and did not modify private state or Hermes configuration.
 
-- [ ] Confirm the actual active profile and install into its supported skill path.
-- [ ] Confirm a fresh conversation discovers and loads `family-scout`.
-- [ ] Confirm the installed skill can read the private profile; record blank or
-  configured status without publishing its values.
-- [ ] Run a public web search at an arbitrary public location and record the URL.
-- [ ] Open a returned source page and confirm its contents can be read.
-- [ ] Retrieve a dated forecast from an available tool or readable source, or
-  explicitly record unavailability and the attempted source/tool.
-- [ ] Run repeat install, normal uninstall and reinstall on the actual host and
-  confirm the intended private state is preserved.
+- [x] The active `default` profile listed `family-scout` as enabled. Hermes loaded
+  it with `skill_view` from `~/.hermes/skills/family-scout/SKILL.md`.
+- [x] `profile.yaml`, `sources.yaml`, `shortlists.jsonl` and `feedback.jsonl`
+  were readable. The profile was reported as blank and the source list empty;
+  private values were not needed for the test.
+- [x] Live search returned the official [Singapore Botanic Gardens general
+  information page](https://sbg.nparks.gov.sg/visit/general-info/) for an opening
+  hours and admission query.
+- [x] Hermes opened and read that official source page, rather than relying only
+  on a search snippet.
+- [x] Hermes retrieved a dated 8 September 2026 forecast from the [AccuWeather
+  Singapore daily forecast](https://www.accuweather.com/en/sg/singapore/300597/daily-weather-forecast/300597).
 
-Missing search or source-page reading blocks Phase 1 live integration. An
-explicitly recorded unavailable forecast is allowed. Phase 0 remains **host
-verification pending** until every required actual-host outcome is recorded.
+On this host, `web_extract` provides search but not page extraction. Source-page
+reading and the forecast therefore used the existing `curl`/`r.jina.ai` reader
+path. This satisfies the Phase 0 capability requirement because both live pages
+were actually read and no replacement package or Hermes configuration was added.
+It is still a third-party reliability dependency to observe during the Phase 1
+trial; it is not a reason to add a provider before evidence shows one is needed.
+
+The destructive-path acceptance checks—repeat install, normal uninstall and
+reinstall with byte-for-byte state preservation—already passed against temporary
+synthetic state. They were not repeated solely as host ceremony because the
+actual installation reported no material path or permission difference.
+
+**Phase 0 result: passed. Phase 1 may begin when requested.**

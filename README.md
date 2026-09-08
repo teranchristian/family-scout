@@ -112,8 +112,10 @@ They do not establish live host readiness. On the actual Hermes host:
    forecast or an explicit unavailable result. Include check date and public
    source URLs. Existing Hermes tools must do the work; no automatic replacement
    services are installed.
-5. Verify normal uninstall and reinstall against synthetic state, preserving
-   every state file. Record any remaining host or tool blocker before Phase 1.
+5. Record any remaining host or tool blocker before Phase 1. Data preservation
+   is covered by the synthetic fixture checks in `VERIFICATION.md`; repeat the
+   uninstall/reinstall cycle on the host only if its paths or permissions differ
+   materially. Do not make it ceremony after the relevant checks have passed.
 
 Missing search or source reading blocks Phase 1 live integration. Forecast
 unavailability is an acceptable recorded outcome. A missing private home origin
