@@ -143,6 +143,14 @@ example is deliberately unrelated to any person:
       "date_end": "2030-04-07T11:00:00+00:00",
       "checked_at": "2030-04-06T09:00:00Z",
       "source_urls": ["https://events.example.org/example-activity"],
+      "link_checks": [
+        {
+          "url": "https://events.example.org/example-activity",
+          "purposes": ["facts"],
+          "result": "content_verified",
+          "checked_at": "2030-04-06T09:00:00Z"
+        }
+      ],
       "distance_km": 1.2,
       "cost": {"status": "known", "amount": 0, "currency": "XXX", "basis": "attending group"},
       "indoor_status": "indoor",
@@ -171,6 +179,15 @@ Reusing the same operation ID does not
 append a duplicate. Different pages for the same activity occurrence belong in
 one option's `source_urls`; different dated sessions receive separate session
 identities.
+
+`link_checks` is the complete list of links that may appear in the option card.
+Every `source_urls` entry must have a matching `content_verified` check with the
+`facts` purpose. A mandatory booking needs a `content_verified` link with the
+`booking` purpose. A checked navigation link may use `reachable` with the `map`
+purpose. Do not put `failed`, unchecked, search-handle, 404/soft-404 or
+wrong-target URLs in `link_checks`, and do not add a link to the displayed answer
+after `shortlist-save` succeeds. Apply the same structure to a **Needs checking**
+lead whenever it includes a link.
 
 Resolve later phrases such as “number 1” with one unambiguous reference:
 

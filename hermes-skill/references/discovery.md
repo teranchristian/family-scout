@@ -84,6 +84,8 @@ the remaining fetch budget on detailed activity, price and booking research.
 For the requested date or session, establish every applicable hard requirement:
 
 - operating date, usable hours, last entry and special closure;
+- current official notices, calendars or news for temporary closure,
+  maintenance and special hours on that date;
 - participation ages and whether every attending child can take part;
 - mandatory adult, child, activity and booking fees for the attending group;
 - indoor/outdoor/mixed status when requested or weather-relevant;
@@ -91,9 +93,18 @@ For the requested date or session, establish every applicable hard requirement:
 - evidenced venue coordinates for the inclusive radius calculation.
 
 A recurring venue is date-confirmed only when current opening information covers
-the requested weekday/date and no applicable closure is found. An event is
+the requested weekday/date and its applicable official notices/calendar have
+been checked for exceptions. Regular weekly hours are only the baseline. When no
+date-specific opening confirmation exists, say **scheduled open based on regular
+hours; no applicable closure notice found**, not “verified open”. An event is
 date-confirmed only for the current year's correct session. Exclude past,
 cancelled, closed and unusably timed occurrences. Do not assume late entry.
+
+Verify separately any sub-facility, program or feature used to justify the
+recommendation, such as a planetarium, performance, workshop or interaction.
+The host venue being open does not establish that the promoted feature runs on
+the requested date. Remove an unavailable feature from the option and reconsider
+the ranking; exclude the whole option only when that feature is essential.
 
 Classify each hard requirement separately:
 
@@ -121,6 +132,11 @@ A venue, activity and dated session are distinct. Combine evidence for the same
 occurrence and preserve separate dated sessions. Record the direct factual page
 and booking page when applicable; a generic guide alone is not an ideal final
 link.
+
+Before saving, apply the current-link validation procedure in
+`runtime-tools.md` to every URL that will appear in the answer. Store those exact
+URLs and results in each option's `link_checks`; do not display a URL that is not
+recorded there as successful.
 
 ## Weather evidence
 

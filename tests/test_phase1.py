@@ -98,6 +98,14 @@ class Phase1Test(unittest.TestCase):
             "date_end": "2030-04-07T11:00:00+00:00",
             "checked_at": "2030-04-06T09:00:00Z",
             "source_urls": ["https://events.example.org/example-activity"],
+            "link_checks": [
+                {
+                    "url": "https://events.example.org/example-activity",
+                    "purposes": ["facts"],
+                    "result": "content_verified",
+                    "checked_at": "2030-04-06T09:00:00Z",
+                }
+            ],
             "distance_km": 1.2,
             "cost": {
                 "status": "known",
@@ -395,6 +403,40 @@ class Phase1Test(unittest.TestCase):
         unverified["options"][0]["constraint_results"][2]["reason"] = "price is unknown"
         self.cli("shortlist-save", payload=unverified, expected=2)
 
+        missing_link_checks = self.shortlist_payload("op-search-no-link-checks")
+        missing_link_checks["options"][0].pop("link_checks")
+        self.cli("shortlist-save", payload=missing_link_checks, expected=2)
+
+        wrong_link_target = self.shortlist_payload("op-search-wrong-link-target")
+        wrong_link_target["options"][0]["link_checks"][0]["url"] = (
+            "https://events.example.org/unrelated"
+        )
+        self.cli("shortlist-save", payload=wrong_link_target, expected=2)
+
+        unverified_factual_link = self.shortlist_payload("op-search-reachable-facts")
+        unverified_factual_link["options"][0]["link_checks"][0]["result"] = "reachable"
+        self.cli("shortlist-save", payload=unverified_factual_link, expected=2)
+
+        missing_booking_link = self.shortlist_payload("op-search-no-booking-link")
+        missing_booking_link["options"][0]["booking"] = {
+            "required": True,
+            "availability": "available",
+        }
+        missing_booking_link["options"][0]["constraint_results"].append({
+            "requirement": "booking",
+            "status": "confirmed_match",
+            "reason": "required booking is available",
+        })
+        self.cli("shortlist-save", payload=missing_booking_link, expected=2)
+
+        unchecked_lead_link = self.shortlist_payload("op-search-unchecked-lead")
+        unchecked_lead_link["needs_checking"] = [{
+            "title": "Example Lead",
+            "missing": ["price"],
+            "source_urls": ["https://events.example.org/example-lead"],
+        }]
+        self.cli("shortlist-save", payload=unchecked_lead_link, expected=2)
+
         second = self.shortlist_payload("op-search-second")
         second["options"][0]["date_start"] = "2030-04-07T14:00:00+00:00"
         second["options"][0]["date_end"] = "2030-04-07T15:00:00+00:00"
@@ -520,6 +562,8 @@ class Phase1Test(unittest.TestCase):
             "One failed page, PDF or reader path",
             "[runtime-tools.md](runtime-tools.md)",
             "[venue-status.md](venue-status.md)",
+            "link_checks",
+            "Regular weekly hours are only the baseline",
         ):
             self.assertIn(phrase, discovery)
         for phrase in (
@@ -529,6 +573,8 @@ class Phase1Test(unittest.TestCase):
             "recommended plan for each day",
             "Final quality gate",
             "current name, address and host",
+            "every user-facing link",
+            "promoted sub-facility",
         ):
             self.assertIn(phrase, briefing)
         for phrase in (
@@ -544,8 +590,18 @@ class Phase1Test(unittest.TestCase):
             "not operating-status evidence",
             "separate candidate",
             "Needs checking",
+            "official notices",
         ):
             self.assertIn(phrase, venue_status)
+        runtime_tools = " ".join(
+            (REPO / "hermes-skill" / "references" / "runtime-tools.md").read_text().split()
+        )
+        for phrase in (
+            "Validate every link before sharing",
+            "soft-404",
+            "content_verified",
+        ):
+            self.assertIn(phrase, runtime_tools)
 
 
 if __name__ == "__main__":

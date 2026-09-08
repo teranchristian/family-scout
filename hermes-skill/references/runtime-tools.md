@@ -63,3 +63,29 @@ Within the remaining budget, try another accountable source:
 Record failed reads (as `failed` consulted sources). If the fact still cannot be
 established, label the candidate unverified; never promote it to a confirmed
 match, and never silently substitute a less relevant result.
+
+## Validate every link before sharing
+
+Every URL shown to the user must be checked during the current search. A search
+result, snippet, cached title or previously saved URL is not a link check.
+
+- For factual and booking links, open and read the exact URL after redirects.
+  Confirm that the resulting page is the intended current venue, branch,
+  activity or session and still contains the fact the link is meant to support.
+- For a navigation link, perform a current reachability check and confirm that
+  its destination or query names the same current venue and address. A map is
+  navigation evidence only, never operating-status evidence.
+- Replace a redirected URL with the current canonical destination when it still
+  targets the intended content.
+- Reject `404`/`410`, other HTTP error responses, failed reads, login/error
+  interstitials, soft-404 pages such as “not found” content returned with a
+  success code, and redirects to an unrelated or generic page.
+- Opaque result handles are tool-local references, not user-facing URLs. Resolve
+  the real `http(s)` target and check it before sharing.
+
+Record every link intended for the answer in the option's `link_checks` with its
+purpose, result and check time. Use `content_verified` only after reading the
+correct factual or booking page; use `reachable` only for a navigation link that
+was actually checked. If a useful nonessential link cannot be validated, omit it
+and give the verified address or facts in text. If the link is essential to a
+hard fact, the option is unverified and cannot be promoted.

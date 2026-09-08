@@ -41,9 +41,15 @@ not a standalone search product.
 - Confirm date/session, radius, mandatory group cost, eligibility, closure and
   mandatory booking availability when they are hard requirements. Unknown does
   not pass a strict requirement.
+- Treat regular weekly hours as a baseline, not proof for the requested date.
+  Check current official notices/calendars for temporary closure, maintenance
+  and special hours, including any promoted sub-facility or program.
 - Match the exact current venue, branch, address and host across sources. Use
   current official venue, brand, host or municipal sources for operating status;
   map and third-party directory labels are for discovery or navigation, not proof.
+- Validate every link that will be shown to the user during the current search.
+  Reject HTTP errors, failed reads, soft-404/error pages and wrong-target
+  redirects; never copy an opaque search-result handle into the briefing.
 - Use evidenced coordinates and unrounded Haversine distance for the inclusive
   radius comparison. Label displayed results as straight-line distance.
 - Apply hard requirements before qualitative ordering. Never calculate or show

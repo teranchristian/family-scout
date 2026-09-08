@@ -26,7 +26,10 @@ with ambiguous identity:
 1. Check its current official venue page or the brand's current store directory.
 2. When it is inside a mall, station building or other host, check the host's
    current official page and whether the host itself still operates.
-3. Search in the local language for closure and relocation terms when the
+3. Check the official notices, news or calendar applicable to the requested date
+   for temporary closure, maintenance and special hours. Do the same for any
+   sub-facility or program that will be promoted as a reason to visit.
+4. Search in the local language for closure and relocation terms when the
    official identity is ambiguous or the venue may have moved. In Japanese,
    useful terms include `閉店`, `閉館`, `営業終了` and `移転`. Open the underlying
    official announcement or current official directory entry before deciding.
@@ -55,7 +58,10 @@ relocation or reopening notice when those exist.
   venue is **Unverified** and may appear only under **Needs checking**, with the
   operating-status conflict stated explicitly.
 - Never describe a venue as verified open merely because weekday hours appear
-  on a page. First establish that the exact entity still operates.
+  on a page. First establish that the exact entity still operates, then check
+  its current official notices for the requested date. When evidence establishes
+  only the regular schedule, describe it as scheduled open with no applicable
+  closure notice found.
 
 The map link in the final briefing is for location and navigation only and must
 resolve to the same venue name and address used in the official evidence. Record

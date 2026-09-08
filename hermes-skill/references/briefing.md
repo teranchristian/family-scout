@@ -49,9 +49,11 @@ For every numbered option include:
   implication.
 - **Getting there:** straight-line distance. Add sourced travel time and mode
   when available; never derive it from straight-line distance.
-- **Links:** a direct current official/factual page, booking link when applicable,
-  and a map link or stable map search link. Put links beside the facts they
-  support rather than in a detached source dump.
+- **Links:** a direct current official/factual page and a booking link when
+  applicable. Add a map link only when it passed the current link check;
+  otherwise give the verified address in text. Put links beside the facts they
+  support rather than in a detached source dump. Display only exact URLs recorded
+  as successful in the saved option's `link_checks`.
 - **Why it ranks here:** a concise evidence-backed reason and any material
   caveat or uncertainty.
 
@@ -75,8 +77,12 @@ Before saving and answering, check all of the following:
   detail about what the family can do?
 - Are requested-date hours, total group cost, eligibility, closure and mandatory
   booking verified wherever applicable?
+- Was every promoted sub-facility or program checked for the requested date,
+  rather than inferred from the host venue's normal opening?
 - Does each venue's current name, address and host match across its official
   evidence and map link, with official closure or relocation information resolved?
+- Did every user-facing link pass a current exact-target check after redirects,
+  with no HTTP error, soft 404, failed read or wrong destination?
 - Did a failed page or PDF cause an important category to be abandoned too soon?
 - Are recurring attractions separated from scheduled events?
 - Could the user choose and leave without first asking for all the missing basic
@@ -87,5 +93,6 @@ budget is exhausted, return the verified work, state the material gap plainly an
 offer one separate bounded deeper search. Never describe an unverified lead as a
 confirmed option.
 
-Call `shortlist-save` with the exact numbered options and evidence snapshot
-before displaying them. Reuse its operation ID after an uncertain retry.
+Call `shortlist-save` with the exact numbered options, evidence snapshot and
+successful `link_checks` before displaying them. Reuse its operation ID after an
+uncertain retry. Do not add or alter links after the save.

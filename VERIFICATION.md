@@ -87,6 +87,7 @@ profile on the Hermes host.
 | Cross-search references | Passed | Stable search resolution worked and an ambiguous conversation reference was refused rather than guessed |
 | Explicit feedback | Passed | Feedback retry was idempotent; correction and retraction stayed append-only; fresh context exposed only effective signals |
 | Malformed-state preservation | Passed | Malformed profile and JSONL writes failed without changing a byte |
+| User-facing link evidence | Passed | Confirmed options now require current content-verified factual links; the helper rejected missing checks, wrong URLs, reachability-only factual checks, missing mandatory-booking links and unchecked lead links |
 
 These checks establish that the Phase 1 code and deterministic contract are
 **built**. They do not establish that Hermes will consistently interpret natural
@@ -121,6 +122,17 @@ official operating status are now checked early, while map listings remain for
 location and navigation rather than closure evidence. Unresolved official facts
 cannot be promoted to confirmed options. This observation also remains a
 failed-but-useful trial, not validation.
+
+The same family-facing result exposed two additional evidence failures: two
+shared links returned 404, and an open children's centre was recommended partly
+for a planetarium that had a requested-date maintenance closure on a separate
+official notice page. The correction now requires a current exact-target check
+for every displayed factual, booking and navigation link, records successful
+checks in the shortlist, and makes the helper refuse unchecked or mismatched
+links. It also treats weekly hours as a baseline and verifies any promoted
+sub-facility or program against current official notices for the requested date.
+This remains trial evidence; the behavior must be rerun in fresh Hermes after
+installing the updated skill.
 
 - [ ] Complete 3–5 real Family Scout searches with current source pages.
 - [ ] Give explicit feedback, then verify it affects a relevant recommendation

@@ -20,6 +20,10 @@ Repository: <https://github.com/teranchristian/family-scout>
   booking checks without silently treating unknown facts as matches.
 - Checks exact venue/branch identity and resolves current closure or relocation
   signals before investing in detailed research or calling a venue open.
+- Checks current official notices for requested-date closures, maintenance and
+  unavailable promoted sub-facilities instead of relying on weekly hours alone.
+- Opens and validates every factual, booking and navigation link that will be
+  shown to the user, omitting broken, soft-404 and wrong-target URLs.
 - For broad searches, targets four or five decision-ready ranked options, fewer
   when evidence is weak, and at most two clearly labelled **Needs checking**
   leads.
@@ -126,7 +130,8 @@ Check that Hermes:
 2. Searches multiple relevant source classes in the local language when useful.
 3. Uses the right dated forecast or explicitly reports it unavailable.
 4. Rejects or labels unknown hard facts instead of assuming they pass.
-5. Gives decision-ready option details with direct factual and map links.
+5. Gives decision-ready option details with direct factual and map links that
+   were opened or reachability-checked during the current search.
 6. Makes its ranking agree with the weather and attending ages.
 7. Saves the exact shortlist before presenting it.
 

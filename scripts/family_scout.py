@@ -42,6 +42,8 @@ FEEDBACK_STATES = {
     "liked", "disliked", "saved", "interested", "visited", "bored",
     "too_crowded", "too_expensive", "too_much_walking", "note", "retracted",
 }
+LINK_PURPOSES = {"facts", "booking", "map", "other"}
+LINK_RESULTS = {"content_verified", "reachable"}
 
 
 class ScoutError(Exception):
@@ -97,6 +99,42 @@ def valid_url(value, label="URL"):
     require(parsed.scheme in ("http", "https") and bool(parsed.netloc),
             f"{label} must be an http(s) URL")
     return value
+
+
+def validate_link_checks(checks, label, source_urls=(), booking_required=False):
+    require(isinstance(checks, list) and checks,
+            f"{label} must contain every user-facing link")
+    checks_by_url = {}
+    for index, check in enumerate(checks):
+        require(isinstance(check, dict), f"{label}[{index}] must be an object")
+        url = valid_url(check.get("url"), f"{label}[{index}].url")
+        require(url not in checks_by_url, f"{label} repeats a URL")
+        purposes = check.get("purposes")
+        require(isinstance(purposes, list) and purposes
+                and all(isinstance(purpose, str) and purpose in LINK_PURPOSES
+                        for purpose in purposes)
+                and len(purposes) == len(set(purposes)),
+                f"{label}[{index}].purposes is invalid")
+        link_result = check.get("result")
+        require(link_result in LINK_RESULTS,
+                f"{label}[{index}].result is invalid")
+        require(link_result == "content_verified" or set(purposes) <= {"map"},
+                "reachable is allowed only for navigation links")
+        valid_timestamp(check.get("checked_at"), f"{label}[{index}].checked_at")
+        checks_by_url[url] = check
+    for url in source_urls:
+        check = checks_by_url.get(url)
+        require(check is not None
+                and "facts" in check["purposes"]
+                and check["result"] == "content_verified",
+                f"every {label.removesuffix('.link_checks')} source URL must have a "
+                "content-verified facts link check")
+    if booking_required:
+        require(any("booking" in check["purposes"]
+                    and check["result"] == "content_verified"
+                    for check in checks),
+                "an option requiring booking must have a content-verified booking link")
+    return checks_by_url
 
 
 def valid_number(value, label, minimum=None, maximum=None):
@@ -839,6 +877,7 @@ def normalize_option(option, number, timezone_name, request):
     require(isinstance(urls, list) and urls, "option.source_urls must not be empty")
     for url in urls:
         valid_url(url, "option source URL")
+    link_checks = result.get("link_checks")
     if result.get("distance_km") is not None:
         valid_number(result["distance_km"], "option.distance_km", 0)
     cost = result.get("cost")
@@ -860,6 +899,7 @@ def normalize_option(option, number, timezone_name, request):
             "option.booking availability is invalid")
     require(not booking["required"] or booking["availability"] == "available",
             "an option requiring booking must have verified availability")
+    validate_link_checks(link_checks, "option.link_checks", urls, booking["required"])
     require(isinstance(result.get("why"), str) and result["why"].strip(),
             "option.why is required")
     constraint_results = result.get("constraint_results")
@@ -959,8 +999,14 @@ def command_shortlist_save(data_dir, args):
         require(isinstance(lead, dict) and isinstance(lead.get("missing"), list)
                 and bool(lead["missing"]),
                 "each needs_checking lead must state missing requirements")
-        for url in lead.get("source_urls", []):
+        lead_urls = lead.get("source_urls", [])
+        require(isinstance(lead_urls, list),
+                "needs_checking source_urls must be a list")
+        for url in lead_urls:
             valid_url(url, "needs_checking source URL")
+        if lead_urls or lead.get("link_checks") is not None:
+            validate_link_checks(lead.get("link_checks"),
+                                 "needs_checking.link_checks", lead_urls)
     tool_usage = payload.get("tool_usage", {})
     require(isinstance(tool_usage, dict), "tool_usage must be an object")
     limits = {"search_queries": 6, "source_fetches": 12, "forecast_lookups": 1}
