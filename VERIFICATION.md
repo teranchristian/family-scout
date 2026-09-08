@@ -114,12 +114,13 @@ A subsequent trial exposed a second correctness failure: a commercial indoor
 venue was presented as confirmed open even though its host facility had closed
 months earlier. A newer branch of the same brand operated elsewhere, and the
 answer appears to have combined the old location with current branch details.
-An independent business-map listing surfaced the closure. This justified a
-focused venue-status reference: exact branch/address/host identity and closure
-signals are now checked early, a permanent-closure map marker is treated as a
-strong contradiction to resolve, and unresolved conflicts cannot be promoted to
-confirmed options. This observation also remains a failed-but-useful trial, not
-validation.
+The user independently questioned the listing, and follow-up official sources
+established the host closure and distinct replacement branch. This justified a
+focused venue-status reference: exact branch/address/host identity and current
+official operating status are now checked early, while map listings remain for
+location and navigation rather than closure evidence. Unresolved official facts
+cannot be promoted to confirmed options. This observation also remains a
+failed-but-useful trial, not validation.
 
 - [ ] Complete 3–5 real Family Scout searches with current source pages.
 - [ ] Give explicit feedback, then verify it affects a relevant recommendation

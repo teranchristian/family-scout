@@ -539,8 +539,9 @@ class Phase1Test(unittest.TestCase):
             self.assertIn(phrase, memory)
         for phrase in (
             "exact current venue and branch name",
-            "Google Maps",
-            "Permanently closed",
+            "current official venue page",
+            "official website is sufficient",
+            "not operating-status evidence",
             "separate candidate",
             "Needs checking",
         ):

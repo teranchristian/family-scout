@@ -26,23 +26,27 @@ with ambiguous identity:
 1. Check its current official venue page or the brand's current store directory.
 2. When it is inside a mall, station building or other host, check the host's
    current official page and whether the host itself still operates.
-3. Look for an independent current status signal. When Google Maps or another
-   business map is available, inspect the listing for the exact name and address,
-   including a **Permanently closed** or relocation marker.
-4. Search in the local language for closure and relocation terms. In Japanese,
-   useful terms include `閉店`, `閉館`, `営業終了` and `移転`.
+3. Search in the local language for closure and relocation terms when the
+   official identity is ambiguous or the venue may have moved. In Japanese,
+   useful terms include `閉店`, `閉館`, `営業終了` and `移転`. Open the underlying
+   official announcement or current official directory entry before deciding.
 
-Do not require two sources for every ordinary public facility when a current
-official page clearly establishes identity and operation and no contradiction
-appears. Spend the extra status check where closure risk, a commercial branch,
-an enclosing host or conflicting evidence makes it useful.
+Do not require an independent listing when a current official venue, brand,
+municipal or host page clearly establishes the exact entity and its operation.
+The official website is sufficient. For a venue inside another facility, ensure
+the official host information does not establish that the whole host has closed.
+
+Maps and third-party directories may help discover a venue, confirm the location
+for navigation or reveal a question worth checking. Their open/closed labels are
+not operating-status evidence and must never be cited as proof that a venue is
+open or permanently closed.
 
 ## Resolve contradictions conservatively
 
-A Google Maps **Permanently closed** marker is a strong contradiction signal,
-not sole authority. Resolve it against current official venue, brand, host or
-municipal evidence. Likewise, an old official page is not enough to override a
-newer closure notice.
+A current official venue, brand, host or municipal source matching the exact
+entity determines operating status. An abandoned or undated official page may
+be stale, so prefer the current official directory or a dated official closure,
+relocation or reopening notice when those exist.
 
 - Evidence that the exact venue closed is a **Confirmed failure**; exclude it.
 - A confirmed replacement or relocated branch is a separate candidate. Verify
@@ -53,6 +57,7 @@ newer closure notice.
 - Never describe a venue as verified open merely because weekday hours appear
   on a page. First establish that the exact entity still operates.
 
-The map link in the final briefing must resolve to the same venue name and
-address used in the evidence. Record the status pages and failed reads among the
-consulted sources so a later refresh can repeat the check.
+The map link in the final briefing is for location and navigation only and must
+resolve to the same venue name and address used in the official evidence. Record
+the official status pages and failed reads among the consulted sources so a later
+refresh can repeat the check.
