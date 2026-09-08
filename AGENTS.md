@@ -41,6 +41,9 @@ not a standalone search product.
 - Confirm date/session, radius, mandatory group cost, eligibility, closure and
   mandatory booking availability when they are hard requirements. Unknown does
   not pass a strict requirement.
+- Match the exact current venue, branch, address and host across sources. Treat
+  a map's permanent-closure marker as a strong contradiction to resolve, never
+  as something weekday hours on an old or different branch page can erase.
 - Use evidenced coordinates and unrounded Haversine distance for the inclusive
   radius comparison. Label displayed results as straight-line distance.
 - Apply hard requirements before qualitative ordering. Never calculate or show

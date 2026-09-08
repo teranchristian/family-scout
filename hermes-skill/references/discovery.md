@@ -5,6 +5,8 @@ briefing reference owns ranking and presentation; the CLI reference owns
 deterministic calculations and persistence. Before live discovery, also read
 [runtime-tools.md](runtime-tools.md) for the tooling lessons about which
 available browser, search, fetching and geocoding tools work for which step.
+Before detailed verification, read [venue-status.md](venue-status.md) and apply
+its exact-identity and operating-status gate early to every shortlisted venue.
 
 ## Interpret the request
 
@@ -77,6 +79,8 @@ provider installation.
 ## Verify before calling an option confirmed
 
 Verify the correct venue and occurrence, not merely a venue with a similar name.
+Apply the identity and operating-status gate in `venue-status.md` before spending
+the remaining fetch budget on detailed activity, price and booking research.
 For the requested date or session, establish every applicable hard requirement:
 
 - operating date, usable hours, last entry and special closure;

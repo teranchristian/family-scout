@@ -75,6 +75,8 @@ Before saving and answering, check all of the following:
   detail about what the family can do?
 - Are requested-date hours, total group cost, eligibility, closure and mandatory
   booking verified wherever applicable?
+- Does each venue's current name, address and host match across its factual and
+  map links, with every closure or relocation signal resolved conservatively?
 - Did a failed page or PDF cause an important category to be abandoned too soon?
 - Are recurring attractions separated from scheduled events?
 - Could the user choose and leave without first asking for all the missing basic

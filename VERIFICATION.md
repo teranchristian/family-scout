@@ -110,6 +110,17 @@ contract now requires weather-consistent ranking, direct links, concrete activit
 detail and day-specific plans. This is a failed-but-useful trial observation, not
 validation; rerun an equivalent privacy-safe request after installing the update.
 
+A subsequent trial exposed a second correctness failure: a commercial indoor
+venue was presented as confirmed open even though its host facility had closed
+months earlier. A newer branch of the same brand operated elsewhere, and the
+answer appears to have combined the old location with current branch details.
+An independent business-map listing surfaced the closure. This justified a
+focused venue-status reference: exact branch/address/host identity and closure
+signals are now checked early, a permanent-closure map marker is treated as a
+strong contradiction to resolve, and unresolved conflicts cannot be promoted to
+confirmed options. This observation also remains a failed-but-useful trial, not
+validation.
+
 - [ ] Complete 3–5 real Family Scout searches with current source pages.
 - [ ] Give explicit feedback, then verify it affects a relevant recommendation
   in a later fresh Hermes conversation without weakening current constraints.

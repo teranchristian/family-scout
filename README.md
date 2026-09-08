@@ -18,6 +18,8 @@ Repository: <https://github.com/teranchristian/family-scout>
   using the tools already available to Hermes.
 - Applies strict date, radius, group cost, indoor, age, closure and mandatory
   booking checks without silently treating unknown facts as matches.
+- Checks exact venue/branch identity and resolves current closure or relocation
+  signals before investing in detailed research or calling a venue open.
 - For broad searches, targets four or five decision-ready ranked options, fewer
   when evidence is weak, and at most two clearly labelled **Needs checking**
   leads.
@@ -42,9 +44,10 @@ and numerical match scores.
 
 The installed skill uses progressive disclosure so its entry point stays small:
 `SKILL.md` routes recommendation work to separate discovery and briefing
-references, discovery loads focused runtime-tool notes, and feedback/profile
-work uses a memory reference. Hermes loads only the modules required for the
-current task instead of one increasingly large instruction file.
+references, discovery loads focused runtime-tool and venue-status notes, and
+feedback/profile work uses a memory reference. Hermes loads only the modules
+required for the current task instead of one increasingly large instruction
+file.
 
 ## Install or update
 

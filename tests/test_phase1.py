@@ -163,6 +163,7 @@ class Phase1Test(unittest.TestCase):
                 "references/discovery.md",
                 "references/memory.md",
                 "references/runtime-tools.md",
+                "references/venue-status.md",
             },
         )
         for relative in record["skill_files"]:
@@ -499,6 +500,9 @@ class Phase1Test(unittest.TestCase):
         memory = " ".join(
             (REPO / "hermes-skill" / "references" / "memory.md").read_text().split()
         )
+        venue_status = " ".join(
+            (REPO / "hermes-skill" / "references" / "venue-status.md").read_text().split()
+        )
         self.assertLess(len(skill_path.read_text().split()), 600)
         for phrase in (
             "Never invent a fact",
@@ -515,6 +519,7 @@ class Phase1Test(unittest.TestCase):
             "six search queries",
             "One failed page, PDF or reader path",
             "[runtime-tools.md](runtime-tools.md)",
+            "[venue-status.md](venue-status.md)",
         ):
             self.assertIn(phrase, discovery)
         for phrase in (
@@ -523,6 +528,7 @@ class Phase1Test(unittest.TestCase):
             "What it is",
             "recommended plan for each day",
             "Final quality gate",
+            "current name, address and host",
         ):
             self.assertIn(phrase, briefing)
         for phrase in (
@@ -531,6 +537,14 @@ class Phase1Test(unittest.TestCase):
             "More like this",
         ):
             self.assertIn(phrase, memory)
+        for phrase in (
+            "exact current venue and branch name",
+            "Google Maps",
+            "Permanently closed",
+            "separate candidate",
+            "Needs checking",
+        ):
+            self.assertIn(phrase, venue_status)
 
 
 if __name__ == "__main__":
