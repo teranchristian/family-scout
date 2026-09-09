@@ -37,6 +37,8 @@ Google Maps is navigation evidence only, never operating-status evidence. When a
 
 Do not overstate weather. Save numbered options before display; learn only from explicit feedback; never show a numerical match score.
 
-For broad recommendations, save through `scripts/discovery_gate.py ... shortlist-save`; it rejects results that did not record broad category coverage, dated event discovery when applicable, and finalist date enrichment. Then render with `render_briefing.py` and paste `numbered_options_markdown` verbatim.
+For broad recommendations, save through `scripts/discovery_gate.py ... shortlist-save`. Include `discovery_telemetry` with `candidates_considered`, `prior_shortlist_matches`, `activity_classes_searched`, `exact_date_event_searched`, and `finalists_date_enriched`. Familiar results are valid; novelty is never a quota. The gate requires at least five deliberately searched activity classes, exact-date event discovery for dated requests, and finalist date enrichment.
+
+Use the gate's `research_coverage` values for a short factual coverage note, then render with `render_briefing.py` and paste `numbered_options_markdown` verbatim.
 
 The helper validates structured facts but cannot create evidence. Preserve malformed/private state and stop affected writes. Never install a provider, change Hermes configuration, claim a booking, or store private profile data in this repository.
