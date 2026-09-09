@@ -170,6 +170,7 @@ class Phase1Test(unittest.TestCase):
                 "references/cli.md",
                 "references/discovery.md",
                 "references/memory.md",
+                "references/quality.md",
                 "references/runtime-tools.md",
                 "references/venue-status.md",
             },

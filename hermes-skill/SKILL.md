@@ -33,11 +33,12 @@ verification.
 
 ## Shared boundaries
 
-Use current read source pages; snippets are leads, not proof. Resolve freshness
-before hard claims: the newest applicable date-specific official notice beats a
-general official page, which beats regular hours, which beats secondary sources.
-A later or more specific closure, maintenance, programme or special-hours notice
-overrides older general information.
+Use current read source pages; snippets are leads, not proof. Never invent a fact
+or candidate to complete a list. Resolve freshness before hard claims: the newest
+applicable date-specific official notice beats a general official page, which
+beats regular hours, which beats secondary sources. A later or more specific
+closure, maintenance, programme or special-hours notice overrides older general
+information.
 
 Use evidence-strength wording precisely. Say **confirmed open** only when
 date-specific evidence establishes it. If regular hours apply and current
