@@ -93,7 +93,7 @@ After behavior or persistence changes, run:
 
 ```sh
 python3 -m unittest discover -s tests -v
-python3 -m py_compile scripts/setup.py scripts/family_scout.py scripts/discovery_context.py tests/test_phase1.py tests/test_discovery_context.py
+python3 -m py_compile scripts/setup.py scripts/family_scout.py scripts/discovery_context.py scripts/finalize_briefing.py tests/test_phase1.py tests/test_discovery_context.py tests/test_finalize_briefing.py
 python3 /root/.codex/skills/.system/skill-creator/scripts/quick_validate.py hermes-skill
 git diff --check
 ```
