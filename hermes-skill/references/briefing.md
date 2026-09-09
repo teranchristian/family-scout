@@ -17,16 +17,41 @@ rank by:
 
 Use reasons, never numerical scores. With no feedback, rely only on current
 instructions and explicit profile facts. A requested revisit can outrank novelty.
+A genuinely useful exact-date activity or session that matches the children's
+ages and requested time window should receive meaningful weight over a generic
+everyday venue, provided the practical trade-offs remain reasonable.
 
 For a broad search, target four or five genuinely useful confirmed options.
 Return fewer when evidence is insufficient; never pad the list and never exceed
 five. Add at most two promising leads under **Needs checking**, each naming the
 exact missing hard requirement. A short, specific request may need fewer choices.
 
+### Preserve variety in a broad shortlist
+
+Do not let the final list become repetitive merely because one venue type was
+easy to discover or verify. Assign each candidate a practical **primary
+experience** such as free-play children's hall, museum/science, animals,
+workshop/class, commercial indoor attraction, library/culture, or outdoor
+exploration.
+
+For a broad recommendation request, do not let more than half of the confirmed
+shortlist share essentially the same primary experience when a reasonably useful
+verified alternative from another searched category exists. For example, three
+municipal free-play rooms should not occupy three of four slots when a suitable
+verified aquarium, museum, workshop or commercial family attraction is also
+available.
+
+Repeated venue types are allowed when the broader category search genuinely
+found no comparable alternatives, when the user explicitly asked for that type,
+or when proximity/cost/other hard constraints make the repetition materially
+useful. In that case, keep the better repeated options and do not invent variety.
+
 The ordering must agree with the explanation. If rain is a major factor, useful
 verified indoor options should normally lead. Outdoor places may remain as
 clearly labelled dry-window backups, but do not make an outdoor-only top list
-while claiming the forecast favours indoor activities.
+while claiming the forecast favours indoor activities. Weather can reorder the
+broadly discovered pool; it should not excuse skipping whole plausible categories
+unless the user explicitly imposed an indoor-only constraint.
 
 A feature that is unavailable or unverified on the requested date cannot improve
 an option's rank. If a venue's strongest advertised attraction is not running,
@@ -56,7 +81,9 @@ For every numbered option include:
   list. When an unavailable feature has a verified reopening/start date, state it
   explicitly, for example: **Planetarium unavailable today — reopens 12 Sep**.
   Do not let that caveat hide the activities that are still available at the
-  venue.
+  venue. A scheduled activity such as storytelling, a workshop or a toddler
+  session must have evidence for the exact requested date and usable time window;
+  “held periodically” is not enough.
 - **Fit by child:** give a separate line for each attending child stating the
   available activities they can actually do, how strong the fit is, and any
   meaningful limitation. Technical admission eligibility alone is not enough.
@@ -105,8 +132,20 @@ from common-sense advice.
 
 Before saving and answering, check all of the following:
 
+- For a broad request, did discovery deliberately attempt the required spread of
+  locally relevant categories rather than stopping when a few usable venues were
+  found?
+- Did weather add/reorder useful backup research rather than prematurely reducing
+  discovery to one familiar indoor venue class?
+- Did every likely finalist receive an exact-date/time-window enrichment pass for
+  its calendars, programs, notices and important sub-facilities?
+- If the answer says “no special event”, “nothing is happening”, or equivalent,
+  was that negative conclusion supported by an exact-date event source plus the
+  relevant leading-venue calendars/program pages?
 - Did discovery cover both dated events and everyday outings when the request
   was broad?
+- Is the final list needlessly repetitive, or did broader discovery establish
+  that repeated primary experiences are genuinely the best remaining choices?
 - Do the leading options actually match the forecast and family age context?
 - Does every numbered option have at least one concrete activity confirmed
   available on the requested date?
@@ -114,6 +153,8 @@ Before saving and answering, check all of the following:
   classified separately for requested-date availability with current evidence?
 - Was every promoted sub-facility or program checked for the requested date,
   rather than inferred from the host venue's normal opening?
+- For every scheduled activity, does the evidence cover the exact requested date
+  and usable time window rather than merely saying the activity is periodic?
 - If an advertised feature is unavailable or unknown, has it been removed from
   the positive selling points and the ranking reconsidered?
 - If only one sub-facility is unavailable, did we keep an otherwise strong venue
@@ -135,13 +176,17 @@ Before saving and answering, check all of the following:
   with no HTTP error, soft 404, failed read or wrong destination?
 - Did a failed page or PDF cause an important category to be abandoned too soon?
 - Are recurring attractions separated from scheduled events?
+- Does saved `tool_usage` report the actual counts performed, with `effort_mode`
+  switched to `deep` when normal limits were exceeded, rather than altering the
+  telemetry to satisfy validation?
 - Could the user choose and leave without first asking what each child can
   actually do there?
 
-If any answer is no, use the remaining search budget to repair the gap. If the
-budget is exhausted, return the verified work, state the material gap plainly and
-offer one separate bounded deeper search. Never describe an unverified lead as a
-confirmed option.
+If any material answer is no and the normal research budget is exhausted, follow
+`discovery.md` and continue the same request with bounded `deep` effort. If the
+deep budget is exhausted, return the verified work and state the remaining
+material gap plainly. Never falsify telemetry, invent variety or describe an
+unverified lead as a confirmed option.
 
 Call `shortlist-save` with the exact numbered options, evidence snapshot and
 successful `link_checks` before displaying them. Reuse its operation ID after an
