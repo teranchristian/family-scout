@@ -32,6 +32,13 @@ A feature that is unavailable or unverified on the requested date cannot improve
 an option's rank. If a venue's strongest advertised attraction is not running,
 rerank the venue using only the activities that are actually available.
 
+An unavailable optional feature does **not** make the whole venue unavailable.
+Keep the venue when the venue itself is usable, at least one concrete activity is
+confirmed available on the requested date, and the remaining verified activities
+still make it a good recommendation for the attending family. Treat the closed
+feature as a caveat, not a venue-level failure. Remove or demote the venue only
+when the remaining verified experience is no longer worthwhile for the request.
+
 ## Make the first answer decision-ready
 
 Do not defer essential details until the user chooses. Start with the interpreted
@@ -45,7 +52,11 @@ For every numbered option include:
   “aquarium” or “children's centre”.
 - **Activity availability:** distinguish everyday facilities, scheduled
   activities, sub-facilities and interactions. State unavailable or unknown
-  advertised features as caveats; never mix them into the positive activity list.
+  advertised features as caveats; never mix them into the positive activity
+  list. When an unavailable feature has a verified reopening/start date, state it
+  explicitly, for example: **Planetarium unavailable today — reopens 12 Sep**.
+  Do not let that caveat hide the activities that are still available at the
+  venue.
 - **Fit by child:** give a separate line for each attending child stating the
   available activities they can actually do, how strong the fit is, and any
   meaningful limitation. Technical admission eligibility alone is not enough.
@@ -105,6 +116,11 @@ Before saving and answering, check all of the following:
   rather than inferred from the host venue's normal opening?
 - If an advertised feature is unavailable or unknown, has it been removed from
   the positive selling points and the ranking reconsidered?
+- If only one sub-facility is unavailable, did we keep an otherwise strong venue
+  when its remaining verified activities are still worthwhile, and show the
+  unavailable feature as a warning instead of treating the whole venue as closed?
+- When a closed/unavailable feature has a verified reopening or next-available
+  date, is that date shown to the user?
 - Does every attending child have a separate fit explanation tied to named
   activities that are actually available, including material limitations?
 - Does every numbered option have a current direct factual link and meaningful
