@@ -138,8 +138,7 @@ class DiscoveryGateTest(unittest.TestCase):
 
         payload["discovery_telemetry"] = {
             "candidates_considered": 9,
-            "candidates_new": 6,
-            "candidates_from_history": 0,
+            "prior_shortlist_matches": 3,
             "activity_classes_searched": [
                 "dated_events", "children_play", "museum_culture",
                 "animals", "commercial_family", "workshops",
@@ -153,17 +152,37 @@ class DiscoveryGateTest(unittest.TestCase):
             "shortlist-save", "--input", path,
         ])
         self.assertFalse(saved["duplicate"])
-        self.assertEqual(saved["discovery_telemetry"]["candidates_considered"], 9)
+        self.assertEqual(saved["research_coverage"], {
+            "candidates_considered": 9,
+            "activity_classes_checked": 6,
+            "prior_shortlist_matches": 3,
+            "finalists_verified": 1,
+        })
 
-        payload["operation_id"] = "op-discovery-zero-new"
-        payload["discovery_telemetry"]["candidates_new"] = 0
-        payload["discovery_telemetry"]["candidates_from_history"] = 0
+        # Novelty is never a quota: all fresh candidates may be familiar.
+        payload["operation_id"] = "op-discovery-all-familiar"
+        payload["discovery_telemetry"]["prior_shortlist_matches"] = 9
         path.write_text(json.dumps(payload), encoding="utf-8")
         saved_again = self.run_process([
             PYTHON, GATE, "--source-dir", REPO, "--data-dir", self.data,
             "shortlist-save", "--input", path,
         ])
         self.assertFalse(saved_again["duplicate"])
+
+        invalid = self.shortlist_payload("op-discovery-too-few-classes")
+        invalid["discovery_telemetry"] = {
+            "candidates_considered": 4,
+            "prior_shortlist_matches": 0,
+            "activity_classes_searched": ["dated_events", "children_play"],
+            "exact_date_event_searched": True,
+            "finalists_date_enriched": True,
+        }
+        path.write_text(json.dumps(invalid), encoding="utf-8")
+        rejected_classes = self.run_process([
+            PYTHON, GATE, "--source-dir", REPO, "--data-dir", self.data,
+            "shortlist-save", "--input", path,
+        ], expected=2)
+        self.assertIn("five activity classes", rejected_classes["error"])
 
 
 if __name__ == "__main__":
