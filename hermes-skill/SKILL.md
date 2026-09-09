@@ -56,7 +56,7 @@ python3 <source_dir>/scripts/finalize_briefing.py --source-dir <source_dir> \
 
 This overrides older broad-recommendation text that calls save/render separately. The finalizer preflights both on disposable state and writes real state only if both validate.
 
-Paste `numbered_options_markdown` **verbatim**. Paste `research_summary_markdown` once after the options/needs-checking section; never invent or recalculate its counts. A short English intro/weather/practical note may surround the rendered output.
+Paste the returned `numbered_options_markdown` **verbatim**. Paste `research_summary_markdown` once after the options/needs-checking section; never invent or recalculate its counts. A short English intro/weather/practical note may surround the rendered output.
 
 If finalization fails, report that Family Scout could not finish verification; **never fall back to freehand numbered recommendations**.
 
