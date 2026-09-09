@@ -10,10 +10,14 @@ It never emits a partial/freehand briefing.
 import argparse
 import json
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
+
+
+JAPANESE_SCRIPT = re.compile(r"[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
 
 
 class FinalizeError(Exception):
@@ -49,6 +53,35 @@ def run_json(command):
     return payload
 
 
+def validate_output_language(render):
+    """Keep local-language text in the saved option title only.
+
+    The deterministic renderer gets option titles from the saved shortlist, so
+    every free-text string supplied through the render payload is user-facing
+    descriptive content and must be English. This catches the Japanese-script
+    leakage seen in live trials without rejecting a Japanese venue title.
+    """
+    require(isinstance(render, dict), "finalize payload needs render")
+
+    def walk(value, path):
+        if isinstance(value, str):
+            require(JAPANESE_SCRIPT.search(value) is None,
+                    f"render content must be English; only option titles may use "
+                    f"local-language text ({path})")
+        elif isinstance(value, list):
+            for index, item in enumerate(value):
+                walk(item, f"{path}[{index}]")
+        elif isinstance(value, dict):
+            for key, item in value.items():
+                # URLs are evidence identifiers rather than prose and may be
+                # percent-encoded or otherwise contain non-English path text.
+                if key.endswith("_url") or key == "url":
+                    continue
+                walk(item, f"{path}.{key}")
+
+    walk(render, "render")
+
+
 def validate_discovery(payload, shortlist):
     discovery = payload.get("discovery")
     require(isinstance(discovery, dict),
@@ -77,6 +110,12 @@ def validate_discovery(payload, shortlist):
     require(candidates >= len(options),
             "candidates_considered cannot be smaller than the final shortlist")
 
+    needs_checking = shortlist.get("needs_checking", [])
+    require(isinstance(needs_checking, list),
+            "shortlist.needs_checking must be a list")
+    require(candidates >= len(options) + len(needs_checking),
+            "fresh candidate count cannot be smaller than confirmed plus needs-checking results")
+
     request = shortlist.get("request")
     require(isinstance(request, dict), "shortlist.request must be an object")
     exact_date = discovery.get("exact_date_event_searched")
@@ -97,12 +136,28 @@ def validate_discovery(payload, shortlist):
     require(set(enriched) == expected,
             "every finalist must receive exact-date enrichment before finalization")
 
+    not_shortlisted = candidates - len(options) - len(needs_checking)
     return {
-        "candidates_considered": candidates,
+        "fresh_candidates": candidates,
         "activity_classes_checked": len(normalized_classes),
-        "finalists_verified": len(options),
+        "finalists_deeply_verified": len(options),
+        "confirmed_recommendations": len(options),
+        "needs_checking": len(needs_checking),
+        "not_shortlisted": not_shortlisted,
         "exact_date_event_searched": exact_date,
     }
+
+
+def research_summary(coverage):
+    return (
+        "Research: "
+        f"{coverage['fresh_candidates']} fresh candidates across "
+        f"{coverage['activity_classes_checked']} categories · "
+        f"{coverage['finalists_deeply_verified']} finalists deeply verified · "
+        f"{coverage['confirmed_recommendations']} confirmed · "
+        f"{coverage['needs_checking']} needs checking · "
+        f"{coverage['not_shortlisted']} not shortlisted"
+    )
 
 
 def write_json(path, value):
@@ -133,6 +188,7 @@ def finalize(args):
     render = payload.get("render")
     require(isinstance(shortlist, dict), "finalize payload needs shortlist")
     require(isinstance(render, dict), "finalize payload needs render")
+    validate_output_language(render)
     coverage = validate_discovery(payload, shortlist)
 
     source_dir = Path(args.source_dir).expanduser().resolve()
@@ -161,6 +217,7 @@ def finalize(args):
         "search_id": saved["search_id"],
         "duplicate": bool(saved.get("duplicate", False)),
         "research_coverage": coverage,
+        "research_summary_markdown": research_summary(coverage),
         "numbered_options_markdown": rendered["numbered_options_markdown"],
         "links_by_option": rendered.get("links_by_option", []),
     }
