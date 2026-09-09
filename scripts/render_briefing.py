@@ -13,6 +13,11 @@ ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9._-]{2,95}$")
 URL_PATTERN = re.compile(r"https?://", re.IGNORECASE)
 LINK_PURPOSES = {"facts", "booking", "map", "other"}
 LINK_RESULTS = {"content_verified", "reachable"}
+ACTIVITY_KINDS = {
+    "everyday_facility", "scheduled_activity", "sub_facility", "interaction", "other"
+}
+ACTIVITY_AVAILABILITY = {"available", "unavailable", "unknown"}
+FIT_LEVELS = {"strong", "good", "limited", "guardian"}
 
 
 class RenderError(Exception):
@@ -36,6 +41,19 @@ def valid_url(value, label):
     require(parsed.scheme in ("http", "https") and bool(parsed.netloc),
             f"{label} must be an http(s) URL")
     return value
+
+
+def non_empty_text(value, label):
+    require(isinstance(value, str) and value.strip(), f"{label} must be non-empty text")
+    return value.strip()
+
+
+def text_list(value, label, allow_empty=True):
+    require(isinstance(value, list), f"{label} must be a list")
+    require(allow_empty or value, f"{label} must not be empty")
+    require(all(isinstance(item, str) and item.strip() for item in value),
+            f"{label} must contain non-empty text")
+    return [item.strip() for item in value]
 
 
 def load_shortlist(path, search_id):
@@ -102,6 +120,99 @@ def purpose_label(purposes):
     return " / ".join(labels)
 
 
+def normalize_activities(card, facts_urls):
+    raw = card.get("activities")
+    require(isinstance(raw, list) and raw,
+            "each render card must include at least one evidenced activity")
+    seen = set()
+    activities = []
+    for index, item in enumerate(raw):
+        require(isinstance(item, dict), f"activities[{index}] must be an object")
+        name = non_empty_text(item.get("name"), f"activities[{index}].name")
+        require(name not in seen, "activities must use unique names within a card")
+        seen.add(name)
+        kind = item.get("kind")
+        availability = item.get("availability")
+        require(kind in ACTIVITY_KINDS, f"activities[{index}].kind is invalid")
+        require(availability in ACTIVITY_AVAILABILITY,
+                f"activities[{index}].availability is invalid")
+        detail = non_empty_text(item.get("detail"), f"activities[{index}].detail")
+        source_url = valid_url(item.get("source_url"), f"activities[{index}].source_url")
+        require(source_url in facts_urls,
+                "every activity must cite a content-verified factual link saved for that option")
+        activities.append({
+            "name": name,
+            "kind": kind,
+            "availability": availability,
+            "detail": detail,
+            "source_url": source_url,
+        })
+    require(any(item["availability"] == "available" for item in activities),
+            "a confirmed option must contain at least one activity available on the requested date")
+    return activities
+
+
+def normalize_family_fit(card, expected_member_ids, activities):
+    raw = card.get("family_fit")
+    require(isinstance(raw, list) and raw,
+            "each render card must include family_fit")
+    available_names = {
+        item["name"] for item in activities if item["availability"] == "available"
+    }
+    fits = []
+    seen = set()
+    for index, item in enumerate(raw):
+        require(isinstance(item, dict), f"family_fit[{index}] must be an object")
+        member_id = valid_id(item.get("member_id"), f"family_fit[{index}].member_id")
+        require(member_id not in seen, "family_fit repeats a member_id")
+        seen.add(member_id)
+        label = non_empty_text(item.get("label"), f"family_fit[{index}].label")
+        fit = item.get("fit")
+        require(fit in FIT_LEVELS, f"family_fit[{index}].fit is invalid")
+        activity_names = text_list(
+            item.get("activity_names"), f"family_fit[{index}].activity_names",
+            allow_empty=(fit == "guardian")
+        )
+        require(all(name in available_names for name in activity_names),
+                "family_fit may reference only activities available on the requested date")
+        require(fit == "guardian" or activity_names,
+                "a participating family member must have at least one available activity")
+        limitations = text_list(
+            item.get("limitations", []), f"family_fit[{index}].limitations"
+        )
+        fits.append({
+            "member_id": member_id,
+            "label": label,
+            "fit": fit,
+            "activity_names": activity_names,
+            "limitations": limitations,
+        })
+
+    if expected_member_ids:
+        require(seen == expected_member_ids,
+                "family_fit must contain exactly one entry for every attending member")
+    require(any(item["fit"] != "guardian" for item in fits),
+            "family_fit must include at least one participating family member")
+    return fits
+
+
+def activity_status_label(value):
+    return {
+        "available": "Available on the requested date",
+        "unavailable": "Unavailable on the requested date",
+        "unknown": "Availability not established",
+    }[value]
+
+
+def fit_label(value):
+    return {
+        "strong": "strong fit",
+        "good": "good fit",
+        "limited": "limited fit",
+        "guardian": "guardian/accompanying role",
+    }[value]
+
+
 def render(shortlist, payload):
     options = shortlist.get("options")
     require(isinstance(options, list) and options, "saved shortlist has no options")
@@ -116,33 +227,77 @@ def render(shortlist, payload):
                 "saved option title is missing")
         saved[number] = option
 
+    request = shortlist.get("request", {})
+    raw_member_ids = request.get("attending_member_ids", []) if isinstance(request, dict) else []
+    require(isinstance(raw_member_ids, list)
+            and all(isinstance(value, str) and ID_PATTERN.fullmatch(value)
+                    for value in raw_member_ids),
+            "saved attending_member_ids are invalid")
+    expected_member_ids = set(raw_member_ids)
+
     require(isinstance(payload, dict), "render payload must be an object")
     cards = payload.get("cards")
     require(isinstance(cards, list), "render payload cards must be a list")
-    bodies = {}
+    normalized_cards = {}
     for card in cards:
         require(isinstance(card, dict), "each render card must be an object")
         number = card.get("number")
         body = card.get("body")
         require(isinstance(number, int) and not isinstance(number, bool) and number >= 1,
                 "render card number is invalid")
-        require(number not in bodies, "render payload repeats an option number")
+        require(number not in normalized_cards, "render payload repeats an option number")
+        require(number in saved, "render payload contains an option that was not saved")
         require(isinstance(body, str) and body.strip(), "render card body must be non-empty text")
         require(URL_PATTERN.search(body) is None,
                 "render card body must not contain URLs; verified links are appended automatically")
-        bodies[number] = body.strip()
 
-    require(set(bodies) == set(saved),
-            "render payload must contain exactly one card body for every saved option")
+        checks = verified_links(saved[number])
+        facts_urls = {
+            check["url"] for check in checks
+            if "facts" in check["purposes"] and check["result"] == "content_verified"
+        }
+        activities = normalize_activities(card, facts_urls)
+        family_fit = normalize_family_fit(card, expected_member_ids, activities)
+        normalized_cards[number] = {
+            "body": body.strip(),
+            "activities": activities,
+            "family_fit": family_fit,
+            "checks": checks,
+        }
+
+    require(set(normalized_cards) == set(saved),
+            "render payload must contain exactly one card for every saved option")
 
     blocks = []
     links_by_option = []
     for number in sorted(saved):
         option = saved[number]
-        checks = verified_links(option)
-        lines = [f"**{number}. {option['title'].strip()}**", bodies[number], "", "🔗 Verified links:"]
+        card = normalized_cards[number]
+        lines = [f"**{number}. {option['title'].strip()}**", card["body"], "",
+                 "**What you can actually do**"]
+        for activity in card["activities"]:
+            lines.append(
+                f"- **{activity['name']}** — {activity_status_label(activity['availability'])}. "
+                f"{activity['detail']}"
+            )
+
+        lines.extend(["", "**Fit for each attending family member**"])
+        for fit in card["family_fit"]:
+            if fit["fit"] == "guardian":
+                continue
+            activities_text = ", ".join(fit["activity_names"])
+            limitation_text = (
+                " Limitations: " + "; ".join(fit["limitations"]) + "."
+                if fit["limitations"] else ""
+            )
+            lines.append(
+                f"- **{fit['label']}** — {fit_label(fit['fit'])}; "
+                f"can do: {activities_text}.{limitation_text}"
+            )
+
+        lines.extend(["", "🔗 Verified links:"])
         rendered_links = []
-        for check in checks:
+        for check in card["checks"]:
             label = purpose_label(check["purposes"])
             url = check["url"]
             lines.append(f"- {label}: {url}")
