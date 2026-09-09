@@ -20,11 +20,25 @@ thin router; load only references needed for the task.
   For “more like this”, also read the recommendation references.
 - **Setup/status:** use the redacted `status` command and README.
 
-## Start from private context
+## Recommendation context order
 
-Read `installation.json` for `source_dir` and `data_dir`. Run `context` before
-recommendations, feedback, corrections or “more like this”. Keep its output
-private; expose only minimum public place/date/suitability facts for discovery.
+Read `installation.json` for `source_dir` and `data_dir`. For a new broad
+recommendation, first run:
+
+```sh
+python3 <source_dir>/scripts/discovery_context.py --data-dir <data_dir>
+```
+
+Keep that output private. It intentionally excludes prior shortlists and feedback.
+Using only the request, profile, resolved location and enabled sources, perform
+fresh discovery and build a plausible candidate pool. Do not inspect
+`shortlists.jsonl`, `feedback.jsonl`, or full `context` before that pool exists.
+
+After fresh discovery, run normal `context` and use history/feedback only for
+deduplication, repetition awareness, explicit learned feedback and final
+diversity/ranking. A previously known venue may win again, but must survive fresh
+comparison. For requests explicitly about prior suggestions or “more like this”,
+history may be loaded first.
 
 Current instructions override saved preferences. Use an explicit origin or
 explicit “home”; otherwise unexpired travel, then home. Travel never replaces
@@ -37,29 +51,25 @@ verification.
 Use current read source pages; snippets are leads, not proof. Never invent a fact
 or candidate to complete a list. Resolve freshness before hard claims: the newest
 applicable date-specific official notice beats a general official page, regular
-hours, then secondary sources. Later or more specific closure, maintenance,
-programme or special-hours notices override older general information.
+hours, then secondary sources.
 
 Say **confirmed open** only when date-specific evidence establishes it. If
 regular hours apply and current official exception notices were checked with none
 found, say **scheduled to be open based on regular hours; no applicable closure
 notice found**. Never turn absence of a closure notice into “confirmed open”.
 
-A venue being open does not prove that every advertised feature is available.
+A venue being open does not prove every advertised feature is available.
 Establish requested-date availability for every promoted activity, sub-facility,
-program or interaction. Do not strengthen source wording: a playroom is not a
-“dedicated toddler playroom” unless evidence says so. For each attending family
-member, identify what they can actually do and any material limitation.
+program or interaction. For each attending family member, identify what they can
+actually do and any material limitation.
 
 Google Maps is navigation evidence only, never operating-status evidence. When
 an accountable source provides the current address, put it in the card and add a
 checked Google Maps link for that venue/address to `link_checks` with purpose
-`map`. Never use Google Maps hours or closure labels instead of official evidence.
+`map`.
 
-Do not overstate weather: distinguish precipitation probability, current
-conditions and duration. Do not say “rain all day” unless supported. Save
-numbered options before display; learn only from explicit feedback; never show a
-numerical match score.
+Do not overstate weather. Save numbered options before display; learn only from
+explicit feedback; never show a numerical match score.
 
 After `shortlist-save`, build one render card per option and run:
 
@@ -68,20 +78,13 @@ python3 <source_dir>/scripts/render_briefing.py --data-dir <data_dir> \
   --search-id <search_id> --input <render-payload.json>
 ```
 
-Each card contains `number`, URL-free `body`, `activities`, and `family_fit`.
-Put the verified address in `body` when available; do not repeat activity or
-child-fit details there. Every activity states kind, availability, concrete
-detail and a factual `source_url` accepted by saved `link_checks`. `family_fit`
-has one entry per attendee; participants reference only available activities,
-while adults may use `guardian`.
-
-Paste the returned `numbered_options_markdown` **verbatim**. A short intro,
-weather summary, plan or practical notes may surround it, but do not repeat card
-facts or alter links. If rendering fails, repair the input; never fall back to
-freehand numbered cards.
+Paste the returned `numbered_options_markdown` **verbatim**. If rendering fails,
+repair the input; never fall back to freehand numbered cards.
 
 The helper validates structured facts but cannot create evidence. Preserve
-malformed/private state and stop affected writes. Never install a provider,
-change Hermes configuration, claim a booking, or store private profile data in
-this repository. Phase 1 remains a thin probe: no database, background scraper,
-provider framework, booking integration, web UI or machine learning.
+malformed/private state and stop affected writes. Runtime Hermes must never edit
+`source_dir`, repository files, installed skill files or tests; report an
+implementation defect instead. Never install a provider, change Hermes
+configuration, claim a booking, or store private profile data in this repository.
+Phase 1 remains a thin probe: no database, background scraper, provider framework,
+booking integration, web UI or machine learning.
