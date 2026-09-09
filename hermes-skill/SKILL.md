@@ -21,9 +21,9 @@ Read `installation.json` for `source_dir` and `data_dir`. For a new broad recomm
 python3 <source_dir>/scripts/discovery_context.py --data-dir <data_dir>
 ```
 
-Keep that output private. It excludes prior shortlists and feedback. Using only the current request, profile, resolved location and enabled sources, perform **fresh discovery first**. For the current Phase 1 runtime, aim for about **6–8 plausible candidates across at least four meaningful activity classes**; this smaller target overrides larger numeric targets in older reference text. Exact-date events count as a class. Do not inspect `shortlists.jsonl`, `feedback.jsonl`, or full `context` until a fresh candidate pool exists.
+Keep that output private. It excludes prior shortlists and feedback. Using only the current request, profile, resolved location and enabled sources, perform **fresh discovery first**. For Phase 1, aim for about **6–8 plausible candidates across at least four meaningful activity classes**; this overrides larger numeric targets in older reference text. Exact-date events count as a class. Do not inspect `shortlists.jsonl`, `feedback.jsonl`, or full `context` until a fresh candidate pool exists.
 
-After fresh discovery, normal `family_scout.py context` may be used for deduplication, repetition awareness, explicit learned feedback and final diversity/ranking. History may adjust ranking but must never seed or replace fresh discovery unless the user explicitly asks about previous recommendations.
+After fresh discovery, normal `family_scout.py context` may be used for deduplication, repetition awareness, explicit feedback and final diversity/ranking. History may adjust ranking but must never seed or replace fresh discovery unless the user explicitly asks about previous recommendations.
 
 Deep exact-date verification is for the likely **4–5 finalists**, not every discovery lead. A previously known venue may win again, but it must survive current comparison.
 
@@ -35,7 +35,7 @@ Use current read source pages; snippets are leads, not proof. **Never invent a f
 
 A **venue being open does not prove** every feature is available. Establish **requested-date availability** for promoted activities/sub-facilities and identify **what they can actually do** for each attending family member. Render payloads must contain evidenced `activities` and `family_fit`.
 
-The response language is English. A venue/option **title** may keep its official local-language name, but all descriptive content must be translated into English: activity names, explanations, warnings, child-fit text, logistics, costs, practical notes and research summary. Do not mix Japanese or other local-language prose into the body.
+The response language is English. A venue/option **title** may keep its official local-language name, but all descriptive content must be translated into English: activity names, explanations, warnings, child-fit text, logistics, costs, practical notes and research summary.
 
 Google Maps is navigation evidence only, never operating-status evidence. Include a checked Maps link when an accountable source provides the address. Do not overstate weather or show a **numerical match score**.
 
@@ -45,7 +45,9 @@ Create one complete payload containing:
 
 - `shortlist`: the normal `shortlist-save` payload;
 - `render`: one renderer card per finalist, with English descriptive content;
-- `discovery`: `fresh_discovery_completed`, `candidates_considered`, unique `activity_classes_searched`, `exact_date_event_searched`, and `finalist_numbers_date_enriched`.
+- `discovery`: `fresh_discovery_completed`, `candidates_considered`, unique `activity_classes_searched`, `exact_date_event_searched`, `exact_date_event_source_urls`, and `finalist_date_enrichment`.
+
+For a dated broad search, `exact_date_event_source_urls` must contain at least one exact-date event/calendar source actually read. Each `finalist_date_enrichment` item must contain `option_number` and one or more factual `source_urls`; every URL must also be saved for that option, have a `content_verified` facts link check, and appear in `consulted_sources` as `read`. Do not claim “no special event” or equivalent unless the exact-date source evidence supports it.
 
 Then run:
 
@@ -54,7 +56,7 @@ python3 <source_dir>/scripts/finalize_briefing.py --source-dir <source_dir> \
   --data-dir <data_dir> --input <finalize-payload.json>
 ```
 
-This overrides older broad-recommendation text that calls save/render separately. The finalizer preflights both on disposable state and writes real state only if both validate.
+The finalizer preflights save + render on disposable state and writes real state only if both validate.
 
 Paste the returned `numbered_options_markdown` **verbatim**. Paste `research_summary_markdown` once after the options/needs-checking section; never invent or recalculate its counts. A short English intro/weather/practical note may surround the rendered output.
 
