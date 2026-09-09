@@ -36,9 +36,9 @@ class DiscoveryContextTest(unittest.TestCase):
     def tearDown(self):
         self.temporary.cleanup()
 
-    def run_script(self, script):
+    def run_script(self, script, *arguments):
         return subprocess.run(
-            [PYTHON, script, "--data-dir", str(self.data)],
+            [PYTHON, script, "--data-dir", str(self.data), *arguments],
             text=True,
             capture_output=True,
             cwd=REPO,
@@ -59,7 +59,7 @@ class DiscoveryContextTest(unittest.TestCase):
         self.assertNotIn("recent_shortlists", payload)
         self.assertNotIn("effective_feedback", payload)
 
-        full = self.run_script(FULL_CONTEXT)
+        full = self.run_script(FULL_CONTEXT, "context")
         self.assertEqual(full.returncode, 2)
         self.assertIn("malformed", full.stderr)
 
