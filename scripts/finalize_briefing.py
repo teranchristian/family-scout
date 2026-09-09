@@ -15,6 +15,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from urllib.parse import urlparse
 
 
 JAPANESE_SCRIPT = re.compile(r"[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
@@ -39,6 +40,14 @@ def read_json(path):
     return value
 
 
+def valid_url(value, label):
+    require(isinstance(value, str) and value.strip(), f"{label} must be a URL")
+    parsed = urlparse(value)
+    require(parsed.scheme in ("http", "https") and bool(parsed.netloc),
+            f"{label} must be an http(s) URL")
+    return value
+
+
 def run_json(command):
     completed = subprocess.run(command, text=True, capture_output=True, check=False)
     stream = completed.stdout if completed.returncode == 0 else completed.stderr
@@ -58,7 +67,7 @@ def validate_output_language(render):
 
     The deterministic renderer gets option titles from the saved shortlist, so
     every free-text string supplied through the render payload is user-facing
-    descriptive content and must be English. This catches the Japanese-script
+    descriptive content and must be English. This catches Japanese-script
     leakage seen in live trials without rejecting a Japanese venue title.
     """
     require(isinstance(render, dict), "finalize payload needs render")
@@ -73,13 +82,124 @@ def validate_output_language(render):
                 walk(item, f"{path}[{index}]")
         elif isinstance(value, dict):
             for key, item in value.items():
-                # URLs are evidence identifiers rather than prose and may be
-                # percent-encoded or otherwise contain non-English path text.
                 if key.endswith("_url") or key == "url":
                     continue
                 walk(item, f"{path}.{key}")
 
     walk(render, "render")
+
+
+def consulted_read_urls(shortlist):
+    consulted = shortlist.get("consulted_sources")
+    require(isinstance(consulted, list), "shortlist.consulted_sources must be a list")
+    urls = set()
+    for index, item in enumerate(consulted):
+        require(isinstance(item, dict),
+                f"shortlist.consulted_sources[{index}] must be an object")
+        url = valid_url(item.get("url"), f"shortlist.consulted_sources[{index}].url")
+        status = item.get("status")
+        require(isinstance(status, str) and status,
+                f"shortlist.consulted_sources[{index}].status must be non-empty")
+        if status == "read":
+            urls.add(url)
+    return urls
+
+
+def verified_fact_urls(option, option_number):
+    source_urls = option.get("source_urls")
+    checks = option.get("link_checks")
+    require(isinstance(source_urls, list) and source_urls,
+            f"option {option_number} must have source_urls")
+    require(isinstance(checks, list) and checks,
+            f"option {option_number} must have link_checks")
+
+    verified = set()
+    for index, check in enumerate(checks):
+        require(isinstance(check, dict),
+                f"option {option_number} link_checks[{index}] must be an object")
+        url = valid_url(check.get("url"),
+                        f"option {option_number} link_checks[{index}].url")
+        purposes = check.get("purposes")
+        if (check.get("result") == "content_verified"
+                and isinstance(purposes, list) and "facts" in purposes):
+            verified.add(url)
+
+    for index, url in enumerate(source_urls):
+        valid_url(url, f"option {option_number} source_urls[{index}]")
+    return set(source_urls), verified
+
+
+def validate_date_evidence(discovery, shortlist, options, dated_request):
+    read_urls = consulted_read_urls(shortlist)
+
+    event_searched = discovery.get("exact_date_event_searched")
+    require(isinstance(event_searched, bool),
+            "discovery.exact_date_event_searched must be boolean")
+
+    event_urls = discovery.get("exact_date_event_source_urls", [])
+    require(isinstance(event_urls, list)
+            and all(isinstance(item, str) and item.strip() for item in event_urls),
+            "discovery.exact_date_event_source_urls must be a list of URLs")
+    require(len(event_urls) == len(set(event_urls)),
+            "discovery.exact_date_event_source_urls must be unique")
+    for index, url in enumerate(event_urls):
+        valid_url(url, f"discovery.exact_date_event_source_urls[{index}]")
+        require(url in read_urls,
+                "every exact-date event source must appear in consulted_sources with status read")
+
+    if dated_request:
+        require(event_searched,
+                "dated recommendations require an exact-date event search")
+        require(event_urls,
+                "dated recommendations require at least one exact-date event/calendar source URL")
+
+    enrichment = discovery.get("finalist_date_enrichment")
+    require(isinstance(enrichment, list),
+            "discovery.finalist_date_enrichment must be a list")
+    require(len(enrichment) == len(options),
+            "every finalist must have one date-enrichment evidence record")
+
+    expected_numbers = set(range(1, len(options) + 1))
+    seen_numbers = set()
+    total_sources = 0
+
+    for index, item in enumerate(enrichment):
+        require(isinstance(item, dict),
+                f"discovery.finalist_date_enrichment[{index}] must be an object")
+        number = item.get("option_number")
+        require(isinstance(number, int) and not isinstance(number, bool)
+                and number in expected_numbers,
+                f"discovery.finalist_date_enrichment[{index}].option_number is invalid")
+        require(number not in seen_numbers,
+                "discovery.finalist_date_enrichment repeats an option number")
+        seen_numbers.add(number)
+
+        evidence_urls = item.get("source_urls")
+        require(isinstance(evidence_urls, list) and evidence_urls
+                and all(isinstance(url, str) and url.strip() for url in evidence_urls),
+                f"option {number} date enrichment requires at least one source URL")
+        require(len(evidence_urls) == len(set(evidence_urls)),
+                f"option {number} date-enrichment source URLs must be unique")
+
+        option_source_urls, fact_urls = verified_fact_urls(options[number - 1], number)
+        for source_index, url in enumerate(evidence_urls):
+            valid_url(url, f"option {number} date enrichment source_urls[{source_index}]")
+            require(url in option_source_urls,
+                    f"option {number} date-enrichment URL must be saved in that option's source_urls")
+            require(url in fact_urls,
+                    f"option {number} date-enrichment URL must have a content-verified facts link check")
+            require(url in read_urls,
+                    f"option {number} date-enrichment URL must appear in consulted_sources with status read")
+        total_sources += len(evidence_urls)
+
+    require(seen_numbers == expected_numbers,
+            "every finalist must receive evidence-backed exact-date enrichment")
+
+    return {
+        "exact_date_event_searched": event_searched,
+        "exact_date_event_sources_checked": len(event_urls),
+        "finalist_date_evidence_sources": total_sources,
+    }
 
 
 def validate_discovery(payload, shortlist):
@@ -118,23 +238,8 @@ def validate_discovery(payload, shortlist):
 
     request = shortlist.get("request")
     require(isinstance(request, dict), "shortlist.request must be an object")
-    exact_date = discovery.get("exact_date_event_searched")
-    require(isinstance(exact_date, bool),
-            "discovery.exact_date_event_searched must be boolean")
-    if request.get("date_start"):
-        require(exact_date,
-                "dated recommendations require an exact-date event search")
-
-    enriched = discovery.get("finalist_numbers_date_enriched")
-    require(isinstance(enriched, list)
-            and all(isinstance(item, int) and not isinstance(item, bool) and item >= 1
-                    for item in enriched),
-            "discovery.finalist_numbers_date_enriched must contain option numbers")
-    require(len(enriched) == len(set(enriched)),
-            "finalist_numbers_date_enriched must be unique")
-    expected = set(range(1, len(options) + 1))
-    require(set(enriched) == expected,
-            "every finalist must receive exact-date enrichment before finalization")
+    dated_request = bool(request.get("date_start"))
+    date_evidence = validate_date_evidence(discovery, shortlist, options, dated_request)
 
     not_shortlisted = candidates - len(options) - len(needs_checking)
     return {
@@ -144,7 +249,7 @@ def validate_discovery(payload, shortlist):
         "confirmed_recommendations": len(options),
         "needs_checking": len(needs_checking),
         "not_shortlisted": not_shortlisted,
-        "exact_date_event_searched": exact_date,
+        **date_evidence,
     }
 
 
@@ -156,7 +261,8 @@ def research_summary(coverage):
         f"{coverage['finalists_deeply_verified']} finalists deeply verified · "
         f"{coverage['confirmed_recommendations']} confirmed · "
         f"{coverage['needs_checking']} needs checking · "
-        f"{coverage['not_shortlisted']} not shortlisted"
+        f"{coverage['not_shortlisted']} not shortlisted · "
+        f"{coverage['exact_date_event_sources_checked']} exact-date event/calendar source(s) checked"
     )
 
 
@@ -206,10 +312,7 @@ def finalize(args):
         write_json(shortlist_path, shortlist)
         write_json(render_path, render)
 
-        # Preflight both deterministic phases against disposable state. A bad
-        # render therefore cannot leave a real shortlist behind.
         execute(source_dir, sandbox_data, shortlist_path, render_path)
-
         saved, rendered = execute(source_dir, data_dir, shortlist_path, render_path)
 
     output = {
