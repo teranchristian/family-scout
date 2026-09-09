@@ -19,8 +19,10 @@ its exact-identity and operating-status gate early to every shortlisted venue.
   dependable everyday venues. Do not report “nothing is happening” merely
   because event calendars are sparse.
 - Treat weather wording as a request constraint or ranking signal for this
-  outing, not a lasting preference. Rain does not mean indoor-only unless the
-  user says so, but it must materially change discovery and ranking.
+  outing, not a lasting preference. Unless the user explicitly requires indoor
+  only, do not use rain, heat or cold to collapse the initial candidate pool to
+  one venue class. Use weather to add sensible backup categories and to rank
+  verified candidates after broad discovery.
 - An explicit request location applies only to that request. Persist travel only
   with an explicit interval and expiry. Explicit “home” always means saved home.
 
@@ -28,27 +30,59 @@ its exact-identity and operating-status gate early to every shortlisted venue.
 
 For an open-ended recommendation, aim to discover roughly eight to twelve
 plausible leads before verification. This is a discovery target, not permission
-to invent, pad or display weak results. Search across the locally relevant
-classes rather than repeating one directory:
+to invent, pad or display weak results.
 
-- official event calendars and dated programs;
-- indoor play, museums, libraries and cultural or community facilities;
-- municipal children's halls and drop-in programs;
-- parks, playgrounds, gardens and weather-dependent outdoor options;
-- shopping-centre or commercial family attractions when relevant.
+For a broad **things to do** request, candidate count alone is never the stopping
+condition. Before finalizing, deliberately attempt at least five locally relevant
+classes when they are plausible and not excluded by an explicit user constraint:
 
-Search in the local language as well as the user's language when it improves
-coverage. For a multi-day or rainy request, deliberately search indoor and
-weather-backup categories instead of waiting for them to appear incidentally.
-Within the overall budget, consult up to two enabled custom sources relevant to
-the place or request. Prioritize an explicitly requested or newly added source,
-then geographic relevance.
+- official exact-date event calendars, dated programs and temporary events;
+- children's play facilities, municipal halls, libraries and community spaces;
+- museums, science, history, art and cultural facilities;
+- aquariums, animals and other nature/interaction attractions;
+- shopping-centre, department-store and other commercial family attractions;
+- workshops, classes, pop-ups, hands-on sessions and play cafés;
+- parks, playgrounds, gardens and weather-dependent outdoor options.
 
-Normal effort allows at most six search queries, twelve source-page fetches and
-one dated forecast attempt, with a soft target of about two minutes. Attempts
-and retries count. Use those calls to diversify candidate classes before
-deepening duplicates. Deep effort is a separate bounded follow-up, not the
-default response to poor search strategy.
+A class counts as covered only when it was deliberately searched or an equivalent
+local source was deliberately inspected. An incidental snippet mention does not
+count. A loaded reference, custom source or familiar venue type is an evaluation
+resource, not permission to let that category dominate discovery. In particular,
+a children's-hall reference may help assess a hall after discovery but must not
+turn a general family-outing search into a children's-halls search.
+
+If one class is clearly absent locally or incompatible with the user's explicit
+request, substitute another plausible class rather than padding the search. Search
+in the local language as well as the user's language when it improves coverage.
+For a multi-day or weather-sensitive request, deliberately search weather-safe
+backups as an **addition** to broad coverage instead of allowing the forecast to
+pre-filter the whole search universe. Within the overall budget, consult up to
+two enabled custom sources relevant to the place or request. Prioritize an
+explicitly requested or newly added source, then geographic relevance.
+
+Do **not** stop merely because three, four or five presentable candidates have
+been found. Stop broad discovery only when the relevant category-coverage gate
+has been met, the likely finalists have received exact-date enrichment, and
+there is enough evidence to assess whether the shortlist is needlessly
+repetitive; or when the bounded deep budget is genuinely exhausted.
+
+Normal effort targets at most six search queries, twelve source-page fetches and
+one dated forecast attempt, with a soft target of about two minutes. Attempts and
+retries count. Use those calls to diversify candidate classes before deepening
+duplicates.
+
+If the normal budget is reached while category coverage, exact-date enrichment
+or a material quality gate still fails, continue the **same request** in bounded
+`deep` effort rather than stopping with a minimally presentable list. Deep effort
+allows up to six additional search queries and twelve additional source-page
+fetches for those unresolved material gaps. Set `effort_mode` to `deep` and
+record the **actual** tool counts used.
+
+Tool-usage telemetry is an integrity field, not a value to optimize for a
+validator. Never lower, round, omit or rewrite an actual count to fit the normal
+budget. If truthful telemetry is rejected unexpectedly even after the correct
+effort mode is used, preserve the truthful data, do not save a falsified
+shortlist, and report the validation conflict.
 
 ## Use sources as evidence
 
@@ -75,6 +109,35 @@ unverified; do not silently promote a less relevant outdoor result.
 Do not deliberately query or cite disabled/removed custom sources. One broken
 source never fails the whole request and never authorizes a new browser or
 provider installation.
+
+## Enrich likely finalists for the exact date and time window
+
+Broad discovery finds venues; a second pass finds what the family can actually
+do there. Before ranking every venue likely to make the final shortlist, perform
+an exact-date enrichment pass appropriate to that venue. Look for:
+
+- the venue name plus the requested date/month and local terms for events,
+  calendar, schedule or program;
+- official monthly calendars, newsletters and PDFs;
+- dated notices, news, closures, maintenance and special hours;
+- workshops, story times, toddler/preschool sessions and other scheduled
+  activities;
+- important sub-facilities such as planetariums, exhibitions, play zones,
+  animal interactions, pools, rides or cafés when they materially affect fit.
+
+A citywide calendar does not replace a venue calendar when the venue is known to
+run its own programs. Likewise, a venue's generic landing page does not replace a
+current monthly calendar or dated notice when one is available.
+
+Before saying **no special event**, **nothing is happening**, or equivalent,
+check at least one appropriate official/local exact-date event source **and** the
+date-specific calendars/program pages of the leading venues that commonly run
+scheduled activities. Absence from an early broad search is not evidence that no
+matching event exists.
+
+Keep the requested time window explicit during enrichment. A morning session is
+not an afternoon activity, and an event on the correct date but outside the
+usable window cannot be promoted as available for that request.
 
 ## Verify before calling an option confirmed
 
@@ -113,12 +176,17 @@ of: **everyday facility**, **scheduled activity**, **sub-facility**,
 - the current factual page that supports that status.
 
 The host venue being open never establishes that a planetarium, play zone,
-workshop, show, feeding session, ride, exhibition, pool, cafe, or other internal
-feature is operating. A timetable on a different weekday or a normal annual
-program does not prove requested-date availability. When a promoted feature is
-unavailable, say so explicitly and remove it from the positive selling points.
-Reconsider the ranking if it was a major reason for choosing that venue. If its
-status is unknown, do not present it as something the family can do.
+workshop, show, feeding session, ride, exhibition, pool, cafe, storytelling
+session or other internal feature is operating. A timetable on a different
+weekday, wording such as “held periodically”, or a normal annual program does not
+prove requested-date availability. A scheduled activity needs evidence for the
+exact requested date and usable time window. If that schedule was not checked,
+its status is **unknown**, even when the host facility is open.
+
+When a promoted feature is unavailable, say so explicitly and remove it from the
+positive selling points. Reconsider the ranking if it was a major reason for
+choosing that venue. If its status is unknown, do not present it as something the
+family can do.
 
 At least one concrete activity must be confirmed available on the requested date
 for a venue to remain a confirmed recommendation. Generic labels such as
@@ -190,5 +258,6 @@ source, retrieval time, precipitation, temperature, wind and alerts when
 available. Keep far-future or unavailable weather unknown; do not substitute
 climate, current conditions or old forecasts.
 
-Weather does not override closure or a hard indoor constraint. It changes which
-categories deserve research and which verified options lead the answer.
+Weather does not override closure or a hard indoor constraint. It should change
+ranking, practical advice and which backup categories receive extra attention,
+but it must not by itself turn broad discovery into a single-category search.
