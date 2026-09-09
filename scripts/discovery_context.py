@@ -2,6 +2,7 @@
 """Read Family Scout recommendation context without exposing prior shortlist history."""
 
 import argparse
+import json
 import os
 from pathlib import Path
 import sys
@@ -40,7 +41,7 @@ def main():
         return 0
     except (scout.ScoutError, OSError, UnicodeError) as exc:
         print(
-            scout.json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False),
+            json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False),
             file=sys.stderr,
         )
         return 2
