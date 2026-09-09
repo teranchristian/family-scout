@@ -4,6 +4,21 @@ Read this file in full for every find, compare, plan or “more like this” req
 It supplements `discovery.md` and `briefing.md`. When it is more specific about
 freshness, wording, maps, weather or compact presentation, follow this file.
 
+## 0. Preserve research integrity before optimizing the answer
+
+A broad recommendation must satisfy the discovery coverage rules in
+`discovery.md`; finding a few valid candidates is not by itself evidence that the
+search is complete. Do not let a loaded reference, familiar venue type, easy
+municipal source or bad-weather forecast silently redefine a broad “things to
+do” request into a much narrower category search.
+
+Tool-usage telemetry must describe what actually happened. Never reduce or edit
+search/fetch counts to satisfy a normal-effort validator. When material coverage
+or verification gaps require going beyond the normal budget, use the bounded
+`deep` escalation defined in `discovery.md`, set `effort_mode` accordingly, and
+save the actual counts. If truthful telemetry still cannot be accepted, do not
+persist a falsified record.
+
 ## 1. Resolve the newest applicable official evidence first
 
 Do not stop at the first current-looking official page. Before asserting that a
@@ -67,11 +82,16 @@ is. Examples:
 - “children may use the facility” does not become “designed for toddlers”;
 - “animal interaction available” does not prove a particular feeding or handling
   session is running;
+- “storytelling is held periodically” does not prove storytelling is available
+  on the requested date or during the requested time window;
 - a venue age range does not prove equal activity fit for each child.
 
 A stronger description is allowed only when a current source explicitly
 supports it. If a separate toddler area, session or sub-facility exists, verify
-its requested-date availability before using it as a selling point.
+its requested-date availability before using it as a selling point. For any
+scheduled activity, verify the exact requested date and usable time window; if
+that schedule was not established, mark the activity **unknown** rather than
+combining it with an open host facility.
 
 ## 4. Keep a good venue when one feature is unavailable
 
@@ -165,8 +185,11 @@ all day”. Use “rain likely”, “periods of rain”, “heavy rain expected
 parts of the day”, or similarly bounded wording unless hourly/current evidence
 supports continuous heavy rain for the stated period.
 
-Weather should change ranking and practical advice, but should not be made more
-dramatic than the source.
+Weather should change ranking and practical advice and may justify extra search
+for weather-safe backups. Unless the user explicitly says indoor-only, it should
+not cause broad discovery to skip museums, animals, commercial attractions,
+workshops or other plausible categories merely because an easy indoor venue type
+has already been found.
 
 ## 8. Remove repetition from the briefing
 
