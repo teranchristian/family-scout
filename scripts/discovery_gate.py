@@ -13,12 +13,12 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 
 
 REQUIRED_TELEMETRY = {
     "candidates_considered": int,
-    "candidates_new": int,
-    "candidates_from_history": int,
+    "prior_shortlist_matches": int,
     "activity_classes_searched": list,
     "exact_date_event_searched": bool,
     "finalists_date_enriched": bool,
@@ -79,24 +79,22 @@ def validate_telemetry(payload):
         require(isinstance(value, expected_type) and not
                 (expected_type is int and isinstance(value, bool)),
                 f"discovery_telemetry.{key} has the wrong type")
-    for key in ("candidates_considered", "candidates_new", "candidates_from_history"):
+    for key in ("candidates_considered", "prior_shortlist_matches"):
         require(telemetry[key] >= 0, f"discovery_telemetry.{key} must be non-negative")
+    require(telemetry["prior_shortlist_matches"] <= telemetry["candidates_considered"],
+            "prior_shortlist_matches cannot exceed candidates_considered")
     classes = telemetry["activity_classes_searched"]
     require(classes and all(isinstance(item, str) and item.strip() for item in classes),
             "activity_classes_searched must contain non-empty names")
     require(len(set(classes)) == len(classes), "activity_classes_searched must be unique")
-    require(telemetry["candidates_new"] + telemetry["candidates_from_history"]
-            <= telemetry["candidates_considered"],
-            "candidate telemetry is internally inconsistent")
     require(telemetry["finalists_date_enriched"],
             "finalists must receive exact-date enrichment before saving")
     request = payload.get("request", {})
-    dated = bool(request.get("date_start"))
-    if dated:
+    if request.get("date_start"):
         require(telemetry["exact_date_event_searched"],
                 "dated broad recommendations require exact-date event discovery")
-    # Broad searches should prove meaningful category coverage. This gate does
-    # not require that new candidates were found.
+    # New/familiar is an outcome, never a quota. All discovered candidates may
+    # match prior history and the request can still be valid.
     require(len(classes) >= 5,
             "broad recommendation must deliberately search at least five activity classes")
     require(telemetry["candidates_considered"] >= len(payload.get("options", [])),
@@ -106,22 +104,32 @@ def validate_telemetry(payload):
 
 def save(args):
     payload = read_json(args.input)
-    validate_telemetry(payload)
-    # family_scout.py deliberately remains backward compatible; this gate owns
-    # the new broad-recommendation contract and passes only the supported fields
-    # to the existing persistence helper.
+    telemetry = validate_telemetry(payload)
+    # family_scout.py remains backward compatible. The gate enforces the new
+    # broad-recommendation contract, then forwards only its supported payload.
     forwarded = dict(payload)
-    telemetry = forwarded.pop("discovery_telemetry")
-    tmp = Path(args.input).with_suffix(Path(args.input).suffix + ".forward.json")
+    forwarded.pop("discovery_telemetry")
+    temporary = None
     try:
-        tmp.write_text(json.dumps(forwarded, ensure_ascii=False), encoding="utf-8")
-        result = run_helper(args.source_dir, args.data_dir, "shortlist-save", "--input", str(tmp))
+        with tempfile.NamedTemporaryFile(
+                mode="w", encoding="utf-8", suffix=".json", delete=False) as handle:
+            json.dump(forwarded, handle, ensure_ascii=False)
+            temporary = handle.name
+        result = run_helper(args.source_dir, args.data_dir, "shortlist-save",
+                            "--input", temporary)
     finally:
-        try:
-            tmp.unlink()
-        except FileNotFoundError:
-            pass
+        if temporary:
+            try:
+                Path(temporary).unlink()
+            except FileNotFoundError:
+                pass
     result["discovery_telemetry"] = telemetry
+    result["research_coverage"] = {
+        "candidates_considered": telemetry["candidates_considered"],
+        "activity_classes_checked": len(telemetry["activity_classes_searched"]),
+        "prior_shortlist_matches": telemetry["prior_shortlist_matches"],
+        "finalists_verified": len(payload.get("options", [])),
+    }
     print(json.dumps(result, indent=2, ensure_ascii=False))
 
 
