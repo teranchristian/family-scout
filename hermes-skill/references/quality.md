@@ -1,0 +1,151 @@
+# Recommendation quality guardrails
+
+Read this file in full for every find, compare, plan or “more like this” request.
+It supplements `discovery.md` and `briefing.md`. When it is more specific about
+freshness, wording, maps, weather or compact presentation, follow this file.
+
+## 1. Resolve the newest applicable official evidence first
+
+Do not stop at the first current-looking official page. Before asserting that a
+venue, sub-facility or promoted feature is usable on the requested date, look for
+an official notice, calendar, news item or programme page that is more specific
+to that date.
+
+Use this precedence for conflicting or overlapping evidence:
+
+1. newest applicable date-specific official closure, maintenance, cancellation,
+   programme-replacement or special-hours notice;
+2. current dated calendar/session/programme page for the exact activity;
+3. current official facility or organizer page;
+4. regular weekly/seasonal hours;
+5. accountable secondary source when primary evidence is unavailable.
+
+A newer or more date-specific official notice overrides older general wording.
+Do not give an outdated reason merely because the conclusion happens to be
+correct. For example, if an old programme ended but a newer official notice says
+the sub-facility is closed for maintenance on the requested date, report the
+maintenance closure as the reason.
+
+For date-sensitive verification, search the official site for the requested
+month/date plus locally relevant terms for closure, maintenance, renovation,
+cancellation, temporary hours, programme change and reopening. Apply this check
+to important sub-facilities separately from the host venue.
+
+If two official sources still conflict and specificity/recency does not resolve
+the conflict, state the conflict and downgrade the claim rather than choosing the
+more convenient source.
+
+## 2. Match wording to evidence strength
+
+Use these user-facing opening-status levels consistently:
+
+- **Confirmed open:** a current date-specific official source affirmatively
+  establishes opening or the exact dated session.
+- **Scheduled to be open:** regular official hours cover the requested date and
+  applicable current official closure/exception notices were checked with none
+  found. Say: “Scheduled to be open based on regular hours; no applicable
+  closure notice found.”
+- **Opening status not established:** current evidence is incomplete, unreadable
+  or conflicting. Do not include the venue as a confirmed option if opening is
+  a hard requirement.
+
+Never summarize a group of venues as “all confirmed open” when some are only
+scheduled to be open from regular hours. Absence of a closure notice is not
+positive date-specific confirmation.
+
+For commercial venues that explicitly warn that temporary closures are
+announced on another official channel, check that channel when possible. If it
+cannot be checked within the search budget, preserve the “scheduled” wording and
+name the limitation.
+
+## 3. Preserve semantic fidelity
+
+Do not make a source sound more specific, child-focused or feature-rich than it
+is. Examples:
+
+- “playroom” does not become “dedicated toddler playroom”;
+- “children may use the facility” does not become “designed for toddlers”;
+- “animal interaction available” does not prove a particular feeding or handling
+  session is running;
+- a venue age range does not prove equal activity fit for each child.
+
+A stronger description is allowed only when a current source explicitly
+supports it. If a separate toddler area, session or sub-facility exists, verify
+its requested-date availability before using it as a selling point.
+
+## 4. Google Maps is for navigation, not status
+
+When an accountable source provides the exact current venue address:
+
+1. preserve that address in the saved option and include it in the rendered
+   card body;
+2. create a Google Maps navigation/search URL for the same venue and verified
+   address, preferably:
+   `https://www.google.com/maps/search/?api=1&query=<URL-encoded venue + address>`;
+3. perform a current reachability check;
+4. store the exact checked URL in `link_checks` with purpose `map` and result
+   `reachable`;
+5. show both the address and Google Maps link in the final option card.
+
+The Google Maps query must identify the same venue and address as the official
+evidence. If the address cannot be established, omit the map link rather than
+guessing a branch or location.
+
+Google Maps is navigation evidence only. Do not use its opening hours,
+“temporarily closed”/“permanently closed” labels, reviews or business metadata as
+the authority for Family Scout operating status when an official source is
+available. Official closure/maintenance information remains authoritative.
+
+The map link is an extra convenience; it never replaces the direct current
+official/factual link.
+
+## 5. Make access useful without inventing travel time
+
+Keep radius filtering based on the helper's evidenced straight-line distance,
+but make the final card useful for leaving the house:
+
+- show the verified address and Google Maps link prominently when available;
+- treat straight-line distance as a compact secondary fact;
+- show walking, driving or transit time only when a current route/access source
+  supports the exact origin, exact venue and mode;
+- never turn straight-line kilometres into an estimated drive/walk time.
+
+## 6. Keep weather claims proportional to the forecast
+
+Distinguish:
+
+- current conditions;
+- probability of precipitation;
+- expected amount/intensity;
+- expected timing/duration;
+- alerts.
+
+A daily precipitation probability near 100% does not by itself mean “heavy rain
+all day”. Use “rain likely”, “periods of rain”, “heavy rain expected during
+parts of the day”, or similarly bounded wording unless hourly/current evidence
+supports continuous heavy rain for the stated period.
+
+Weather should change ranking and practical advice, but should not be made more
+dramatic than the source.
+
+## 7. Remove repetition from the briefing
+
+The rendered option card is the canonical detail block. Do not repeat the same
+activity, hours, age fit or opening claim in the intro, card body and practical
+notes.
+
+For each card:
+
+- `body` should carry only concise decision context: what the place is, opening
+  status wording, hours/cost/booking/weather, verified address, getting-there
+  facts and why it ranks there;
+- `activities` owns the concrete “what you can do” facts;
+- `family_fit` owns child-by-child participation and limitations;
+- `link_checks` owns official/booking/map URLs.
+
+Outside the numbered block, give only information that helps choose between the
+options: the top pick, a backup, or one to three practical notes. Do not restate
+the full cards.
+
+Prefer one compact message over splitting into `(1/2)` and `(2/2)` merely because
+the same facts were repeated.

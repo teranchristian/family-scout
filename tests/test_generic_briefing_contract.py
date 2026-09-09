@@ -10,11 +10,13 @@ class GenericBriefingContractTest(unittest.TestCase):
         skill = " ".join((ROOT / "hermes-skill" / "SKILL.md").read_text().split())
         self.assertLess(len((ROOT / "hermes-skill" / "SKILL.md").read_text().split()), 600)
         for phrase in (
+            "references/quality.md",
             "venue being open does not prove",
             "requested-date availability",
             "what they can actually do",
             "activities",
             "family_fit",
+            "Google Maps is navigation evidence only",
             "Paste the returned `numbered_options_markdown` **verbatim**",
         ):
             self.assertIn(phrase, skill)
@@ -52,6 +54,22 @@ class GenericBriefingContractTest(unittest.TestCase):
             "exact origin, exact venue",
         ):
             self.assertIn(phrase, briefing)
+
+    def test_quality_guardrails_cover_freshness_maps_weather_and_compact_output(self):
+        quality = " ".join(
+            (ROOT / "hermes-skill" / "references" / "quality.md").read_text().split()
+        )
+        for phrase in (
+            "newest applicable date-specific official",
+            "Scheduled to be open",
+            "Do not make a source sound more specific",
+            "Google Maps is for navigation, not status",
+            "verified address",
+            "straight-line distance as a compact secondary fact",
+            "precipitation probability near 100%",
+            "Remove repetition from the briefing",
+        ):
+            self.assertIn(phrase, quality)
 
 
 if __name__ == "__main__":
