@@ -19,7 +19,6 @@ only through the supported Family Scout CLI.
 ## Route first
 
 - **Find, compare or plan outings:** read
-  [references/workflow.md](references/workflow.md),
   [references/discovery.md](references/discovery.md),
   [references/briefing.md](references/briefing.md),
   [references/quality.md](references/quality.md), and applicable
