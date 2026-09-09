@@ -101,6 +101,8 @@ Before saving and answering, check all of the following:
   available on the requested date?
 - Is every promoted activity, sub-facility, interaction or scheduled program
   classified separately for requested-date availability with current evidence?
+- Was every promoted sub-facility or program checked for the requested date,
+  rather than inferred from the host venue's normal opening?
 - If an advertised feature is unavailable or unknown, has it been removed from
   the positive selling points and the ranking reconsidered?
 - Does every attending child have a separate fit explanation tied to named
