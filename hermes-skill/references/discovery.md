@@ -100,11 +100,56 @@ hours; no applicable closure notice found**, not “verified open”. An event i
 date-confirmed only for the current year's correct session. Exclude past,
 cancelled, closed and unusably timed occurrences. Do not assume late entry.
 
-Verify separately any sub-facility, program or feature used to justify the
-recommendation, such as a planetarium, performance, workshop or interaction.
-The host venue being open does not establish that the promoted feature runs on
-the requested date. Remove an unavailable feature from the option and reconsider
-the ranking; exclude the whole option only when that feature is essential.
+### Verify the actual experience, not only the host venue
+
+Before using a feature to sell or rank an option, classify it separately as one
+of: **everyday facility**, **scheduled activity**, **sub-facility**,
+**interaction**, or **other**. For every promoted feature record:
+
+- its exact name;
+- whether it is **available**, **unavailable**, or **unknown** on the requested
+  date/session;
+- what the family can concretely do there;
+- the current factual page that supports that status.
+
+The host venue being open never establishes that a planetarium, play zone,
+workshop, show, feeding session, ride, exhibition, pool, cafe, or other internal
+feature is operating. A timetable on a different weekday or a normal annual
+program does not prove requested-date availability. When a promoted feature is
+unavailable, say so explicitly and remove it from the positive selling points.
+Reconsider the ranking if it was a major reason for choosing that venue. If its
+status is unknown, do not present it as something the family can do.
+
+At least one concrete activity must be confirmed available on the requested date
+for a venue to remain a confirmed recommendation. Generic labels such as
+“children's centre”, “museum”, “playground” or “aquarium” are not enough by
+themselves.
+
+### Verify fit child by child
+
+For each attending child, connect their fit to specific activities that are
+confirmed available on the requested date. Record:
+
+- what that child can actually do;
+- which available activities are especially suitable for their age;
+- any age, height, session, supervision, sensory or participation limitation;
+- whether the strongest experience is aimed more at another age group.
+
+Do this separately even when all children are technically admitted. “Both kids
+fit”, “all ages”, or an admission age range does not establish equal usefulness.
+If one child would mostly accompany rather than participate, say that plainly
+and let it affect the ranking. Accompanying adults may be marked as guardians
+rather than participants.
+
+### Verify access claims against the exact place
+
+Keep straight-line distance separate from route access. A statement such as
+“five minutes from the station”, “minutes away”, “short drive”, or “easy walk”
+must refer to the exact recommended venue, exact origin/station, stated travel
+mode and a current route or official access source. Never reuse access wording
+from another nearby venue or infer travel time from straight-line distance.
+When route evidence is unavailable, give only the verified address and
+straight-line distance.
 
 Classify each hard requirement separately:
 
