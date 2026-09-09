@@ -35,6 +35,7 @@ class FinalizeBriefingTest(unittest.TestCase):
     @staticmethod
     def payload():
         facts = "https://events.example.org/activity"
+        calendar = "https://events.example.org/calendar/2030-04-07"
         map_url = "https://maps.example.org/?q=example"
         checked = "2030-04-06T09:00:00Z"
         return {
@@ -45,7 +46,10 @@ class FinalizeBriefingTest(unittest.TestCase):
                     "dated_events", "play", "culture", "commercial"
                 ],
                 "exact_date_event_searched": True,
-                "finalist_numbers_date_enriched": [1],
+                "exact_date_event_source_urls": [calendar],
+                "finalist_date_enrichment": [
+                    {"option_number": 1, "source_urls": [facts]}
+                ],
             },
             "shortlist": {
                 "operation_id": "op-finalize-example",
@@ -90,7 +94,10 @@ class FinalizeBriefingTest(unittest.TestCase):
                     "features": ["hands-on"],
                 }],
                 "needs_checking": [],
-                "consulted_sources": [{"url": facts, "status": "read"}],
+                "consulted_sources": [
+                    {"url": facts, "status": "read"},
+                    {"url": calendar, "status": "read"},
+                ],
                 "tool_usage": {"search_queries": 4, "source_fetches": 8,
                                "forecast_lookups": 0},
             },
@@ -128,26 +135,46 @@ class FinalizeBriefingTest(unittest.TestCase):
                          msg=f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}")
         return json.loads(completed.stdout if expected == 0 else completed.stderr)
 
+    def assert_no_real_write(self):
+        self.assertEqual((self.data / "shortlists.jsonl").read_text(), "")
+
     def test_incomplete_enrichment_fails_without_real_write(self):
         payload = self.payload()
-        payload["discovery"]["finalist_numbers_date_enriched"] = []
+        payload["discovery"]["finalist_date_enrichment"] = []
         result = self.run_finalize(payload, expected=2)
         self.assertIn("every finalist", result["error"])
-        self.assertEqual((self.data / "shortlists.jsonl").read_text(), "")
+        self.assert_no_real_write()
+
+    def test_unverified_finalist_enrichment_url_fails_without_real_write(self):
+        payload = self.payload()
+        calendar = payload["discovery"]["exact_date_event_source_urls"][0]
+        payload["discovery"]["finalist_date_enrichment"][0]["source_urls"] = [calendar]
+        result = self.run_finalize(payload, expected=2)
+        self.assertIn("date-enrichment URL must be saved", result["error"])
+        self.assert_no_real_write()
+
+    def test_unread_exact_date_event_source_fails_without_real_write(self):
+        payload = self.payload()
+        payload["discovery"]["exact_date_event_source_urls"] = [
+            "https://events.example.org/not-consulted"
+        ]
+        result = self.run_finalize(payload, expected=2)
+        self.assertIn("exact-date event source", result["error"])
+        self.assert_no_real_write()
 
     def test_bad_render_fails_without_real_write(self):
         payload = self.payload()
         payload["render"]["cards"][0]["activities"][0]["availability"] = "unknown"
         result = self.run_finalize(payload, expected=2)
         self.assertIn("at least one activity available", result["error"])
-        self.assertEqual((self.data / "shortlists.jsonl").read_text(), "")
+        self.assert_no_real_write()
 
     def test_japanese_descriptive_content_fails_without_real_write(self):
         payload = self.payload()
         payload["render"]["cards"][0]["activities"][0]["name"] = "屋内遊び場"
         result = self.run_finalize(payload, expected=2)
         self.assertIn("render content must be English", result["error"])
-        self.assertEqual((self.data / "shortlists.jsonl").read_text(), "")
+        self.assert_no_real_write()
 
     def test_local_language_option_title_is_allowed(self):
         payload = self.payload()
@@ -167,9 +194,12 @@ class FinalizeBriefingTest(unittest.TestCase):
         self.assertEqual(coverage["confirmed_recommendations"], 1)
         self.assertEqual(coverage["needs_checking"], 0)
         self.assertEqual(coverage["not_shortlisted"], 5)
+        self.assertEqual(coverage["exact_date_event_sources_checked"], 1)
+        self.assertEqual(coverage["finalist_date_evidence_sources"], 1)
         self.assertIn("6 fresh candidates across 4 categories",
                       result["research_summary_markdown"])
-        self.assertIn("1 confirmed", result["research_summary_markdown"])
+        self.assertIn("1 exact-date event/calendar source(s) checked",
+                      result["research_summary_markdown"])
         self.assertIn("Hands-on session", result["numbered_options_markdown"])
         self.assertEqual(len((self.data / "shortlists.jsonl").read_text().splitlines()), 1)
 
