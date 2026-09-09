@@ -142,20 +142,34 @@ class FinalizeBriefingTest(unittest.TestCase):
         self.assertIn("at least one activity available", result["error"])
         self.assertEqual((self.data / "shortlists.jsonl").read_text(), "")
 
-    def test_valid_payload_saves_and_renders_once(self):
-        # No attending IDs in the saved request means the renderer does not require
-        # a specific private family member fixture, so omit the synthetic fit row.
+    def test_japanese_descriptive_content_fails_without_real_write(self):
         payload = self.payload()
-        payload["render"]["cards"][0]["family_fit"] = [{
-            "member_id": "member-example",
-            "label": "Example child",
-            "fit": "strong",
-            "activity_names": ["Hands-on session"],
-            "limitations": [],
-        }]
+        payload["render"]["cards"][0]["activities"][0]["name"] = "屋内遊び場"
+        result = self.run_finalize(payload, expected=2)
+        self.assertIn("render content must be English", result["error"])
+        self.assertEqual((self.data / "shortlists.jsonl").read_text(), "")
+
+    def test_local_language_option_title_is_allowed(self):
+        payload = self.payload()
+        payload["shortlist"]["operation_id"] = "op-finalize-local-title"
+        payload["shortlist"]["options"][0]["title"] = "サンプル活動"
+        result = self.run_finalize(payload)
+        self.assertIn("サンプル活動", result["numbered_options_markdown"])
+        self.assertIn("Hands-on session", result["numbered_options_markdown"])
+
+    def test_valid_payload_saves_renders_and_reports_research_summary(self):
+        payload = self.payload()
         result = self.run_finalize(payload)
         self.assertTrue(result["ok"])
-        self.assertEqual(result["research_coverage"]["candidates_considered"], 6)
+        coverage = result["research_coverage"]
+        self.assertEqual(coverage["fresh_candidates"], 6)
+        self.assertEqual(coverage["activity_classes_checked"], 4)
+        self.assertEqual(coverage["confirmed_recommendations"], 1)
+        self.assertEqual(coverage["needs_checking"], 0)
+        self.assertEqual(coverage["not_shortlisted"], 5)
+        self.assertIn("6 fresh candidates across 4 categories",
+                      result["research_summary_markdown"])
+        self.assertIn("1 confirmed", result["research_summary_markdown"])
         self.assertIn("Hands-on session", result["numbered_options_markdown"])
         self.assertEqual(len((self.data / "shortlists.jsonl").read_text().splitlines()), 1)
 
