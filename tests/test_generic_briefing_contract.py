@@ -71,6 +71,22 @@ class GenericBriefingContractTest(unittest.TestCase):
         ):
             self.assertIn(phrase, quality)
 
+    def test_quality_keeps_useful_venue_when_optional_feature_is_unavailable(self):
+        quality = " ".join(
+            (ROOT / "hermes-skill" / "references" / "quality.md").read_text().split()
+        )
+        for phrase in (
+            "Keep a good venue when one feature is unavailable",
+            "does **not** make the whole venue unavailable",
+            "at least one concrete activity is confirmed available",
+            "what the family **can do today**",
+            "reopens 12 Sep",
+            "Do not remove an otherwise strong venue",
+            "reranked using only the activities that are actually available",
+            "remaining verified activities no longer make it a good recommendation",
+        ):
+            self.assertIn(phrase, quality)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
