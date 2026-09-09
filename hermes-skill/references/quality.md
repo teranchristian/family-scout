@@ -73,7 +73,47 @@ A stronger description is allowed only when a current source explicitly
 supports it. If a separate toddler area, session or sub-facility exists, verify
 its requested-date availability before using it as a selling point.
 
-## 4. Google Maps is for navigation, not status
+## 4. Keep a good venue when one feature is unavailable
+
+Treat the **venue** and each **activity/sub-facility** as separate availability
+questions. An unavailable planetarium, workshop, show, pool, ride, exhibition,
+feeding session or other optional feature does **not** make the whole venue
+unavailable.
+
+Keep the venue in the confirmed shortlist when all of these are true:
+
+- the host venue itself is open or scheduled to be open at the required evidence
+  level;
+- at least one concrete activity is confirmed available on the requested date;
+- the remaining available activities still make the venue a genuinely useful
+  choice for the attending children and current request.
+
+Present the venue around what the family **can do today**. List available
+activities first. Then add a concise warning for a notable unavailable feature,
+including the verified reason and next availability/reopening date when the
+current official evidence provides one. For example:
+
+`⚠️ Planetarium unavailable today — closed for projector maintenance through 11 Sep; reopens 12 Sep.`
+
+If the next availability cannot be established, say so rather than guessing:
+
+`⚠️ Planetarium unavailable today; reopening date not established.`
+
+Do not remove an otherwise strong venue merely because one advertised feature is
+closed. Do not hide the closure either. The unavailable feature cannot improve
+the venue's rank, and the venue must be reranked using only the activities that
+are actually available.
+
+Remove or demote the venue only when the unavailable feature was essential to
+the request or the main reason the venue was useful and the remaining verified
+activities no longer make it a good recommendation. If no concrete activity is
+confirmed available, the venue cannot remain a confirmed option.
+
+When a future reopening/session date is known and relevant, mention it as useful
+planning context, but keep today's recommendation based only on today's available
+activities.
+
+## 5. Google Maps is for navigation, not status
 
 When an accountable source provides the exact current venue address:
 
@@ -99,7 +139,7 @@ available. Official closure/maintenance information remains authoritative.
 The map link is an extra convenience; it never replaces the direct current
 official/factual link.
 
-## 5. Make access useful without inventing travel time
+## 6. Make access useful without inventing travel time
 
 Keep radius filtering based on the helper's evidenced straight-line distance,
 but make the final card useful for leaving the house:
@@ -110,7 +150,7 @@ but make the final card useful for leaving the house:
   supports the exact origin, exact venue and mode;
 - never turn straight-line kilometres into an estimated drive/walk time.
 
-## 6. Keep weather claims proportional to the forecast
+## 7. Keep weather claims proportional to the forecast
 
 Distinguish:
 
@@ -128,7 +168,7 @@ supports continuous heavy rain for the stated period.
 Weather should change ranking and practical advice, but should not be made more
 dramatic than the source.
 
-## 7. Remove repetition from the briefing
+## 8. Remove repetition from the briefing
 
 The rendered option card is the canonical detail block. Do not repeat the same
 activity, hours, age fit or opening claim in the intro, card body and practical
@@ -139,7 +179,8 @@ For each card:
 - `body` should carry only concise decision context: what the place is, opening
   status wording, hours/cost/booking/weather, verified address, getting-there
   facts and why it ranks there;
-- `activities` owns the concrete “what you can do” facts;
+- `activities` owns the concrete “what you can do” facts, including notable
+  unavailable activities when they help explain a warning or future reopening;
 - `family_fit` owns child-by-child participation and limitations;
 - `link_checks` owns official/booking/map URLs.
 
