@@ -19,6 +19,18 @@ selection and qualitative ranking. `scripts/family_scout.py` owns deterministic
 validation, distance, identity and safe persistence. Keep it a documented helper,
 not a standalone search product.
 
+Runtime Hermes is a consumer of this repository, not a contributor. During
+normal Family Scout use it must not edit the checkout, `source_dir`, installed
+skill files, tests, installer or canonical references. Runtime-discovered defects
+should be reported with evidence and reproduced in the development workflow;
+repository changes are made deliberately outside that runtime session.
+
+For broad recommendations, fresh discovery must occur before prior shortlist
+history is exposed to the agent. `scripts/discovery_context.py` exists for this
+purpose and intentionally does not read `shortlists.jsonl` or `feedback.jsonl`.
+History may be consulted only after the fresh candidate pool exists, for explicit
+feedback, deduplication and repetition awareness.
+
 ## Privacy and data
 
 - Every example, fixture and screenshot must use invented details. Never use the
@@ -81,7 +93,7 @@ After behavior or persistence changes, run:
 
 ```sh
 python3 -m unittest discover -s tests -v
-python3 -m py_compile scripts/setup.py scripts/family_scout.py tests/test_phase1.py
+python3 -m py_compile scripts/setup.py scripts/family_scout.py scripts/discovery_context.py scripts/discovery_gate.py tests/test_phase1.py tests/test_discovery_context.py tests/test_discovery_gate.py
 python3 /root/.codex/skills/.system/skill-creator/scripts/quick_validate.py hermes-skill
 git diff --check
 ```
