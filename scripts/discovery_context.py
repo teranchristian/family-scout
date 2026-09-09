@@ -2,6 +2,7 @@
 """Read Family Scout context for fresh discovery without loading history."""
 
 import argparse
+import json
 from pathlib import Path
 import os
 import sys
@@ -43,7 +44,7 @@ def main():
         return 0
     except (scout.ScoutError, OSError, UnicodeError) as exc:
         print(
-            scout.json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False),
+            json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False),
             file=sys.stderr,
         )
         return 2
