@@ -1,193 +1,139 @@
 # Ranking and decision-ready briefing
 
-Read this file in full before ranking or presenting outing recommendations. The
-discovery reference owns research and confirmation; the CLI reference owns the
-saved shortlist.
+Read this file before ranking or presenting outing recommendations. Discovery owns
+research/confirmation; the CLI owns persistence.
 
-## Select and order useful options
+## Rank current evidence first
 
-Apply hard requirements before qualitative ordering. Among confirmed matches,
-rank by:
+Apply hard requirements before qualitative ordering. Create the **initial ranking
+without prior shortlist history or learned feedback**. Among confirmed matches,
+rank using only current-request evidence:
 
 1. suitability for every attending child and the current request;
-2. evidence-backed interests and explicit feedback;
-3. practical effort, usable hours and booking friction;
-4. weather fit;
-5. variety, special timing and sensible revisits.
+2. practical effort, straight-line distance, usable hours and booking friction;
+3. weather fit;
+4. specialness, exact-date timing and how worthwhile the experience is.
 
-Use reasons, never numerical scores. With no feedback, rely only on current
-instructions and explicit profile facts. A requested revisit can outrank novelty.
-A genuinely useful exact-date activity or session that matches the children's
-ages and requested time window should receive meaningful weight over a generic
-everyday venue, provided the practical trade-offs remain reasonable.
+Use reasons, never numerical scores. A genuinely useful exact-date activity that
+matches the children's ages/time window should receive meaningful weight over a
+generic everyday venue when the practical trade-offs remain reasonable.
 
-For a broad search, target four or five genuinely useful confirmed options.
-Return fewer when evidence is insufficient; never pad the list and never exceed
-five. Add at most two promising leads under **Needs checking**, each naming the
-exact missing hard requirement. A short, specific request may need fewer choices.
+Only after this current-evidence ranking exists may recommendation history and
+explicit learned feedback be loaded. History is a **final adjustment**, not an
+input to discovery or the initial ranking. Use it to:
 
-### Preserve variety in a broad shortlist
+- avoid unnecessary repetition of recently recommended venues/experiences;
+- improve final shortlist diversity when current options are otherwise close;
+- apply explicit learned preferences or dislikes;
+- honor an explicit user request to revisit or avoid something.
 
-Do not let the final list become repetitive merely because one venue type was
-easy to discover or verify. Assign each candidate a practical **primary
-experience** such as free-play children's hall, museum/science, animals,
-workshop/class, commercial indoor attraction, library/culture, or outdoor
-exploration.
+Do not insert a candidate merely because it exists in history. Do not suppress a
+clearly superior current option merely because it is familiar. If history changes
+the order, keep the current-evidence candidate pool and make only the smallest
+useful adjustment.
 
-For a broad recommendation request, do not let more than half of the confirmed
-shortlist share essentially the same primary experience when a reasonably useful
-verified alternative from another searched category exists. For example, three
-municipal free-play rooms should not occupy three of four slots when a suitable
-verified aquarium, museum, workshop or commercial family attraction is also
-available.
+For a broad search, target **four or five genuinely useful confirmed options**.
+Return fewer when evidence is insufficient; never pad and never exceed five. Add
+at most two promising leads under **Needs checking**, each naming the exact
+missing hard requirement.
 
-Repeated venue types are allowed when the broader category search genuinely
-found no comparable alternatives, when the user explicitly asked for that type,
-or when proximity/cost/other hard constraints make the repetition materially
-useful. In that case, keep the better repeated options and do not invent variety.
+### Preserve useful variety
 
-The ordering must agree with the explanation. If rain is a major factor, useful
-verified indoor options should normally lead. Outdoor places may remain as
-clearly labelled dry-window backups, but do not make an outdoor-only top list
-while claiming the forecast favours indoor activities. Weather can reorder the
-broadly discovered pool; it should not excuse skipping whole plausible categories
-unless the user explicitly imposed an indoor-only constraint.
+Before history is consulted, avoid a current shortlist dominated by one easy
+venue class when reasonably useful verified alternatives exist. Assign each
+candidate a primary experience such as children's free play, museum/science,
+animals, immersive/unusual attraction, workshop/class, commercial indoor play,
+library/culture or outdoor exploration.
 
-A feature that is unavailable or unverified on the requested date cannot improve
-an option's rank. If a venue's strongest advertised attraction is not running,
-rerank the venue using only the activities that are actually available.
+For broad requests, normally no more than half the confirmed shortlist should
+share essentially the same primary experience when a useful verified alternative
+from another searched class exists. Repetition is allowed when explicit
+constraints make it genuinely useful; never invent variety.
 
-An unavailable optional feature does **not** make the whole venue unavailable.
-Keep the venue when the venue itself is usable, at least one concrete activity is
-confirmed available on the requested date, and the remaining verified activities
-still make it a good recommendation for the attending family. Treat the closed
-feature as a caveat, not a venue-level failure. Remove or demote the venue only
-when the remaining verified experience is no longer worthwhile for the request.
+After the initial ranking, history may further demote recently repeated venues
+when similarly strong fresh alternatives exist. This is the only stage where past
+recommendation repetition affects ordering.
+
+Weather can reorder the broadly discovered verified pool. It should not excuse
+skipping plausible categories unless the user explicitly imposed a hard weather
+constraint.
+
+Unavailable or unverified features cannot improve rank. If a venue's strongest
+advertised attraction is not running, rerank using only activities actually
+available. An unavailable optional feature does not automatically disqualify the
+venue when another concrete verified activity still makes it worthwhile.
 
 ## Make the first answer decision-ready
 
-Do not defer essential details until the user chooses. Start with the interpreted
-place, absolute date/window, radius, attending age context and cost basis. Then
-give the best recommendation or plan first, followed by numbered option cards.
+Start with interpreted place, absolute date/window, attending age context and any
+important weather/cost basis. Give the recommended plan or strongest choice first,
+then numbered option cards.
 
-For every numbered option include:
+For every option include:
 
-- **What it is:** concrete activities, facilities or program content that the
-  family can actually use on the requested date—not just “playground”, “museum”,
-  “aquarium” or “children's centre”.
-- **Activity availability:** distinguish everyday facilities, scheduled
-  activities, sub-facilities and interactions. State unavailable or unknown
-  advertised features as caveats; never mix them into the positive activity
-  list. When an unavailable feature has a verified reopening/start date, state it
-  explicitly, for example: **Planetarium unavailable today — reopens 12 Sep**.
-  Do not let that caveat hide the activities that are still available at the
-  venue. A scheduled activity such as storytelling, a workshop or a toddler
-  session must have evidence for the exact requested date and usable time window;
-  “held periodically” is not enough.
-- **Fit by child:** give a separate line for each attending child stating the
-  available activities they can actually do, how strong the fit is, and any
-  meaningful limitation. Technical admission eligibility alone is not enough.
-  If ages differ, do not replace these lines with a combined “both children fit”.
-- **When:** usable hours for the requested date/session, including last entry or
-  session time when relevant.
-- **Cost:** mandatory price breakdown and total for the attending group, or the
-  precise unresolved price fact under **Needs checking**.
+- **What it is:** concrete activities/facilities/program content the family can
+  actually use on the requested date.
+- **Activity availability:** separate everyday facilities, scheduled activities,
+  sub-facilities and interactions. State unavailable/unknown features as caveats.
+  When a closed feature has a verified next date, show it (for example,
+  **Planetarium unavailable today — reopens 12 Sep**).
+- **Fit by child:** a separate line for each attending child tied to named
+  available activities and meaningful limitations. Never replace this with only
+  “both children fit”.
+- **When:** requested-date hours/session time and last entry when relevant.
+- **Cost:** mandatory breakdown and total for the attending group, or the exact
+  unresolved fact under Needs checking.
 - **Booking:** walk-in/booking status and verified availability when mandatory.
-- **Weather and setting:** indoor, outdoor or mixed, plus the practical weather
-  implication.
-- **Getting there:** straight-line distance. Add walking, driving or transit
-  duration only when the exact origin, exact venue, mode and current route/access
-  source support it. Never derive time from straight-line distance and never
-  transfer access wording from a nearby venue.
-- **Links:** a direct current official/factual page and a booking link when
-  applicable. Add a map link only when it passed the current link check;
-  otherwise give the verified address in text. Display only exact URLs recorded
-  as successful in the saved option's `link_checks`.
-- **Why it ranks here:** a concise evidence-backed reason based only on features
-  available on the requested date, plus any material caveat or uncertainty.
+- **Weather/setting:** indoor, outdoor or mixed with practical implication.
+- **Getting there:** straight-line distance. Route time only when the **exact
+  origin, exact venue**, mode and current route/access source support it.
+- **Links:** direct current factual/official page, booking link when applicable,
+  and checked map link when available. Only show links recorded as successful in
+  `link_checks`.
+- **Why it ranks here:** concise current-evidence reason plus any material caveat.
 
-Keep option cards scannable, but prefer concrete explanatory sentences over thin
-labels. Distinguish dated events from venues or activities available on ordinary
-opening days.
+Keep cards scannable. Distinguish dated events from ordinary opening-day
+activities.
 
-After `shortlist-save`, construct each renderer card with:
+The renderer card uses a URL-free `body`, evidenced `activities`, and
+`family_fit`. The deterministic renderer owns **What you can actually do** and
+**Fit for each attending family member**; do not duplicate or contradict those
+sections outside its block.
 
-- a URL-free `body` for logistics, cost, booking, weather and ranking context;
-- `activities`, one object per feature worth mentioning, with `name`, `kind`,
-  requested-date `availability`, concrete `detail`, and a content-verified
-  factual `source_url` from that saved option;
-- `family_fit`, one entry per attending member. Participating members reference
-  only activities marked available; accompanying adults may use `guardian`.
-
-The renderer deterministically prints the **What you can actually do** and
-**Fit for each attending family member** sections. Do not duplicate, contradict
-or rewrite those sections outside the rendered block.
-
-For a request spanning multiple days, finish with a recommended plan for each
-day. For weather-sensitive plans, pair the main choice with a realistic backup.
-Add one to three practical notes only when useful, distinguishing sourced facts
-from common-sense advice.
+For multi-day requests, finish with a **recommended plan for each day**. For
+weather-sensitive plans, pair the main choice with a realistic backup.
 
 ## Final quality gate
 
-Before saving and answering, check all of the following:
+Before saving and answering, check:
 
-- For a broad request, did discovery deliberately attempt the required spread of
-  locally relevant categories rather than stopping when a few usable venues were
-  found?
-- Did weather add/reorder useful backup research rather than prematurely reducing
-  discovery to one familiar indoor venue class?
-- Did every likely finalist receive an exact-date/time-window enrichment pass for
-  its calendars, programs, notices and important sub-facilities?
-- If the answer says “no special event”, “nothing is happening”, or equivalent,
-  was that negative conclusion supported by an exact-date event source plus the
-  relevant leading-venue calendars/program pages?
-- Did discovery cover both dated events and everyday outings when the request
-  was broad?
-- Is the final list needlessly repetitive, or did broader discovery establish
-  that repeated primary experiences are genuinely the best remaining choices?
-- Do the leading options actually match the forecast and family age context?
-- Does every numbered option have at least one concrete activity confirmed
-  available on the requested date?
-- Is every promoted activity, sub-facility, interaction or scheduled program
-  classified separately for requested-date availability with current evidence?
-- Was every promoted sub-facility or program checked for the requested date,
-  rather than inferred from the host venue's normal opening?
-- For every scheduled activity, does the evidence cover the exact requested date
-  and usable time window rather than merely saying the activity is periodic?
-- If an advertised feature is unavailable or unknown, has it been removed from
-  the positive selling points and the ranking reconsidered?
-- If only one sub-facility is unavailable, did we keep an otherwise strong venue
-  when its remaining verified activities are still worthwhile, and show the
-  unavailable feature as a warning instead of treating the whole venue as closed?
-- When a closed/unavailable feature has a verified reopening or next-available
-  date, is that date shown to the user?
-- Does every attending child have a separate fit explanation tied to named
-  activities that are actually available, including material limitations?
-- Does every numbered option have a current direct factual link and meaningful
-  detail about what the family can do?
+- Did broad discovery cover genuinely different experience classes, including a
+  general-attractions/experiences sweep rather than only child-focused searches?
+- Was every candidate in the initial ranking discovered independently of history?
+- Was the **initial ranking based only on current evidence** before history or
+  learned feedback was exposed?
+- Was history used only as a final repetition/diversity/preference adjustment?
+- Did weather reorder verified choices rather than narrow discovery too early?
+- Did every likely finalist receive exact-date/time enrichment for calendars,
+  programs, notices and each important **promoted sub-facility**?
+- Does every confirmed option have at least one concrete requested-date activity?
+- Are scheduled activities supported for the exact requested date/time?
+- Were all relevant requested-date activities found on a finalist's calendar
+  captured rather than stopping at the first one?
+- Were unavailable/unknown advertised features removed from positive selling
+  points and the ranking reconsidered?
+- Does each child have a separate fit explanation tied to available activities?
 - Are requested-date hours, total group cost, eligibility, closure and mandatory
-  booking verified wherever applicable?
-- Does each venue's current name, address and host match across its official
-  evidence and map link, with official closure or relocation information resolved?
-- Is every walking/driving/transit claim tied to the exact origin, exact venue,
-  mode and a sourced route/access estimate rather than straight-line distance?
-- Did every user-facing link pass a current exact-target check after redirects,
-  with no HTTP error, soft 404, failed read or wrong destination?
-- Did a failed page or PDF cause an important category to be abandoned too soon?
-- Are recurring attractions separated from scheduled events?
-- Does saved `tool_usage` report the actual counts performed, with `effort_mode`
-  switched to `deep` when normal limits were exceeded, rather than altering the
-  telemetry to satisfy validation?
-- Could the user choose and leave without first asking what each child can
-  actually do there?
+  booking verified where applicable?
+- Does each venue's **current name, address and host** match its evidence/map?
+- Is every route-time claim sourced for exact origin/venue/mode?
+- Did **every user-facing link** pass current exact-target validation?
+- Could the user choose and leave without another clarification?
 
-If any material answer is no and the normal research budget is exhausted, follow
-`discovery.md` and continue the same request with bounded `deep` effort. If the
-deep budget is exhausted, return the verified work and state the remaining
-material gap plainly. Never falsify telemetry, invent variety or describe an
-unverified lead as a confirmed option.
+If a material answer is no and bounded research remains, continue verification.
+If the deep budget is exhausted, return only verified work and state the remaining
+gap plainly. Never falsify telemetry, invent variety or promote an unverified lead.
 
 Call `shortlist-save` with the exact numbered options, evidence snapshot and
-successful `link_checks` before displaying them. Reuse its operation ID after an
-uncertain retry. Do not add or alter links after the save.
+successful `link_checks` before display. Reuse its operation ID after an uncertain
+retry and do not alter links after save.
