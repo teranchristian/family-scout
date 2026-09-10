@@ -18,8 +18,19 @@ Repository: <https://github.com/teranchristian/family-scout>
   using the tools already available to Hermes.
 - Applies strict date, radius, group cost, indoor, age, closure and mandatory
   booking checks without silently treating unknown facts as matches.
-- Normally returns up to three ranked options, fewer when evidence is weak, and
-  at most two clearly labelled **Needs checking** leads.
+- Checks exact venue/branch identity and resolves current closure or relocation
+  signals before investing in detailed research or calling a venue open.
+- Checks current official notices for requested-date closures, maintenance and
+  unavailable promoted sub-facilities instead of relying on weekly hours alone.
+- Opens and validates every factual, booking and navigation link that will be
+  shown to the user, omitting broken, soft-404 and wrong-target URLs.
+- For broad searches, targets four or five decision-ready ranked options, fewer
+  when evidence is weak, and at most two clearly labelled **Needs checking**
+  leads.
+- Gives each option concrete activity details, requested-date hours, age fit,
+  family cost, booking status, weather fit and direct factual/map links.
+- For multi-day or weather-sensitive requests, recommends a plan for each day
+  with a realistic backup.
 - Saves the exact displayed options with stable activity/session identities.
 - Remembers explicit feedback across fresh conversations, including corrections
   and retractions, and can use it for “more like this”.
@@ -34,6 +45,13 @@ It is not a separate search application.
 Phase 1 deliberately excludes databases, background scraping, provider
 frameworks, routing, booking integrations, web UI, accounts, machine learning
 and numerical match scores.
+
+The installed skill uses progressive disclosure so its entry point stays small:
+`SKILL.md` routes recommendation work to separate discovery and briefing
+references, discovery loads focused runtime-tool and venue-status notes, and
+feedback/profile work uses a memory reference. Hermes loads only the modules
+required for the current task instead of one increasingly large instruction
+file.
 
 ## Install or update
 
@@ -74,8 +92,8 @@ overwritten, parsed or repaired by the installer. New data directories use mode
 
 | Location | Purpose |
 | --- | --- |
-| `hermes-skill/SKILL.md` | Canonical concise Hermes instructions |
-| `hermes-skill/references/` | Evidence rules and helper contract |
+| `hermes-skill/SKILL.md` | Thin task router and shared boundaries |
+| `hermes-skill/references/` | Focused discovery, briefing, runtime, memory and helper contracts |
 | `scripts/family_scout.py` | Deterministic validation and persistence helper |
 | `<hermes-home>/skills/family-scout/` | Installed copy of the skill instruction tree |
 | `<hermes-home>/skills/family-scout/installation.json` | Owned-file hashes plus repository and private-state paths |
@@ -109,10 +127,13 @@ bracketed values below:
 Check that Hermes:
 
 1. Reads live pages rather than relying only on snippets.
-2. Uses the right dated forecast or explicitly reports it unavailable.
-3. Rejects or labels unknown hard facts instead of assuming they pass.
-4. Shows sourced, numbered options without a match score.
-5. Saves the exact shortlist before presenting it.
+2. Searches multiple relevant source classes in the local language when useful.
+3. Uses the right dated forecast or explicitly reports it unavailable.
+4. Rejects or labels unknown hard facts instead of assuming they pass.
+5. Gives decision-ready option details with direct factual and map links that
+   were opened or reachability-checked during the current search.
+6. Makes its ranking agree with the weather and attending ages.
+7. Saves the exact shortlist before presenting it.
 
 Then refer to an option by number and give explicit feedback. In a new
 conversation, ask for another search and confirm Hermes loads that feedback only

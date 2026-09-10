@@ -98,6 +98,14 @@ class Phase1Test(unittest.TestCase):
             "date_end": "2030-04-07T11:00:00+00:00",
             "checked_at": "2030-04-06T09:00:00Z",
             "source_urls": ["https://events.example.org/example-activity"],
+            "link_checks": [
+                {
+                    "url": "https://events.example.org/example-activity",
+                    "purposes": ["facts"],
+                    "result": "content_verified",
+                    "checked_at": "2030-04-06T09:00:00Z",
+                }
+            ],
             "distance_km": 1.2,
             "cost": {
                 "status": "known",
@@ -156,7 +164,16 @@ class Phase1Test(unittest.TestCase):
         self.assertEqual(record["schema_version"], 2)
         self.assertEqual(
             set(record["skill_files"]),
-            {"SKILL.md", "references/behavior.md", "references/cli.md"},
+            {
+                "SKILL.md",
+                "references/briefing.md",
+                "references/cli.md",
+                "references/discovery.md",
+                "references/memory.md",
+                "references/quality.md",
+                "references/runtime-tools.md",
+                "references/venue-status.md",
+            },
         )
         for relative in record["skill_files"]:
             self.assertTrue((target / relative).is_file())
@@ -169,7 +186,7 @@ class Phase1Test(unittest.TestCase):
         self.setup("install")
         self.assertEqual((self.data / "shortlists.jsonl").read_bytes(), opaque)
 
-        reference = target / "references" / "behavior.md"
+        reference = target / "references" / "briefing.md"
         reference.write_text(reference.read_text() + "\nlocal edit\n")
         self.setup("install", expected=1)
         self.setup("uninstall", expected=1)
@@ -375,7 +392,7 @@ class Phase1Test(unittest.TestCase):
         self.assertEqual(len((self.data / "shortlists.jsonl").read_text().splitlines()), 1)
 
         excessive = self.shortlist_payload("op-search-excessive")
-        excessive["tool_usage"]["source_fetches"] = 9
+        excessive["tool_usage"]["source_fetches"] = 13
         self.cli("shortlist-save", payload=excessive, expected=2)
 
         duplicate_session = self.shortlist_payload("op-search-duplicate")
@@ -386,6 +403,40 @@ class Phase1Test(unittest.TestCase):
         unverified["options"][0]["constraint_results"][2]["status"] = "unverified"
         unverified["options"][0]["constraint_results"][2]["reason"] = "price is unknown"
         self.cli("shortlist-save", payload=unverified, expected=2)
+
+        missing_link_checks = self.shortlist_payload("op-search-no-link-checks")
+        missing_link_checks["options"][0].pop("link_checks")
+        self.cli("shortlist-save", payload=missing_link_checks, expected=2)
+
+        wrong_link_target = self.shortlist_payload("op-search-wrong-link-target")
+        wrong_link_target["options"][0]["link_checks"][0]["url"] = (
+            "https://events.example.org/unrelated"
+        )
+        self.cli("shortlist-save", payload=wrong_link_target, expected=2)
+
+        unverified_factual_link = self.shortlist_payload("op-search-reachable-facts")
+        unverified_factual_link["options"][0]["link_checks"][0]["result"] = "reachable"
+        self.cli("shortlist-save", payload=unverified_factual_link, expected=2)
+
+        missing_booking_link = self.shortlist_payload("op-search-no-booking-link")
+        missing_booking_link["options"][0]["booking"] = {
+            "required": True,
+            "availability": "available",
+        }
+        missing_booking_link["options"][0]["constraint_results"].append({
+            "requirement": "booking",
+            "status": "confirmed_match",
+            "reason": "required booking is available",
+        })
+        self.cli("shortlist-save", payload=missing_booking_link, expected=2)
+
+        unchecked_lead_link = self.shortlist_payload("op-search-unchecked-lead")
+        unchecked_lead_link["needs_checking"] = [{
+            "title": "Example Lead",
+            "missing": ["price"],
+            "source_urls": ["https://events.example.org/example-lead"],
+        }]
+        self.cli("shortlist-save", payload=unchecked_lead_link, expected=2)
 
         second = self.shortlist_payload("op-search-second")
         second["options"][0]["date_start"] = "2030-04-07T14:00:00+00:00"
@@ -480,27 +531,78 @@ class Phase1Test(unittest.TestCase):
         self.cli("shortlist-save", payload=self.shortlist_payload(), expected=2)
         self.assertEqual((self.data / "shortlists.jsonl").read_bytes(), malformed_history)
 
-    def test_skill_contains_phase_one_behavior_gates(self):
-        skill = " ".join((REPO / "hermes-skill" / "SKILL.md").read_text().split())
-        behavior = " ".join(
-            (REPO / "hermes-skill" / "references" / "behavior.md").read_text().split()
+    def test_skill_routes_phase_one_behavior_contracts(self):
+        skill_path = REPO / "hermes-skill" / "SKILL.md"
+        skill = " ".join(skill_path.read_text().split())
+        discovery = " ".join(
+            (REPO / "hermes-skill" / "references" / "discovery.md").read_text().split()
         )
+        briefing = " ".join(
+            (REPO / "hermes-skill" / "references" / "briefing.md").read_text().split()
+        )
+        memory = " ".join(
+            (REPO / "hermes-skill" / "references" / "memory.md").read_text().split()
+        )
+        venue_status = " ".join(
+            (REPO / "hermes-skill" / "references" / "venue-status.md").read_text().split()
+        )
+        self.assertLess(len(skill_path.read_text().split()), 600)
         for phrase in (
             "Never invent a fact",
-            "at most four search queries",
             "numerical match score",
-            "with the exact numbered options",
-            "explicit feedback",
+            "references/discovery.md",
+            "references/briefing.md",
+            "references/memory.md",
         ):
             self.assertIn(phrase, skill)
         for phrase in (
             "this weekend",
             "Unknown price does not pass",
             "straight-line distance",
-            "Return fewer when evidence is insufficient",
-            "Needs checking",
+            "six search queries",
+            "One failed page, PDF or reader path",
+            "[runtime-tools.md](runtime-tools.md)",
+            "[venue-status.md](venue-status.md)",
+            "link_checks",
+            "Regular weekly hours are only the baseline",
         ):
-            self.assertIn(phrase, behavior)
+            self.assertIn(phrase, discovery)
+        for phrase in (
+            "four or five genuinely useful confirmed options",
+            "Needs checking",
+            "What it is",
+            "recommended plan for each day",
+            "Final quality gate",
+            "current name, address and host",
+            "every user-facing link",
+            "promoted sub-facility",
+        ):
+            self.assertIn(phrase, briefing)
+        for phrase in (
+            "explicit feedback",
+            "Never attach a default party",
+            "More like this",
+        ):
+            self.assertIn(phrase, memory)
+        for phrase in (
+            "exact current venue and branch name",
+            "current official venue page",
+            "official website is sufficient",
+            "not operating-status evidence",
+            "separate candidate",
+            "Needs checking",
+            "official notices",
+        ):
+            self.assertIn(phrase, venue_status)
+        runtime_tools = " ".join(
+            (REPO / "hermes-skill" / "references" / "runtime-tools.md").read_text().split()
+        )
+        for phrase in (
+            "Validate every link before sharing",
+            "soft-404",
+            "content_verified",
+        ):
+            self.assertIn(phrase, runtime_tools)
 
 
 if __name__ == "__main__":

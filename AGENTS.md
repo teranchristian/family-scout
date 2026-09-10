@@ -4,7 +4,7 @@
 
 Phase 0 is complete. Phase 1 implements one thin Hermes recommendation,
 shortlist and explicit-feedback cycle. Read `README.md`, `hermes-skill/SKILL.md`,
-both files under `hermes-skill/references/`, the helper and the blank templates
+all files under `hermes-skill/references/`, the helper and the blank templates
 before changing behavior. Together they are the in-repository contract.
 
 Phase 1 is **built; trial pending** until the real-use gate in `README.md` passes.
@@ -18,6 +18,18 @@ Hermes owns request interpretation, live discovery, source reading, evidence
 selection and qualitative ranking. `scripts/family_scout.py` owns deterministic
 validation, distance, identity and safe persistence. Keep it a documented helper,
 not a standalone search product.
+
+Runtime Hermes is a consumer of this repository, not a contributor. During
+normal Family Scout use it must not edit the checkout, `source_dir`, installed
+skill files, tests, installer or canonical references. Runtime-discovered defects
+should be reported with evidence and reproduced in the development workflow;
+repository changes are made deliberately outside that runtime session.
+
+For broad recommendations, fresh discovery must occur before prior shortlist
+history is exposed to the agent. `scripts/discovery_context.py` exists for this
+purpose and intentionally does not read `shortlists.jsonl` or `feedback.jsonl`.
+History may be consulted only after the fresh candidate pool exists, for explicit
+feedback, deduplication and repetition awareness.
 
 ## Privacy and data
 
@@ -41,6 +53,15 @@ not a standalone search product.
 - Confirm date/session, radius, mandatory group cost, eligibility, closure and
   mandatory booking availability when they are hard requirements. Unknown does
   not pass a strict requirement.
+- Treat regular weekly hours as a baseline, not proof for the requested date.
+  Check current official notices/calendars for temporary closure, maintenance
+  and special hours, including any promoted sub-facility or program.
+- Match the exact current venue, branch, address and host across sources. Use
+  current official venue, brand, host or municipal sources for operating status;
+  map and third-party directory labels are for discovery or navigation, not proof.
+- Validate every link that will be shown to the user during the current search.
+  Reject HTTP errors, failed reads, soft-404/error pages and wrong-target
+  redirects; never copy an opaque search-result handle into the briefing.
 - Use evidenced coordinates and unrounded Haversine distance for the inclusive
   radius comparison. Label displayed results as straight-line distance.
 - Apply hard requirements before qualitative ordering. Never calculate or show
@@ -50,7 +71,7 @@ not a standalone search product.
 - Learn only from explicit feedback. Append corrections/retractions that
   supersede prior events; never rewrite JSONL. Current instructions override
   saved preferences, and contextual complaints must not become global bans.
-- Keep normal search within four queries, eight page fetches and one dated
+- Keep normal search within six queries, twelve page fetches and one dated
   forecast attempt. Report gaps honestly when the budget is exhausted.
 
 ## Skill and installer changes
@@ -68,14 +89,24 @@ unknown YAML style automatically.
 
 ## Verification
 
-After behavior or persistence changes, run:
+Portable verification, including on the Hermes/Rock 4 host, is:
 
 ```sh
 python3 -m unittest discover -s tests -v
-python3 -m py_compile scripts/setup.py scripts/family_scout.py tests/test_phase1.py
-python3 /root/.codex/skills/.system/skill-creator/scripts/quick_validate.py hermes-skill
+python3 -m py_compile scripts/setup.py scripts/family_scout.py scripts/discovery_context.py scripts/finalize_briefing.py tests/test_phase1.py tests/test_discovery_context.py tests/test_finalize_briefing.py
 git diff --check
 ```
+
+When working inside a Codex skill-development environment that already provides
+the validator, also run:
+
+```sh
+python3 /root/.codex/skills/.system/skill-creator/scripts/quick_validate.py hermes-skill
+```
+
+The Codex validator is a development-only extra check. Do not require it on a
+Hermes/runtime host, do not install Codex for it, and do not change `/root`
+permissions or copy root-owned tooling merely to make that check available.
 
 Tests must use temporary directories and synthetic public fixtures. Cover the
 affected atomic-write, append/idempotency and refusal paths. Setup changes also
