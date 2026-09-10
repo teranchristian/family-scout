@@ -91,6 +91,19 @@ class GenericBriefingContractTest(unittest.TestCase):
         ):
             self.assertIn(phrase, discovery)
 
+    def test_geocoding_retry_never_invents_distance(self):
+        runtime_tools = " ".join(
+            (ROOT / "hermes-skill" / "references" / "runtime-tools.md").read_text().split()
+        )
+        for phrase in (
+            "official romanized or English name",
+            "exact public venue/branch and locality",
+            "do not invent, estimate or approximate `distance_km`",
+            "Keep distance/radius unverified",
+            "Needs checking",
+        ):
+            self.assertIn(phrase, runtime_tools)
+
     def test_briefing_quality_gate_prevents_host_open_and_generic_age_fit_shortcuts(self):
         briefing = " ".join(
             (ROOT / "hermes-skill" / "references" / "briefing.md").read_text().split()
