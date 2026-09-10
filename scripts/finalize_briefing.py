@@ -8,6 +8,7 @@ It never emits a partial/freehand briefing.
 """
 
 import argparse
+from datetime import date
 import json
 from pathlib import Path
 import re
@@ -19,6 +20,10 @@ from urllib.parse import urlparse
 
 
 JAPANESE_SCRIPT = re.compile(r"[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
+DATED_FINDING_KINDS = {
+    "scheduled_activity", "sub_facility", "venue_availability", "hours_exception"
+}
+DATED_FINDING_STATUSES = {"available", "unavailable"}
 
 
 class FinalizeError(Exception):
@@ -48,6 +53,11 @@ def valid_url(value, label):
     return value
 
 
+def non_empty_text(value, label):
+    require(isinstance(value, str) and value.strip(), f"{label} must be non-empty text")
+    return value.strip()
+
+
 def run_json(command):
     completed = subprocess.run(command, text=True, capture_output=True, check=False)
     stream = completed.stdout if completed.returncode == 0 else completed.stderr
@@ -63,13 +73,7 @@ def run_json(command):
 
 
 def validate_output_language(render):
-    """Keep local-language text in the saved option title only.
-
-    The deterministic renderer gets option titles from the saved shortlist, so
-    every free-text string supplied through the render payload is user-facing
-    descriptive content and must be English. This catches Japanese-script
-    leakage seen in live trials without rejecting a Japanese venue title.
-    """
+    """Keep local-language text in the saved option title only."""
     require(isinstance(render, dict), "finalize payload needs render")
 
     def walk(value, path):
@@ -129,7 +133,116 @@ def verified_fact_urls(option, option_number):
     return set(source_urls), verified
 
 
-def validate_date_evidence(discovery, shortlist, options, dated_request):
+def render_activity_matches(render, option_number, name, source_url, availability,
+                            required_kind=None):
+    cards = render.get("cards") if isinstance(render, dict) else None
+    if not isinstance(cards, list):
+        return False
+    for card in cards:
+        if not isinstance(card, dict) or card.get("number") != option_number:
+            continue
+        activities = card.get("activities")
+        if not isinstance(activities, list):
+            return False
+        for activity in activities:
+            if not isinstance(activity, dict):
+                continue
+            if (activity.get("name") == name
+                    and activity.get("source_url") == source_url
+                    and activity.get("availability") == availability
+                    and (required_kind is None or activity.get("kind") == required_kind)):
+                return True
+    return False
+
+
+def validate_requested_date(value, request, label):
+    non_empty_text(value, label)
+    try:
+        finding_date = date.fromisoformat(value)
+        start = date.fromisoformat(request["date_start"])
+        end = date.fromisoformat(request.get("date_end") or request["date_start"])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise FinalizeError(f"{label} and request dates must be ISO dates") from exc
+    require(start <= finding_date <= end,
+            f"{label} must fall within the requested date range")
+
+
+def validate_exact_date_event_findings(discovery, read_urls, event_urls, options,
+                                       render, request, dated_request):
+    findings = discovery.get("exact_date_event_findings", [])
+    require(isinstance(findings, list),
+            "discovery.exact_date_event_findings must be a list")
+    if dated_request:
+        require("exact_date_event_findings" in discovery,
+                "dated recommendations must record exact_date_event_findings, even when empty")
+
+    for index, finding in enumerate(findings):
+        require(isinstance(finding, dict),
+                f"discovery.exact_date_event_findings[{index}] must be an object")
+        name = non_empty_text(finding.get("name"),
+                              f"exact_date_event_findings[{index}].name")
+        source_url = valid_url(finding.get("source_url"),
+                               f"exact_date_event_findings[{index}].source_url")
+        require(source_url in event_urls,
+                "each exact-date event finding must cite an exact-date event source")
+        require(source_url in read_urls,
+                "each exact-date event finding source must be consulted with status read")
+        if dated_request:
+            validate_requested_date(finding.get("date"), request,
+                                    f"exact_date_event_findings[{index}].date")
+        if finding.get("time") is not None:
+            non_empty_text(finding["time"], f"exact_date_event_findings[{index}].time")
+        if finding.get("detail") is not None:
+            non_empty_text(finding["detail"], f"exact_date_event_findings[{index}].detail")
+
+        number = finding.get("option_number")
+        if number is not None:
+            require(isinstance(number, int) and not isinstance(number, bool)
+                    and 1 <= number <= len(options),
+                    f"exact_date_event_findings[{index}].option_number is invalid")
+            require(render_activity_matches(render, number, name, source_url,
+                                            "available", "scheduled_activity"),
+                    f"exact-date event '{name}' for option {number} must appear as an "
+                    "available scheduled_activity in rendered activities")
+    return len(findings)
+
+
+def validate_dated_findings(item, number, evidence_urls, read_urls, render,
+                            dated_request):
+    findings = item.get("dated_findings", [])
+    require(isinstance(findings, list),
+            f"option {number} dated_findings must be a list")
+    if dated_request:
+        require(findings,
+                f"option {number} date enrichment requires concrete dated_findings")
+
+    for index, finding in enumerate(findings):
+        require(isinstance(finding, dict),
+                f"option {number} dated_findings[{index}] must be an object")
+        kind = finding.get("kind")
+        require(kind in DATED_FINDING_KINDS,
+                f"option {number} dated_findings[{index}].kind is invalid")
+        status = finding.get("status")
+        require(status in DATED_FINDING_STATUSES,
+                f"option {number} dated_findings[{index}].status is invalid")
+        name = non_empty_text(finding.get("name"),
+                              f"option {number} dated_findings[{index}].name")
+        non_empty_text(finding.get("detail"),
+                       f"option {number} dated_findings[{index}].detail")
+        source_url = valid_url(finding.get("source_url"),
+                               f"option {number} dated_findings[{index}].source_url")
+        require(source_url in evidence_urls,
+                f"option {number} dated finding must cite one of its date-enrichment sources")
+        require(source_url in read_urls,
+                f"option {number} dated finding source must be consulted with status read")
+        if kind in ("scheduled_activity", "sub_facility"):
+            require(render_activity_matches(render, number, name, source_url, status,
+                                            kind),
+                    f"option {number} dated {kind} '{name}' must appear in rendered activities")
+    return len(findings)
+
+
+def validate_date_evidence(discovery, shortlist, options, render, request, dated_request):
     read_urls = consulted_read_urls(shortlist)
 
     event_searched = discovery.get("exact_date_event_searched")
@@ -153,6 +266,10 @@ def validate_date_evidence(discovery, shortlist, options, dated_request):
         require(event_urls,
                 "dated recommendations require at least one exact-date event/calendar source URL")
 
+    event_findings = validate_exact_date_event_findings(
+        discovery, read_urls, set(event_urls), options, render, request, dated_request
+    )
+
     enrichment = discovery.get("finalist_date_enrichment")
     require(isinstance(enrichment, list),
             "discovery.finalist_date_enrichment must be a list")
@@ -162,6 +279,7 @@ def validate_date_evidence(discovery, shortlist, options, dated_request):
     expected_numbers = set(range(1, len(options) + 1))
     seen_numbers = set()
     total_sources = 0
+    total_findings = 0
 
     for index, item in enumerate(enrichment):
         require(isinstance(item, dict),
@@ -191,6 +309,9 @@ def validate_date_evidence(discovery, shortlist, options, dated_request):
             require(url in read_urls,
                     f"option {number} date-enrichment URL must appear in consulted_sources with status read")
         total_sources += len(evidence_urls)
+        total_findings += validate_dated_findings(
+            item, number, set(evidence_urls), read_urls, render, dated_request
+        )
 
     require(seen_numbers == expected_numbers,
             "every finalist must receive evidence-backed exact-date enrichment")
@@ -198,11 +319,13 @@ def validate_date_evidence(discovery, shortlist, options, dated_request):
     return {
         "exact_date_event_searched": event_searched,
         "exact_date_event_sources_checked": len(event_urls),
+        "exact_date_event_findings_captured": event_findings,
         "finalist_date_evidence_sources": total_sources,
+        "finalist_dated_findings": total_findings,
     }
 
 
-def validate_discovery(payload, shortlist):
+def validate_discovery(payload, shortlist, render):
     discovery = payload.get("discovery")
     require(isinstance(discovery, dict),
             "broad recommendation requires discovery coverage")
@@ -239,7 +362,9 @@ def validate_discovery(payload, shortlist):
     request = shortlist.get("request")
     require(isinstance(request, dict), "shortlist.request must be an object")
     dated_request = bool(request.get("date_start"))
-    date_evidence = validate_date_evidence(discovery, shortlist, options, dated_request)
+    date_evidence = validate_date_evidence(
+        discovery, shortlist, options, render, request, dated_request
+    )
 
     not_shortlisted = candidates - len(options) - len(needs_checking)
     return {
@@ -262,7 +387,8 @@ def research_summary(coverage):
         f"{coverage['confirmed_recommendations']} confirmed · "
         f"{coverage['needs_checking']} needs checking · "
         f"{coverage['not_shortlisted']} not shortlisted · "
-        f"{coverage['exact_date_event_sources_checked']} exact-date event/calendar source(s) checked"
+        f"{coverage['exact_date_event_sources_checked']} exact-date event/calendar source(s) checked · "
+        f"{coverage['exact_date_event_findings_captured']} exact-date event finding(s) captured"
     )
 
 
@@ -295,7 +421,7 @@ def finalize(args):
     require(isinstance(shortlist, dict), "finalize payload needs shortlist")
     require(isinstance(render, dict), "finalize payload needs render")
     validate_output_language(render)
-    coverage = validate_discovery(payload, shortlist)
+    coverage = validate_discovery(payload, shortlist, render)
 
     source_dir = Path(args.source_dir).expanduser().resolve()
     data_dir = Path(args.data_dir).expanduser().resolve()
