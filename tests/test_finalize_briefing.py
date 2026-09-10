@@ -47,9 +47,34 @@ class FinalizeBriefingTest(unittest.TestCase):
                 ],
                 "exact_date_event_searched": True,
                 "exact_date_event_source_urls": [calendar],
-                "finalist_date_enrichment": [
-                    {"option_number": 1, "source_urls": [facts]}
-                ],
+                "exact_date_event_findings": [{
+                    "name": "Hands-on session",
+                    "source_url": calendar,
+                    "date": "2030-04-07",
+                    "time": "10:00-11:00",
+                    "detail": "The requested-date calendar lists this session.",
+                    "option_number": 1,
+                }],
+                "finalist_date_enrichment": [{
+                    "option_number": 1,
+                    "source_urls": [facts, calendar],
+                    "dated_findings": [
+                        {
+                            "kind": "venue_availability",
+                            "name": "Venue opening",
+                            "status": "available",
+                            "detail": "Current venue information supports opening on the requested date.",
+                            "source_url": facts,
+                        },
+                        {
+                            "kind": "scheduled_activity",
+                            "name": "Hands-on session",
+                            "status": "available",
+                            "detail": "The requested-date calendar confirms the scheduled session.",
+                            "source_url": calendar,
+                        },
+                    ],
+                }],
             },
             "shortlist": {
                 "operation_id": "op-finalize-example",
@@ -72,9 +97,11 @@ class FinalizeBriefingTest(unittest.TestCase):
                     "date_start": "2030-04-07T10:00:00+00:00",
                     "date_end": "2030-04-07T11:00:00+00:00",
                     "checked_at": checked,
-                    "source_urls": [facts],
+                    "source_urls": [facts, calendar],
                     "link_checks": [
                         {"url": facts, "purposes": ["facts"],
+                         "result": "content_verified", "checked_at": checked},
+                        {"url": calendar, "purposes": ["facts"],
                          "result": "content_verified", "checked_at": checked},
                         {"url": map_url, "purposes": ["map"],
                          "result": "reachable", "checked_at": checked},
@@ -110,7 +137,7 @@ class FinalizeBriefingTest(unittest.TestCase):
                         "kind": "scheduled_activity",
                         "availability": "available",
                         "detail": "The dated listing confirms this session.",
-                        "source_url": facts,
+                        "source_url": calendar,
                     }],
                     "family_fit": [{
                         "member_id": "member-example",
@@ -145,10 +172,19 @@ class FinalizeBriefingTest(unittest.TestCase):
         self.assertIn("every finalist", result["error"])
         self.assert_no_real_write()
 
+    def test_finalist_requires_concrete_dated_findings(self):
+        payload = self.payload()
+        payload["discovery"]["finalist_date_enrichment"][0]["dated_findings"] = []
+        result = self.run_finalize(payload, expected=2)
+        self.assertIn("concrete dated_findings", result["error"])
+        self.assert_no_real_write()
+
     def test_unverified_finalist_enrichment_url_fails_without_real_write(self):
         payload = self.payload()
-        calendar = payload["discovery"]["exact_date_event_source_urls"][0]
-        payload["discovery"]["finalist_date_enrichment"][0]["source_urls"] = [calendar]
+        missing = "https://events.example.org/not-option"
+        payload["shortlist"]["consulted_sources"].append({"url": missing, "status": "read"})
+        payload["discovery"]["finalist_date_enrichment"][0]["source_urls"] = [missing]
+        payload["discovery"]["finalist_date_enrichment"][0]["dated_findings"][0]["source_url"] = missing
         result = self.run_finalize(payload, expected=2)
         self.assertIn("date-enrichment URL must be saved", result["error"])
         self.assert_no_real_write()
@@ -162,11 +198,31 @@ class FinalizeBriefingTest(unittest.TestCase):
         self.assertIn("exact-date event source", result["error"])
         self.assert_no_real_write()
 
+    def test_exact_date_event_finding_must_render_for_finalist(self):
+        payload = self.payload()
+        payload["discovery"]["exact_date_event_findings"][0]["name"] = "Morning workshop"
+        result = self.run_finalize(payload, expected=2)
+        self.assertIn("must appear as an available scheduled_activity", result["error"])
+        self.assert_no_real_write()
+
+    def test_dated_subfacility_finding_must_render(self):
+        payload = self.payload()
+        payload["discovery"]["finalist_date_enrichment"][0]["dated_findings"].append({
+            "kind": "sub_facility",
+            "name": "Planetarium",
+            "status": "unavailable",
+            "detail": "The sub-facility is closed on the requested date.",
+            "source_url": payload["discovery"]["finalist_date_enrichment"][0]["source_urls"][0],
+        })
+        result = self.run_finalize(payload, expected=2)
+        self.assertIn("dated sub_facility 'Planetarium' must appear", result["error"])
+        self.assert_no_real_write()
+
     def test_bad_render_fails_without_real_write(self):
         payload = self.payload()
         payload["render"]["cards"][0]["activities"][0]["availability"] = "unknown"
         result = self.run_finalize(payload, expected=2)
-        self.assertIn("at least one activity available", result["error"])
+        self.assertIn("exact-date event", result["error"])
         self.assert_no_real_write()
 
     def test_japanese_descriptive_content_fails_without_real_write(self):
@@ -195,10 +251,14 @@ class FinalizeBriefingTest(unittest.TestCase):
         self.assertEqual(coverage["needs_checking"], 0)
         self.assertEqual(coverage["not_shortlisted"], 5)
         self.assertEqual(coverage["exact_date_event_sources_checked"], 1)
-        self.assertEqual(coverage["finalist_date_evidence_sources"], 1)
+        self.assertEqual(coverage["exact_date_event_findings_captured"], 1)
+        self.assertEqual(coverage["finalist_date_evidence_sources"], 2)
+        self.assertEqual(coverage["finalist_dated_findings"], 2)
         self.assertIn("6 fresh candidates across 4 categories",
                       result["research_summary_markdown"])
         self.assertIn("1 exact-date event/calendar source(s) checked",
+                      result["research_summary_markdown"])
+        self.assertIn("1 exact-date event finding(s) captured",
                       result["research_summary_markdown"])
         self.assertIn("Hands-on session", result["numbered_options_markdown"])
         self.assertEqual(len((self.data / "shortlists.jsonl").read_text().splitlines()), 1)
