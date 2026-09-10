@@ -40,6 +40,36 @@ class GenericBriefingContractTest(unittest.TestCase):
         ):
             self.assertIn(phrase, discovery)
 
+    def test_broad_discovery_precedes_history_and_includes_general_attractions(self):
+        skill = " ".join((ROOT / "hermes-skill" / "SKILL.md").read_text().split())
+        discovery = " ".join(
+            (ROOT / "hermes-skill" / "references" / "discovery.md").read_text().split()
+        )
+        briefing = " ".join(
+            (ROOT / "hermes-skill" / "references" / "briefing.md").read_text().split()
+        )
+        for phrase in (
+            "broad fresh discovery first",
+            "general-attractions/experiences sweep",
+            "initial ranking from current evidence only",
+            "history only as a final adjustment",
+        ):
+            self.assertIn(phrase, skill)
+        for phrase in (
+            "General-attractions sweep",
+            "not framed only around children",
+            "Do not inspect prior shortlists or feedback during this stage",
+            "does **not** justify increasing candidate count or tool calls",
+        ):
+            self.assertIn(phrase, discovery)
+        for phrase in (
+            "Rank current evidence first",
+            "without prior shortlist history or learned feedback",
+            "History is a **final adjustment**",
+            "This is the only stage where past recommendation repetition affects ordering",
+        ):
+            self.assertIn(phrase, briefing)
+
     def test_briefing_quality_gate_prevents_host_open_and_generic_age_fit_shortcuts(self):
         briefing = " ".join(
             (ROOT / "hermes-skill" / "references" / "briefing.md").read_text().split()
