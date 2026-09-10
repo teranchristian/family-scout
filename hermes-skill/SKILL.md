@@ -5,12 +5,12 @@ description: Research current, decision-ready family outings and remember explic
 
 # Family Scout
 
-Help a family choose practical outings at home or while travelling. This is a thin router; load only needed references.
+Help a family choose practical outings at home or while travelling. Load only needed references.
 
 ## Route first
 
 - **Find, compare or plan outings:** read [references/discovery.md](references/discovery.md), [references/briefing.md](references/briefing.md), [references/quality.md](references/quality.md), and applicable [references/cli.md](references/cli.md).
-- **Feedback, history correction, profile/travel, sources, or “more like this”:** read [references/memory.md](references/memory.md) and applicable CLI sections. For “more like this”, also read recommendation references.
+- **Feedback, history correction, profile/travel, sources, or “more like this”:** read [references/memory.md](references/memory.md) and applicable CLI sections.
 - **Setup/status:** use the redacted `status` command and README.
 
 ## Recommendation order
@@ -21,11 +21,11 @@ Read `installation.json` for `source_dir` and `data_dir`. For a new broad recomm
 python3 <source_dir>/scripts/discovery_context.py --data-dir <data_dir>
 ```
 
-This excludes prior shortlists and feedback. Using only the request, profile, resolved location and enabled sources, perform **broad fresh discovery first**. Aim for **6–8 plausible candidates across at least four meaningful activity classes**. For broad things-to-do requests, always include one **general-attractions/experiences sweep** using broad local terms rather than adding child/toddler keywords to every query. Exact-date events count as a class. Do not inspect `shortlists.jsonl`, `feedback.jsonl`, or full `context` yet.
+This excludes prior shortlists and feedback. Using only the request, profile, resolved location and enabled sources, perform **broad fresh discovery first**. Aim for **6–8 plausible candidates across at least four meaningful activity classes**. For broad things-to-do requests, include one **general-attractions/experiences sweep** using broad local terms rather than child/toddler keywords in every query. Exact-date events count as a class. Do not inspect `shortlists.jsonl`, `feedback.jsonl`, or full `context` yet.
 
-Next verify current information, assess family suitability, and create an **initial ranking from current evidence only**: fit, distance/practical effort, weather, and specialness/timing. Only after that ranking exists may normal `family_scout.py context` expose history and explicit feedback. Use history only as a final adjustment for repetition, diversity and learned preferences; it must never seed discovery or determine the initial ranking unless the user explicitly asks about previous recommendations.
+Next verify current information, assess family suitability, and create an **initial ranking from current evidence only**: fit, distance/practical effort, weather, and specialness/timing. Only then may normal `family_scout.py context` expose history and explicit feedback. Use history only as a final adjustment for repetition, diversity and learned preferences; it must never seed discovery or determine the initial ranking unless the user asks about previous recommendations.
 
-Deep exact-date verification is for likely **4–5 finalists**, not every lead. An explicit place/station/area is the request anchor; “near me” uses active travel then home. The attending group is request-specific.
+Deep exact-date verification is for likely **4–5 finalists**. An explicit place/station/area is the request anchor; “near me” uses active travel then home. The attending group is request-specific.
 
 ## Evidence and language
 
@@ -41,7 +41,7 @@ Google Maps is navigation evidence only, never operating-status evidence. Includ
 
 Create one payload with `shortlist`, `render`, and `discovery`. Discovery includes fresh-discovery counts plus `exact_date_event_searched`, `exact_date_event_source_urls`, `exact_date_event_findings`, and `finalist_date_enrichment`.
 
-For dated searches, read at least one exact-date event/calendar source. Record every relevant requested-date event actually found in `exact_date_event_findings`; include `option_number` when it belongs to a finalist. Each finalist enrichment needs factual `source_urls` and concrete `dated_findings` (`scheduled_activity`, `sub_facility`, `venue_availability`, or `hours_exception`). Scheduled activities and sub-facilities must also appear in rendered activities with matching availability and source.
+For dated searches, read at least one exact-date event/calendar source. Record every relevant requested-date event found in `exact_date_event_findings`; include `option_number` when it belongs to a finalist. Each finalist enrichment needs factual `source_urls` and concrete `dated_findings` (`scheduled_activity`, `sub_facility`, `venue_availability`, or `hours_exception`). Scheduled activities and sub-facilities must also appear in rendered activities with matching availability and source.
 
 Never make broad absence claims such as “nothing special is on” or “there are no events.” If no strong event was found, say only: **“I didn't find a strong exact-date event in the checked sources.”**
 
