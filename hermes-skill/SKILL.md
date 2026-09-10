@@ -21,11 +21,11 @@ Read `installation.json` for `source_dir` and `data_dir`. For a new broad recomm
 python3 <source_dir>/scripts/discovery_context.py --data-dir <data_dir>
 ```
 
-This excludes prior shortlists and feedback. Using only the request, profile, resolved location and enabled sources, perform **broad fresh discovery first**. Aim for **6–8 plausible candidates across at least four meaningful activity classes**. For broad things-to-do requests, include one **general-attractions/experiences sweep** using broad local terms rather than child/toddler keywords in every query. Exact-date events count as a class. Do not inspect `shortlists.jsonl`, `feedback.jsonl`, or full `context` yet.
+This excludes prior shortlists and feedback. Using only the request, profile, resolved location and enabled sources, perform **broad fresh discovery first**. Stop once **6–8 plausible candidates across at least four meaningful activity classes** give adequate coverage. Broad things-to-do requests include one **general-attractions/experiences sweep** inside the normal search budget; do not add child/toddler terms to every query. Exact-date events count as a class. Do not inspect `shortlists.jsonl`, `feedback.jsonl`, or full `context` yet.
 
-Next verify current information, assess family suitability, and create an **initial ranking from current evidence only**: fit, distance/practical effort, weather, and specialness/timing. Only then may normal `family_scout.py context` expose history and explicit feedback. Use history only as a final adjustment for repetition, diversity and learned preferences; it must never seed discovery or determine the initial ranking unless the user asks about previous recommendations.
+Next verify current information, assess family suitability, and create an **initial ranking from current evidence only**: fit, distance/practical effort, weather, and specialness/timing. Only then may `family_scout.py context` expose history and explicit feedback. Use history only as a final adjustment for repetition, diversity and learned preferences; it must never seed discovery or determine the initial ranking unless the user asks about previous recommendations.
 
-Deep exact-date verification is for likely **4–5 finalists**. An explicit place/station/area is the request anchor; “near me” uses active travel then home. The attending group is request-specific.
+Deep exact-date verification is for only **3–5 likely finalists**. Deep effort may resolve a material missing fact for those finalists; it must not expand the candidate hunt. An explicit place/station/area is the request anchor; “near me” uses active travel then home.
 
 ## Evidence and language
 
@@ -41,7 +41,7 @@ Google Maps is navigation evidence only, never operating-status evidence. Includ
 
 Create one payload with `shortlist`, `render`, and `discovery`. Discovery includes fresh-discovery counts plus `exact_date_event_searched`, `exact_date_event_source_urls`, `exact_date_event_findings`, and `finalist_date_enrichment`.
 
-For dated searches, read at least one exact-date event/calendar source. Record every relevant requested-date event found in `exact_date_event_findings`; include `option_number` when it belongs to a finalist. Each finalist enrichment needs factual `source_urls` and concrete `dated_findings` (`scheduled_activity`, `sub_facility`, `venue_availability`, or `hours_exception`). Scheduled activities and sub-facilities must also appear in rendered activities with matching availability and source.
+For dated searches, read at least one exact-date event/calendar source. Record relevant requested-date events found in `exact_date_event_findings`; include `option_number` when it belongs to a finalist. Each finalist enrichment needs factual `source_urls` and concrete `dated_findings` (`scheduled_activity`, `sub_facility`, `venue_availability`, or `hours_exception`). Scheduled activities and sub-facilities must also appear in rendered activities with matching availability and source.
 
 Never make broad absence claims such as “nothing special is on” or “there are no events.” If no strong event was found, say only: **“I didn't find a strong exact-date event in the checked sources.”**
 
@@ -53,7 +53,7 @@ python3 <source_dir>/scripts/finalize_briefing.py --source-dir <source_dir> --da
 
 The finalizer preflights save + render on disposable state and writes real state only if both validate.
 
-Paste the returned `numbered_options_markdown` **verbatim**. Paste `research_summary_markdown` once after the options/needs-checking section. Do not add a stronger event-absence conclusion. A short English intro/weather/practical note may surround it.
+Paste the returned `numbered_options_markdown` **verbatim**. Paste `research_summary_markdown` once after the options/needs-checking section. Do not add a stronger event-absence conclusion.
 
 If finalization fails, report that Family Scout could not finish verification; **never fall back to freehand numbered recommendations**.
 
