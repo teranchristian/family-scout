@@ -16,6 +16,11 @@ Repository: <https://github.com/teranchristian/family-scout>
   location's timezone.
 - Searches the live web, reads current source pages and obtains a dated forecast
   using the tools already available to Hermes.
+- Reuses stable official/calendar/address/coordinate pointers only after a place
+  independently appears in fresh discovery; cached pointers never prove current
+  status.
+- Lets a radius-aware broad search cover plausible adjacent areas inside the
+  existing query budget without moving the named geographic anchor.
 - Applies strict date, radius, group cost, indoor, age, closure and mandatory
   booking checks without silently treating unknown facts as matches.
 - Checks exact venue/branch identity and resolves current closure or relocation
@@ -101,6 +106,7 @@ overwritten, parsed or repaired by the installer. New data directories use mode
 | `~/.local/share/family-scout/sources.yaml` | Private custom source list |
 | `~/.local/share/family-scout/shortlists.jsonl` | Append-only exact shortlist history |
 | `~/.local/share/family-scout/feedback.jsonl` | Append-only explicit feedback and corrections |
+| `~/.local/share/family-scout/places.jsonl` | Mutable stable-place verification pointers; never current opening/event truth |
 
 The `.yaml` documents use indented JSON, which is valid YAML and can be handled
 without an added YAML package. Exact blank files created by Phase 0 are accepted
@@ -169,7 +175,7 @@ Run the deterministic repository checks with:
 
 ```sh
 python3 -m unittest discover -s tests -v
-python3 -m py_compile scripts/setup.py scripts/family_scout.py tests/test_phase1.py
+python3 -m py_compile scripts/setup.py scripts/family_scout.py tests/test_phase1.py tests/test_place_cache.py
 python3 /root/.codex/skills/.system/skill-creator/scripts/quick_validate.py hermes-skill
 ```
 

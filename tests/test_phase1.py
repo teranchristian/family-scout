@@ -178,7 +178,10 @@ class Phase1Test(unittest.TestCase):
         for relative in record["skill_files"]:
             self.assertTrue((target / relative).is_file())
         self.assertEqual(stat.S_IMODE(self.data.stat().st_mode), 0o700)
-        for name in ("profile.yaml", "sources.yaml", "shortlists.jsonl", "feedback.jsonl"):
+        for name in (
+            "profile.yaml", "sources.yaml", "shortlists.jsonl", "feedback.jsonl",
+            "places.jsonl",
+        ):
             self.assertEqual(stat.S_IMODE((self.data / name).stat().st_mode), 0o600)
 
         opaque = b"synthetic bytes preserved\n"
@@ -560,6 +563,10 @@ class Phase1Test(unittest.TestCase):
             "Unknown price does not pass",
             "straight-line distance",
             "six search queries",
+            "place-cache-lookup",
+            "verification leads only",
+            "adjacent municipalities",
+            "separate query allowance",
             "One failed page, PDF or reader path",
             "[runtime-tools.md](runtime-tools.md)",
             "[venue-status.md](venue-status.md)",

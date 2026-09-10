@@ -14,6 +14,7 @@ from pathlib import Path
 import re
 import sys
 import tempfile
+import unicodedata
 from urllib.parse import urlparse
 import uuid
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -36,7 +37,10 @@ DEFAULT_PROFILE = {
     "travel": None,
 }
 DEFAULT_SOURCES = {"schema_version": 1, "sources": []}
-STATE_FILES = ("profile.yaml", "sources.yaml", "shortlists.jsonl", "feedback.jsonl")
+STATE_FILES = (
+    "profile.yaml", "sources.yaml", "shortlists.jsonl", "feedback.jsonl",
+    "places.jsonl",
+)
 ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9._-]{2,95}$")
 FEEDBACK_STATES = {
     "liked", "disliked", "saved", "interested", "visited", "bored",
@@ -44,6 +48,11 @@ FEEDBACK_STATES = {
 }
 LINK_PURPOSES = {"facts", "booking", "map", "other"}
 LINK_RESULTS = {"content_verified", "reachable"}
+PLACE_INPUT_FIELDS = {
+    "place_id", "name", "area", "categories", "official_url", "calendar_url",
+    "address", "latitude", "longitude",
+}
+PLACE_RECORD_FIELDS = PLACE_INPUT_FIELDS | {"schema_version", "last_seen_at"}
 
 
 class ScoutError(Exception):
@@ -255,9 +264,7 @@ def load_document(path, kind):
     return validate_profile(parsed) if kind == "profile" else validate_sources(parsed)
 
 
-def atomic_document(path, value):
-    content = (json.dumps(value, indent=2, ensure_ascii=False, allow_nan=False)
-               + "\n").encode("utf-8")
+def atomic_bytes(path, content):
     fd, temporary = tempfile.mkstemp(prefix=".family-scout-", dir=path.parent)
     try:
         os.fchmod(fd, 0o600)
@@ -274,6 +281,12 @@ def atomic_document(path, value):
     finally:
         if os.path.exists(temporary):
             os.unlink(temporary)
+
+
+def atomic_document(path, value):
+    content = (json.dumps(value, indent=2, ensure_ascii=False, allow_nan=False)
+               + "\n").encode("utf-8")
+    atomic_bytes(path, content)
 
 
 def load_records(path, kind):
@@ -381,6 +394,258 @@ def append_record(path, value):
         os.close(descriptor)
 
 
+def atomic_records(path, records):
+    content = "".join(
+        json.dumps(record, separators=(",", ":"), ensure_ascii=False,
+                   allow_nan=False) + "\n"
+        for record in records
+    ).encode("utf-8")
+    atomic_bytes(path, content)
+
+
+def place_text(value, label):
+    require(isinstance(value, str), f"{label} must be text")
+    normalized = " ".join(value.split())
+    require(normalized, f"{label} must be non-empty text")
+    return normalized
+
+
+def place_identity_text(value):
+    return " ".join(unicodedata.normalize("NFKC", value).split()).casefold()
+
+
+def normalize_categories(value, label="place.categories"):
+    require(isinstance(value, list), f"{label} must be a list")
+    categories = {}
+    for index, category in enumerate(value):
+        normalized = place_text(category, f"{label}[{index}]")
+        categories.setdefault(place_identity_text(normalized), normalized)
+    return [categories[key] for key in sorted(categories)]
+
+
+def normalize_place(value, label="place"):
+    require(isinstance(value, dict), f"{label} must be an object")
+    require(set(value) <= PLACE_INPUT_FIELDS,
+            f"{label} contains unsupported or date-sensitive fields")
+    result = {"name": place_text(value.get("name"), f"{label}.name")}
+    for key in ("area", "official_url", "calendar_url", "address"):
+        if key in value:
+            result[key] = (valid_url(value[key], f"{label}.{key}")
+                           if key.endswith("_url")
+                           else place_text(value[key], f"{label}.{key}"))
+    require(result.get("area") or result.get("address"),
+            f"{label} needs an exact area or address; name-only matching is unsafe")
+    if "categories" in value:
+        result["categories"] = normalize_categories(value["categories"],
+                                                     f"{label}.categories")
+    latitude, longitude = value.get("latitude"), value.get("longitude")
+    require((latitude is None) == (longitude is None),
+            f"{label} latitude and longitude must both be set or both be omitted")
+    if latitude is not None:
+        result["latitude"] = valid_number(latitude, f"{label}.latitude", -90, 90)
+        result["longitude"] = valid_number(longitude, f"{label}.longitude", -180, 180)
+    if value.get("place_id") is not None:
+        result["place_id"] = valid_id(value["place_id"], f"{label}.place_id")
+    return result
+
+
+def validate_place_record(record, label):
+    require(isinstance(record, dict), f"{label} must be an object")
+    require(set(record) <= PLACE_RECORD_FIELDS,
+            f"{label} contains unsupported or date-sensitive fields")
+    require(record.get("schema_version") == SCHEMA_VERSION,
+            f"{label} has an unsupported schema_version")
+    valid_id(record.get("place_id"), f"{label}.place_id")
+    normalize_place(
+        {key: value for key, value in record.items() if key in PLACE_INPUT_FIELDS},
+        label,
+    )
+    valid_timestamp(record.get("last_seen_at"), f"{label}.last_seen_at")
+    return record
+
+
+def load_places(path):
+    records = []
+    place_ids = set()
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError as exc:
+        raise ScoutError(f"cannot read {path.name}: {exc}") from exc
+    for number, line in enumerate(lines, 1):
+        if not line.strip():
+            continue
+        record = parse_json(line, f"{path.name} line {number}")
+        validate_place_record(record, f"{path.name} line {number}")
+        require(record["place_id"] not in place_ids,
+                f"{path.name} line {number} repeats place_id")
+        place_ids.add(record["place_id"])
+        records.append(record)
+    return records
+
+
+def normalize_place_query(value, label):
+    require(isinstance(value, dict), f"{label} must be an object")
+    allowed = {"place_id", "name", "area", "address"}
+    require(set(value) <= allowed, f"{label} contains unsupported fields")
+    result = {}
+    if value.get("place_id") is not None:
+        result["place_id"] = valid_id(value["place_id"], f"{label}.place_id")
+    if value.get("name") is not None:
+        result["name"] = place_text(value["name"], f"{label}.name")
+    for key in ("area", "address"):
+        if value.get(key) is not None:
+            result[key] = place_text(value[key], f"{label}.{key}")
+    if "place_id" not in result:
+        require(result.get("name"), f"{label}.name is required")
+        require(result.get("area") or result.get("address"),
+                f"{label} needs an exact area or address; name-only matching is unsafe")
+    return result
+
+
+def place_matches(records, query):
+    if query.get("place_id"):
+        return [record for record in records
+                if record["place_id"] == query["place_id"]]
+    same_name = [
+        record for record in records
+        if place_identity_text(record["name"]) == place_identity_text(query["name"])
+    ]
+    if query.get("address"):
+        exact_address = [
+            record for record in same_name
+            if record.get("address")
+            and place_identity_text(record["address"]) == place_identity_text(query["address"])
+            and (not query.get("area") or not record.get("area")
+                 or place_identity_text(record["area"]) == place_identity_text(query["area"]))
+        ]
+        if exact_address:
+            return exact_address
+        return [
+            record for record in same_name
+            if not record.get("address") and query.get("area") and record.get("area")
+            and place_identity_text(record["area"]) == place_identity_text(query["area"])
+        ]
+    return [
+        record for record in same_name
+        if query.get("area") and record.get("area")
+        and place_identity_text(record["area"]) == place_identity_text(query["area"])
+    ]
+
+
+def merge_place(existing, incoming, observed_at):
+    result = deepcopy(existing)
+    require(place_identity_text(result["name"]) == place_identity_text(incoming["name"]),
+            "place name conflicts with the existing exact identity")
+    for key in ("area", "address"):
+        if result.get(key) and incoming.get(key):
+            require(place_identity_text(result[key]) == place_identity_text(incoming[key]),
+                    f"place {key} conflicts with the existing exact identity")
+    old_seen = datetime.fromisoformat(result["last_seen_at"].replace("Z", "+00:00"))
+    new_seen = datetime.fromisoformat(observed_at.replace("Z", "+00:00"))
+    if new_seen < old_seen:
+        return result
+    for key in ("area", "address"):
+        if incoming.get(key):
+            result[key] = incoming[key]
+    if "categories" in incoming:
+        result["categories"] = normalize_categories(
+            result.get("categories", []) + incoming["categories"]
+        )
+    for key in ("official_url", "calendar_url", "latitude", "longitude"):
+        if key in incoming:
+            result[key] = incoming[key]
+    result["last_seen_at"] = observed_at
+    validate_place_record(result, "updated place")
+    return result
+
+
+def command_place_cache_lookup(data_dir, args):
+    payload = read_payload(args.input)
+    require(isinstance(payload, dict) and set(payload) == {"candidates"},
+            "place cache lookup payload must contain only candidates")
+    candidates = payload["candidates"]
+    require(isinstance(candidates, list) and 1 <= len(candidates) <= 20,
+            "candidates must contain between 1 and 20 exact discovered places")
+    queries = [normalize_place_query(value, f"candidates[{index}]")
+               for index, value in enumerate(candidates)]
+    with state_lock(data_dir):
+        records = load_places(data_dir / "places.jsonl")
+    results = []
+    for query in queries:
+        matches = place_matches(records, query)
+        if len(matches) == 1:
+            results.append({"query": query, "status": "hit", "place": deepcopy(matches[0])})
+        elif matches:
+            results.append({"query": query, "status": "ambiguous"})
+        else:
+            results.append({"query": query, "status": "miss"})
+    emit({
+        "ok": True,
+        "cache_role": "verification_leads_only",
+        "requires_current_verification": True,
+        "results": results,
+    })
+
+
+def command_place_cache_upsert(data_dir, args):
+    payload = read_payload(args.input)
+    require(isinstance(payload, dict)
+            and set(payload) == {"observed_at", "evidence_urls", "place"},
+            "place cache upsert payload must contain observed_at, evidence_urls and place")
+    observed_at = valid_timestamp(payload["observed_at"], "observed_at")
+    evidence_urls = payload["evidence_urls"]
+    require(isinstance(evidence_urls, list) and evidence_urls,
+            "evidence_urls must contain current-run public evidence")
+    require(len(evidence_urls) == len(set(evidence_urls)),
+            "evidence_urls must not contain duplicates")
+    for index, url in enumerate(evidence_urls):
+        valid_url(url, f"evidence_urls[{index}]")
+    incoming = normalize_place(payload["place"])
+    for key in ("official_url", "calendar_url"):
+        if incoming.get(key):
+            require(incoming[key] in evidence_urls,
+                    f"place.{key} must be present in current-run evidence_urls")
+    require(any(key in incoming for key in
+                ("categories", "official_url", "calendar_url", "address", "latitude")),
+            "place must include at least one reusable stable fact or pointer")
+    with state_lock(data_dir):
+        path = data_dir / "places.jsonl"
+        records = load_places(path)
+        if incoming.get("place_id"):
+            matches = place_matches(records, {"place_id": incoming["place_id"]})
+            require(matches, "place_id was not found; omit it to create a new place")
+        else:
+            matches = place_matches(records, incoming)
+        require(len(matches) <= 1,
+                "place identity is ambiguous; provide the exact address or place_id")
+        if (matches and not incoming.get("place_id") and matches[0].get("address")
+                and not incoming.get("address")):
+            require(incoming.get("official_url") == matches[0].get("official_url"),
+                    "existing place has a stronger address; provide that exact address "
+                    "or place_id before changing its pointers")
+        if matches:
+            index = records.index(matches[0])
+            updated = merge_place(matches[0], incoming, observed_at)
+            duplicate = updated == matches[0]
+            records[index] = updated
+            place_id = updated["place_id"]
+        else:
+            identity = "|".join(
+                (incoming["name"], incoming.get("area", ""), incoming.get("address", ""))
+            )
+            place_id = stable_id("place", place_identity_text(identity))
+            require(all(record["place_id"] != place_id for record in records),
+                    "generated place identity conflicts with an existing place")
+            created = {"schema_version": SCHEMA_VERSION, **incoming,
+                       "place_id": place_id, "last_seen_at": observed_at}
+            validate_place_record(created, "new place")
+            records.append(created)
+            duplicate = False
+        if not duplicate:
+            atomic_records(path, records)
+    emit({"ok": True, "duplicate": duplicate, "place_id": place_id})
+
+
 @contextmanager
 def state_lock(data_dir):
     require(data_dir.is_dir(), "private data directory does not exist; run install.sh first")
@@ -456,6 +721,7 @@ def command_status(data_dir):
         sources = load_document(data_dir / "sources.yaml", "sources")
         shortlists = load_records(data_dir / "shortlists.jsonl", "shortlist")
         feedback = load_records(data_dir / "feedback.jsonl", "feedback")
+        places = load_places(data_dir / "places.jsonl")
     emit({
         "ok": True,
         "profile": {
@@ -467,6 +733,7 @@ def command_status(data_dir):
         "sources": {"total": len(sources["sources"]),
                     "enabled": sum(1 for item in sources["sources"] if item["enabled"])},
         "history": {"shortlists": len(shortlists), "feedback_events": len(feedback)},
+        "place_cache": {"places": len(places)},
     })
 
 
@@ -1196,6 +1463,15 @@ def build_parser():
     evaluate = commands.add_parser("evaluate", help="Classify structured hard requirements")
     evaluate.add_argument("--input", default="-", help="JSON file or - for stdin")
 
+    place_lookup = commands.add_parser(
+        "place-cache-lookup", help="Reuse stable pointers for exact discovered places"
+    )
+    place_lookup.add_argument("--input", default="-", help="JSON file or - for stdin")
+    place_upsert = commands.add_parser(
+        "place-cache-upsert", help="Update stable place facts from current public evidence"
+    )
+    place_upsert.add_argument("--input", default="-", help="JSON file or - for stdin")
+
     shortlist = commands.add_parser("shortlist-save", help="Persist the exact displayed shortlist")
     shortlist.add_argument("--input", default="-", help="JSON file or - for stdin")
     resolve = commands.add_parser("resolve-option", help="Resolve a displayed option number")
@@ -1231,6 +1507,10 @@ def main():
             command_distance(args)
         elif args.command == "evaluate":
             command_evaluate(args)
+        elif args.command == "place-cache-lookup":
+            command_place_cache_lookup(data_dir, args)
+        elif args.command == "place-cache-upsert":
+            command_place_cache_upsert(data_dir, args)
         elif args.command == "shortlist-save":
             command_shortlist_save(data_dir, args)
         elif args.command == "resolve-option":

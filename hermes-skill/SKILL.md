@@ -21,7 +21,7 @@ Read `installation.json` for `source_dir` and `data_dir`. For a new broad recomm
 python3 <source_dir>/scripts/discovery_context.py --data-dir <data_dir>
 ```
 
-This excludes prior shortlists and feedback. Using only the request, profile, resolved location and enabled sources, perform **broad fresh discovery first**. Stop once **6–8 plausible candidates across at least four meaningful activity classes** give adequate coverage. Broad things-to-do requests include one **general-attractions/experiences sweep** inside the normal search budget; do not add child/toddler terms to every query. Exact-date events count as a class. Do not inspect `shortlists.jsonl`, `feedback.jsonl`, or full `context` yet.
+This excludes prior shortlists and feedback. Using only the request, profile, resolved location and enabled sources, perform **broad fresh discovery first**. Stop once **6–8 plausible candidates across at least four meaningful activity classes** give adequate coverage. Broad things-to-do requests include one **general-attractions/experiences sweep** inside the normal search budget; do not add child/toddler terms to every query. Exact-date events count as a class. Do not inspect `shortlists.jsonl`, `feedback.jsonl`, `places.jsonl`, or full `context` yet.
 
 Next verify current information, assess family suitability, and create an **initial ranking from current evidence only**: fit, distance/practical effort, weather, and specialness/timing. Only then may `family_scout.py context` expose history and explicit feedback. Use history only as a final adjustment for repetition, diversity and learned preferences; it must never seed discovery or determine the initial ranking unless the user asks about previous recommendations.
 

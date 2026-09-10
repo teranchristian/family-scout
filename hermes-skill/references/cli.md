@@ -12,9 +12,9 @@ python3 <source_dir>/scripts/family_scout.py --data-dir <data_dir> status
 
 Commands emit JSON on stdout. Validation and state errors emit JSON on stderr
 and exit with status 2. Never bypass an error by editing or replacing private
-state. Payloads are JSON files or JSON on stdin with `--input -`. For persistent
+state. Payloads are JSON files or JSON on stdin with `--input -`. For append-only
 writes, create a lowercase operation ID and reuse exactly that ID after an
-uncertain retry; this makes append operations idempotent.
+uncertain retry. Stable-place cache writes instead upsert one exact identity.
 
 ## Read context
 
@@ -90,6 +90,74 @@ python3 <source_dir>/scripts/family_scout.py --data-dir <data_dir> source-remove
 ```
 
 Never query disabled or removed sources deliberately.
+
+## Reuse stable place pointers after current-run discovery
+
+The private cache at `<data_dir>/places.jsonl` contains stable public venue
+pointers, not recommendation candidates or current operating facts. For a normal
+broad recommendation, do not query it until fresh discovery has independently
+produced the current candidate pool.
+
+Look up one or more exact discovered venues in one call:
+
+```json
+{
+  "candidates": [
+    {
+      "name": "Example Discovery Centre",
+      "area": "Example City",
+      "address": "1 Public Road, Example City"
+    }
+  ]
+}
+```
+
+```sh
+python3 <source_dir>/scripts/family_scout.py --data-dir <data_dir> \
+  place-cache-lookup --input lookup.json
+```
+
+Name-only lookup is refused. Use the exact current-run name plus locality or
+address; use a returned `place_id` only for a known exact venue. An ambiguous
+same-name match returns no pointers. Every response says
+`requires_current_verification: true`: cached official/calendar URLs, address and
+coordinates are leads that can reduce navigation work, but current pages must
+still be opened and validated before making current or exact-date claims.
+
+After reading current public evidence, upsert only stable facts actually
+supported during that run:
+
+```json
+{
+  "observed_at": "2030-04-06T09:00:00Z",
+  "evidence_urls": [
+    "https://places.example.org/discovery-centre",
+    "https://places.example.org/discovery-centre/calendar"
+  ],
+  "place": {
+    "name": "Example Discovery Centre",
+    "area": "Example City",
+    "categories": ["museum", "indoor"],
+    "official_url": "https://places.example.org/discovery-centre",
+    "calendar_url": "https://places.example.org/discovery-centre/calendar",
+    "address": "1 Public Road, Example City",
+    "latitude": 1.25,
+    "longitude": 2.5
+  }
+}
+```
+
+```sh
+python3 <source_dir>/scripts/family_scout.py --data-dir <data_dir> \
+  place-cache-upsert --input place.json
+```
+
+The helper accepts only canonical name, area, broad categories,
+official/calendar URL, public address, evidenced coordinates and last-seen time.
+It rejects date-sensitive or unknown fields. Opening, events, sessions,
+closures, price, weather, booking, current rank and route time never belong in
+the cache. Repeated exact writes update one stable `place_id`; weaker ambiguous
+matches are refused, and malformed cache state is preserved.
 
 ## Calculate distance and classify candidates
 

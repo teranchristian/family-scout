@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read Family Scout recommendation context without exposing prior shortlist history."""
+"""Read recommendation context without exposing prior history or cached places."""
 
 import argparse
 import json

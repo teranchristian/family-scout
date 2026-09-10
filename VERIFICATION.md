@@ -93,6 +93,32 @@ These checks establish that the Phase 1 code and deterministic contract are
 **built**. They do not establish that Hermes will consistently interpret natural
 language, select good evidence or produce useful rankings on the live web.
 
+## Stable-place cache and adjacent-area checks — 2026-09-10 UTC
+
+This narrow follow-up starts from merged `main` commit `8920660`. Fixtures remain
+temporary and synthetic; no installed or private family state was read.
+
+| Check | Outcome | Evidence |
+| --- | --- | --- |
+| Full deterministic suite | Passed | `python3 -m unittest discover -s tests -v` ran 44 tests successfully |
+| Python syntax | Passed | The documented `py_compile` command, including `test_place_cache.py`, exited successfully |
+| Hermes skill structure | Passed | Skill Creator `quick_validate.py` reported `Skill is valid!` |
+| Diff whitespace | Passed | `git diff --check` reported no errors |
+| Fresh-discovery isolation | Passed | Discovery succeeded with a deliberately malformed `places.jsonl` and exposed no cache data |
+| Stable-pointer lookup | Passed | An exact current-run-style name/locality lookup returned official/calendar/address/coordinate pointers marked as verification leads requiring current verification |
+| Identity and duplicate safety | Passed | Repeated writes kept one record; same-name/different-address places stayed separate; weaker same-name lookup was ambiguous |
+| Stale-write safety | Passed | An older observation could not replace pointers or `last_seen_at` from newer evidence |
+| Schema refusal | Passed | Date-sensitive fields and name-only matching were rejected without writing cache state |
+| Malformed-state preservation | Passed | A failed cache update left malformed bytes unchanged |
+| Adjacent-area budget contract | Passed | Canonical discovery wording requires combined regional searches inside the existing allowance and preserves exact-coordinate Haversine refusal |
+
+These checks do not validate live page-reading quality, prove a cached URL is
+still current, or demonstrate better adjacent-boundary recall. Those remain
+real-use observations: after installing this branch, run a normal broad search
+that produces at least one cache hit and one radius search whose plausible pool
+crosses a municipal boundary. Current official/date-specific verification must
+still succeed independently of the cache before a finalist is confirmed.
+
 ## Phase 1 real-use validation — pending
 
 ### Trial observation — 2026-09-08 UTC

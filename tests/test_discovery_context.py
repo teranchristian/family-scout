@@ -45,9 +45,10 @@ class DiscoveryContextTest(unittest.TestCase):
             check=False,
         )
 
-    def test_discovery_context_does_not_read_or_expose_history(self):
+    def test_discovery_context_does_not_read_or_expose_history_or_cached_places(self):
         (self.data / "shortlists.jsonl").write_text("{malformed shortlist\n")
         (self.data / "feedback.jsonl").write_text("{malformed feedback\n")
+        (self.data / "places.jsonl").write_text("{malformed place cache\n")
 
         discovery = self.run_script(DISCOVERY_CONTEXT)
         self.assertEqual(discovery.returncode, 0, msg=discovery.stderr)
@@ -58,6 +59,8 @@ class DiscoveryContextTest(unittest.TestCase):
         self.assertIn("enabled_sources", payload)
         self.assertNotIn("recent_shortlists", payload)
         self.assertNotIn("effective_feedback", payload)
+        self.assertNotIn("places", payload)
+        self.assertNotIn("place_cache", payload)
 
         full = self.run_script(FULL_CONTEXT, "context")
         self.assertEqual(full.returncode, 2)

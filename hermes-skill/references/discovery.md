@@ -67,6 +67,45 @@ coverage, not the whole discovery universe.
 Do not inspect prior shortlists or feedback during this stage. Discovery must be
 independent of recommendation history.
 
+### Radius-aware adjacent areas
+
+When the requested radius reasonably extends beyond the named anchor
+municipality or neighbourhood, broad discovery may include adjacent
+municipalities or neighbourhoods that could fall inside that radius. Keep the
+named place or station as the geographic anchor; adjacent-area discovery never
+enlarges the requested radius.
+
+Fit this into the existing discovery budget. Prefer one combined regional,
+attractions or experience query that can cover several nearby areas/classes.
+Do not issue one query for every town × activity class, and do not add a separate
+query allowance or discovery phase for adjacent areas.
+
+An adjacent-area candidate is not confirmed merely because a search result calls
+it nearby. Finalists still need exact evidenced venue coordinates and the
+helper's inclusive Haversine radius check. If exact venue coordinates cannot be
+established, keep radius unverified rather than substituting a station,
+neighbourhood or municipality centroid.
+
+### Reuse stable pointers only after fresh discovery
+
+The private `places.jsonl` cache is a verification shortcut, never a normal
+fresh-discovery candidate source. Do not read or query it while building the
+initial candidate pool. After a venue independently appears in the current-run
+pool, call `place-cache-lookup` with that exact discovered name plus locality or
+address. A hit may supply official/calendar URLs, address or evidenced
+coordinates as **verification leads only**.
+
+Open and read current official pages and perform the same exact-date checks as
+for an uncached candidate. A cached URL may be stale; a cached address or
+coordinate does not establish opening, current price, events, sessions,
+sub-facility status, booking, route time or rank. Never promote a cached hit that
+has not passed current verification. The only direct-lookup exception is when
+the user explicitly asks about a known/repeated venue or prior recommendation.
+
+After current evidence has been read, `place-cache-upsert` may conservatively
+store only the evidenced stable public facts documented in `cli.md`. It must not
+store date-sensitive claims.
+
 ### Cost and stopping rules
 
 Normal effort is capped at **six search queries, twelve source-page fetches and
