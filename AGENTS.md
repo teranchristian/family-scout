@@ -89,14 +89,24 @@ unknown YAML style automatically.
 
 ## Verification
 
-After behavior or persistence changes, run:
+Portable verification, including on the Hermes/Rock 4 host, is:
 
 ```sh
 python3 -m unittest discover -s tests -v
 python3 -m py_compile scripts/setup.py scripts/family_scout.py scripts/discovery_context.py scripts/finalize_briefing.py tests/test_phase1.py tests/test_discovery_context.py tests/test_finalize_briefing.py
-python3 /root/.codex/skills/.system/skill-creator/scripts/quick_validate.py hermes-skill
 git diff --check
 ```
+
+When working inside a Codex skill-development environment that already provides
+the validator, also run:
+
+```sh
+python3 /root/.codex/skills/.system/skill-creator/scripts/quick_validate.py hermes-skill
+```
+
+The Codex validator is a development-only extra check. Do not require it on a
+Hermes/runtime host, do not install Codex for it, and do not change `/root`
+permissions or copy root-owned tooling merely to make that check available.
 
 Tests must use temporary directories and synthetic public fixtures. Cover the
 affected atomic-write, append/idempotency and refusal paths. Setup changes also
