@@ -32,8 +32,18 @@ exact home location.
 - Use a geocoding service that returns coordinates for a public place name. A
   plain `curl` to the Nominatim (OpenStreetMap) search endpoint is one reliable
   option where network access allows.
+- If an exact Japanese venue name/address returns no usable result, retry within
+  the existing research budget using the same venue's official romanized or
+  English name, locality, or other accountable public wording. A language hint
+  such as English may be used when the geocoder supports it.
+- Accept a retry only when the returned place clearly matches the exact public
+  venue/branch and locality. A nearby station, neighbourhood, similarly named
+  branch or city centroid is not venue-coordinate evidence.
 - Treat returned coordinates as evidence to feed the helper's `distance`
   calculation; the helper itself does not geocode.
+- If venue geocoding still fails, **do not invent, estimate or approximate
+  `distance_km`**. Keep distance/radius unverified; when radius is a hard
+  requirement, the candidate belongs under **Needs checking** or is omitted.
 - Keep venue/place coordinates in the shortlist as a public place label and
   coordinates, never as a private address.
 
