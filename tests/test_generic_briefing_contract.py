@@ -59,7 +59,7 @@ class GenericBriefingContractTest(unittest.TestCase):
             "General-attractions sweep",
             "not framed only around children",
             "Do not inspect prior shortlists or feedback during this stage",
-            "does **not** justify increasing candidate count or tool calls",
+            "not an extra phase or extra query allowance",
         ):
             self.assertIn(phrase, discovery)
         for phrase in (
@@ -69,6 +69,27 @@ class GenericBriefingContractTest(unittest.TestCase):
             "This is the only stage where past recommendation repetition affects ordering",
         ):
             self.assertIn(phrase, briefing)
+
+    def test_research_budget_stops_candidate_hunting_and_bounds_deep_effort(self):
+        skill = " ".join((ROOT / "hermes-skill" / "SKILL.md").read_text().split())
+        discovery = " ".join(
+            (ROOT / "hermes-skill" / "references" / "discovery.md").read_text().split()
+        )
+        for phrase in (
+            "Stop once **6–8 plausible candidates",
+            "Deep exact-date verification is for only **3–5 likely finalists**",
+            "must not expand the candidate hunt",
+        ):
+            self.assertIn(phrase, skill)
+        for phrase in (
+            "stop broad candidate hunting",
+            "ceilings, not targets",
+            "replaces one normal discovery slot",
+            "must **not** be used to discover more candidates",
+            "three additional search queries and six additional source-page fetches",
+            "put that lead under **Needs checking** or return fewer confirmed options",
+        ):
+            self.assertIn(phrase, discovery)
 
     def test_briefing_quality_gate_prevents_host_open_and_generic_age_fit_shortcuts(self):
         briefing = " ".join(
