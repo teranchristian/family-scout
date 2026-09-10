@@ -61,7 +61,8 @@ constraint.
 Unavailable or unverified features cannot improve rank. If a venue's strongest
 advertised attraction is not running, rerank using only activities actually
 available. An unavailable optional feature does not automatically disqualify the
-venue when another concrete verified activity still makes it worthwhile.
+venue when it still has **at least one concrete activity confirmed available**
+and that remaining experience is worthwhile.
 
 ## Make the first answer decision-ready
 
