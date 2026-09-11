@@ -32,8 +32,8 @@ clearly superior current option merely because it is familiar. If history change
 the order, keep the current-evidence candidate pool and make only the smallest
 useful adjustment.
 
-For a broad search, target **four or five genuinely useful confirmed options**.
-Return fewer when evidence is insufficient; never pad and never exceed five. Add
+For a normal broad search, target **two strong options plus one useful backup**.
+Return fewer when evidence is insufficient; never pad and never exceed three. Add
 at most two promising leads under **Needs checking**, each naming the exact
 missing hard requirement.
 

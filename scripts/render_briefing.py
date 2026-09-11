@@ -122,8 +122,8 @@ def purpose_label(purposes):
 
 def normalize_activities(card, facts_urls):
     raw = card.get("activities")
-    require(isinstance(raw, list) and raw,
-            "each render card must include at least one evidenced activity")
+    require(isinstance(raw, list) and 1 <= len(raw) <= 4,
+            "each render card must include one to four decision-relevant activities")
     seen = set()
     activities = []
     for index, item in enumerate(raw):
@@ -196,11 +196,11 @@ def normalize_family_fit(card, expected_member_ids, activities):
     return fits
 
 
-def activity_status_label(value):
+def activity_prefix(value):
     return {
-        "available": "Available on the requested date",
-        "unavailable": "Unavailable on the requested date",
-        "unknown": "Availability not established",
+        "available": "",
+        "unavailable": "⚠️ Unavailable — ",
+        "unknown": "⚠️ Not confirmed — ",
     }[value]
 
 
@@ -274,14 +274,14 @@ def render(shortlist, payload):
         option = saved[number]
         card = normalized_cards[number]
         lines = [f"**{number}. {option['title'].strip()}**", card["body"], "",
-                 "**What you can actually do**"]
+                 "**Activities**"]
         for activity in card["activities"]:
             lines.append(
-                f"- **{activity['name']}** — {activity_status_label(activity['availability'])}. "
+                f"- **{activity['name']}** — {activity_prefix(activity['availability'])}"
                 f"{activity['detail']}"
             )
 
-        lines.extend(["", "**Fit for each attending family member**"])
+        lines.extend(["", "**Family fit**"])
         for fit in card["family_fit"]:
             if fit["fit"] == "guardian":
                 continue
@@ -291,11 +291,11 @@ def render(shortlist, payload):
                 if fit["limitations"] else ""
             )
             lines.append(
-                f"- **{fit['label']}** — {fit_label(fit['fit'])}; "
-                f"can do: {activities_text}.{limitation_text}"
+                f"- **{fit['label']}** — {fit_label(fit['fit'])}: "
+                f"{activities_text}.{limitation_text}"
             )
 
-        lines.extend(["", "🔗 Verified links:"])
+        lines.extend(["", "**Links**"])
         rendered_links = []
         for check in card["checks"]:
             label = purpose_label(check["purposes"])

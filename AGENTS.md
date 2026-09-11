@@ -29,10 +29,10 @@ For broad recommendations, fresh discovery must occur before prior shortlist
 history is exposed to the agent. `scripts/discovery_context.py` exists for this
 purpose and intentionally does not read `shortlists.jsonl` or `feedback.jsonl`.
 History may be consulted only after the fresh candidate pool exists, for explicit
-feedback, deduplication and repetition awareness.
-The stable-place cache may accelerate verification only after a venue appears
-independently in that pool. It never seeds normal discovery and never establishes
-date-sensitive truth.
+feedback, deduplication and repetition awareness. After the required fresh
+searches, the stable-place cache may contribute at most one candidate lead to a
+normal shortlist. It never establishes date-sensitive truth, and at least two
+finalists in a three-option answer must originate in fresh discovery.
 
 ## Privacy and data
 
@@ -75,8 +75,10 @@ date-sensitive truth.
 - Learn only from explicit feedback. Append corrections/retractions that
   supersede prior events; never rewrite JSONL. Current instructions override
   saved preferences, and contextual complaints must not become global bans.
-- Keep normal search within six queries, twelve page fetches and one dated
-  forecast attempt. Report gaps honestly when the budget is exhausted.
+- Keep normal search within three queries and twelve total external calls across
+  search, page reading, forecast and geocoding. Return at most three confirmed
+  options. Deep effort is allowed only for an explicit thorough/comprehensive
+  request. Report gaps honestly when the budget is exhausted.
 - Cover adjacent areas inside the requested radius through the same bounded
   discovery budget; do not add a town-by-category phase or approximate radius.
 

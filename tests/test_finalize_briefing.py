@@ -125,7 +125,7 @@ class FinalizeBriefingTest(unittest.TestCase):
                     {"url": facts, "status": "read"},
                     {"url": calendar, "status": "read"},
                 ],
-                "tool_usage": {"search_queries": 4, "source_fetches": 8,
+                "tool_usage": {"search_queries": 3, "source_fetches": 8,
                                "forecast_lookups": 0},
             },
             "render": {
@@ -254,7 +254,7 @@ class FinalizeBriefingTest(unittest.TestCase):
         self.assertEqual(coverage["exact_date_event_findings_captured"], 1)
         self.assertEqual(coverage["finalist_date_evidence_sources"], 2)
         self.assertEqual(coverage["finalist_dated_findings"], 2)
-        self.assertIn("6 fresh candidates across 4 categories",
+        self.assertIn("6 fresh + 0 cached lead(s) across 4 categories",
                       result["research_summary_markdown"])
         self.assertIn("1 exact-date event/calendar source(s) checked",
                       result["research_summary_markdown"])
@@ -262,6 +262,34 @@ class FinalizeBriefingTest(unittest.TestCase):
                       result["research_summary_markdown"])
         self.assertIn("Hands-on session", result["numbered_options_markdown"])
         self.assertEqual(len((self.data / "shortlists.jsonl").read_text().splitlines()), 1)
+
+    def test_compact_payload_omits_duplicate_enrichment_structures(self):
+        payload = self.payload()
+        payload["shortlist"]["operation_id"] = "op-finalize-compact"
+        payload["discovery"].pop("exact_date_event_findings")
+        payload["discovery"].pop("finalist_date_enrichment")
+        payload["shortlist"]["options"][0]["place"] = {
+            "name": "Example Hall",
+            "area": "Example City",
+            "categories": ["hands-on"],
+            "official_url": "https://events.example.org/activity",
+            "address": "1 Public Road, Example City",
+        }
+        result = self.run_finalize(payload)
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["place_cache"]["upserted"], 1)
+        self.assertEqual(len((self.data / "places.jsonl").read_text().splitlines()), 1)
+
+    def test_print_template_needs_no_state_or_source_reads(self):
+        completed = subprocess.run(
+            [PYTHON, FINALIZE, "--print-template"],
+            text=True, capture_output=True, cwd=REPO, check=False,
+        )
+        self.assertEqual(completed.returncode, 0, msg=completed.stderr)
+        template = json.loads(completed.stdout)
+        self.assertEqual(template["shortlist"]["effort_mode"], "normal")
+        self.assertIn("place", template["shortlist"]["options"][0])
+        self.assertNotIn("finalist_date_enrichment", template["discovery"])
 
 
 if __name__ == "__main__":

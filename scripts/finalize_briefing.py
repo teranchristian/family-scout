@@ -26,6 +26,103 @@ DATED_FINDING_KINDS = {
 DATED_FINDING_STATUSES = {"available", "unavailable"}
 
 
+FINALIZE_TEMPLATE = {
+    "discovery": {
+        "fresh_discovery_completed": True,
+        "candidates_considered": 4,
+        "fresh_candidates_considered": 4,
+        "cache_candidates_considered": 0,
+        "activity_classes_searched": [
+            "events", "play", "learning", "experiences"
+        ],
+        "exact_date_event_searched": True,
+        "exact_date_event_source_urls": ["https://example.org/calendar"],
+    },
+    "shortlist": {
+        "operation_id": "op-replace-me",
+        "created_at": "2030-04-06T09:00:00Z",
+        "conversation_ref": None,
+        "effort_mode": "normal",
+        "request": {
+            "origin_ref": "explicit",
+            "place_label": "Example City",
+            "date_start": "2030-04-07",
+            "date_end": "2030-04-07",
+            "timezone": "Etc/UTC",
+            "radius_km": 10,
+            "attending_member_ids": [],
+        },
+        "weather": {"status": "unknown", "reason": "not available"},
+        "options": [{
+            "title": "Example Activity",
+            "venue": "Example Venue",
+            "discovery_origin": "fresh",
+            "date_start": "2030-04-07T10:00:00+00:00",
+            "date_end": "2030-04-07T11:00:00+00:00",
+            "checked_at": "2030-04-06T09:00:00Z",
+            "source_urls": ["https://example.org/venue"],
+            "link_checks": [{
+                "url": "https://example.org/venue",
+                "purposes": ["facts"],
+                "result": "content_verified",
+                "checked_at": "2030-04-06T09:00:00Z",
+            }],
+            "distance_km": 1.2,
+            "cost": {"status": "known", "amount": 0,
+                     "currency": "XXX", "basis": "attending group"},
+            "indoor_status": "indoor",
+            "booking": {"required": False, "availability": "not_applicable"},
+            "why": "Concise evidence-based reason.",
+            "constraint_results": [{
+                "requirement": "radius", "status": "confirmed_match",
+                "reason": "inside inclusive boundary",
+            }, {
+                "requirement": "date", "status": "confirmed_match",
+                "reason": "usable interval overlaps",
+            }],
+            "features": ["hands-on"],
+            "place": {
+                "name": "Example Venue",
+                "area": "Example City",
+                "categories": ["hands-on"],
+                "official_url": "https://example.org/venue",
+                "address": "1 Public Road, Example City",
+                "latitude": 1.25,
+                "longitude": 2.5,
+            },
+        }],
+        "needs_checking": [],
+        "consulted_sources": [{
+            "url": "https://example.org/venue", "status": "read",
+        }, {
+            "url": "https://example.org/calendar", "status": "read",
+        }],
+        "tool_usage": {
+            "search_queries": 2, "source_fetches": 3,
+            "forecast_lookups": 0, "geocode_lookups": 1,
+        },
+    },
+    "render": {"cards": [{
+        "number": 1,
+        "body": "Concise hours, cost, booking, address and ranking context.",
+        "activities": [{
+            "name": "Example activity",
+            "kind": "everyday_facility",
+            "availability": "available",
+            "detail": "A concrete activity supported by the current source.",
+            "source_url": "https://example.org/venue",
+        }],
+        "family_fit": [{
+            "member_id": "member-example",
+            "label": "Example child",
+            "fit": "good",
+            "activity_names": ["Example activity"],
+            "limitations": [],
+        }],
+    }]},
+}
+
+
 class FinalizeError(Exception):
     pass
 
@@ -172,10 +269,6 @@ def validate_exact_date_event_findings(discovery, read_urls, event_urls, options
     findings = discovery.get("exact_date_event_findings", [])
     require(isinstance(findings, list),
             "discovery.exact_date_event_findings must be a list")
-    if dated_request:
-        require("exact_date_event_findings" in discovery,
-                "dated recommendations must record exact_date_event_findings, even when empty")
-
     for index, finding in enumerate(findings):
         require(isinstance(finding, dict),
                 f"discovery.exact_date_event_findings[{index}] must be an object")
@@ -271,6 +364,39 @@ def validate_date_evidence(discovery, shortlist, options, render, request, dated
     )
 
     enrichment = discovery.get("finalist_date_enrichment")
+    if enrichment is None:
+        total_sources = 0
+        total_findings = 0
+        cards = render.get("cards") if isinstance(render, dict) else None
+        require(isinstance(cards, list), "render.cards must be a list")
+        cards_by_number = {
+            card.get("number"): card for card in cards if isinstance(card, dict)
+        }
+        for number, option in enumerate(options, 1):
+            option_urls, fact_urls = verified_fact_urls(option, number)
+            current_urls = option_urls & fact_urls & read_urls
+            require(current_urls,
+                    f"option {number} needs a current read, content-verified factual source")
+            card = cards_by_number.get(number)
+            require(isinstance(card, dict), f"render card {number} is missing")
+            activities = card.get("activities")
+            require(isinstance(activities, list) and activities,
+                    f"option {number} needs at least one evidenced activity")
+            require(any(isinstance(item, dict)
+                        and item.get("availability") == "available"
+                        and item.get("source_url") in current_urls
+                        for item in activities),
+                    f"option {number} needs an available activity backed by current evidence")
+            total_sources += len(current_urls)
+            total_findings += len(activities)
+        return {
+            "exact_date_event_searched": event_searched,
+            "exact_date_event_sources_checked": len(event_urls),
+            "exact_date_event_findings_captured": event_findings,
+            "finalist_date_evidence_sources": total_sources,
+            "finalist_dated_findings": total_findings,
+        }
+
     require(isinstance(enrichment, list),
             "discovery.finalist_date_enrichment must be a list")
     require(len(enrichment) == len(options),
@@ -336,6 +462,18 @@ def validate_discovery(payload, shortlist, render):
     require(isinstance(candidates, int) and not isinstance(candidates, bool)
             and candidates >= 0,
             "discovery.candidates_considered must be a non-negative integer")
+    fresh_candidates = discovery.get("fresh_candidates_considered", candidates)
+    cache_candidates = discovery.get("cache_candidates_considered", 0)
+    for value, label in (
+        (fresh_candidates, "fresh_candidates_considered"),
+        (cache_candidates, "cache_candidates_considered"),
+    ):
+        require(isinstance(value, int) and not isinstance(value, bool) and value >= 0,
+                f"discovery.{label} must be a non-negative integer")
+    if ("fresh_candidates_considered" in discovery
+            or "cache_candidates_considered" in discovery):
+        require(candidates == fresh_candidates + cache_candidates,
+                "candidates_considered must equal fresh plus cache candidates")
 
     classes = discovery.get("activity_classes_searched")
     require(isinstance(classes, list)
@@ -352,6 +490,19 @@ def validate_discovery(payload, shortlist, render):
             "shortlist.options must contain at least one finalist")
     require(candidates >= len(options),
             "candidates_considered cannot be smaller than the final shortlist")
+    cache_finalists = sum(
+        1 for option in options
+        if isinstance(option, dict) and option.get("discovery_origin", "fresh") == "cache"
+    )
+    fresh_finalists = len(options) - cache_finalists
+    effort_mode = shortlist.get("effort_mode", "normal")
+    if effort_mode == "normal":
+        require(len(options) <= 3,
+                "normal effort allows at most three confirmed recommendations")
+        require(cache_finalists <= 1,
+                "normal effort allows at most one cache-seeded finalist")
+        require(fresh_finalists >= min(2, len(options)),
+                "normal effort requires fresh discovery for at least two finalists")
 
     needs_checking = shortlist.get("needs_checking", [])
     require(isinstance(needs_checking, list),
@@ -368,7 +519,11 @@ def validate_discovery(payload, shortlist, render):
 
     not_shortlisted = candidates - len(options) - len(needs_checking)
     return {
-        "fresh_candidates": candidates,
+        "candidates_considered": candidates,
+        "fresh_candidates": fresh_candidates,
+        "cache_candidates": cache_candidates,
+        "fresh_finalists": fresh_finalists,
+        "cache_finalists": cache_finalists,
         "activity_classes_checked": len(normalized_classes),
         "finalists_deeply_verified": len(options),
         "confirmed_recommendations": len(options),
@@ -381,7 +536,8 @@ def validate_discovery(payload, shortlist, render):
 def research_summary(coverage):
     return (
         "Research: "
-        f"{coverage['fresh_candidates']} fresh candidates across "
+        f"{coverage['fresh_candidates']} fresh + "
+        f"{coverage['cache_candidates']} cached lead(s) across "
         f"{coverage['activity_classes_checked']} categories · "
         f"{coverage['finalists_deeply_verified']} finalists deeply verified · "
         f"{coverage['confirmed_recommendations']} confirmed · "
@@ -449,17 +605,25 @@ def finalize(args):
         "research_summary_markdown": research_summary(coverage),
         "numbered_options_markdown": rendered["numbered_options_markdown"],
         "links_by_option": rendered.get("links_by_option", []),
+        "place_cache": saved.get("place_cache", {}),
     }
     print(json.dumps(output, ensure_ascii=False, indent=2))
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source-dir", required=True)
-    parser.add_argument("--data-dir", required=True)
+    parser.add_argument("--source-dir")
+    parser.add_argument("--data-dir")
     parser.add_argument("--input", default="-", help="Complete JSON payload or - for stdin")
+    parser.add_argument("--print-template", action="store_true",
+                        help="Print the compact normal-effort payload template")
     args = parser.parse_args()
     try:
+        if args.print_template:
+            print(json.dumps(FINALIZE_TEMPLATE, ensure_ascii=False, indent=2))
+            return 0
+        require(args.source_dir, "--source-dir is required")
+        require(args.data_dir, "--data-dir is required")
         finalize(args)
         return 0
     except (FinalizeError, OSError, UnicodeError) as exc:

@@ -94,6 +94,7 @@ class Phase1Test(unittest.TestCase):
         return {
             "title": title,
             "venue": "Example Hall",
+            "discovery_origin": "fresh",
             "date_start": start,
             "date_end": "2030-04-07T11:00:00+00:00",
             "checked_at": "2030-04-06T09:00:00Z",
@@ -125,6 +126,15 @@ class Phase1Test(unittest.TestCase):
                  "reason": "mandatory group cost is zero"},
             ],
             "features": ["hands-on"],
+            "place": {
+                "name": "Example Hall",
+                "area": "Example City",
+                "categories": ["hands-on"],
+                "official_url": "https://events.example.org/example-activity",
+                "address": "1 Public Road, Example City",
+                "latitude": 1.25,
+                "longitude": 2.5,
+            },
         }
 
     @classmethod
@@ -155,6 +165,7 @@ class Phase1Test(unittest.TestCase):
                 "search_queries": 1,
                 "source_fetches": 1,
                 "forecast_lookups": 0,
+                "geocode_lookups": 0,
             },
         }
 
@@ -171,6 +182,7 @@ class Phase1Test(unittest.TestCase):
                 "references/discovery.md",
                 "references/memory.md",
                 "references/quality.md",
+                "references/recommendation.md",
                 "references/runtime-tools.md",
                 "references/venue-status.md",
             },
@@ -381,8 +393,14 @@ class Phase1Test(unittest.TestCase):
         saved = self.cli("shortlist-save", payload=payload)
         retry = self.cli("shortlist-save", payload=payload)
         self.assertFalse(saved["duplicate"])
+        self.assertEqual(saved["place_cache"]["upserted"], 1)
         self.assertTrue(retry["duplicate"])
         self.assertEqual(len((self.data / "shortlists.jsonl").read_text().splitlines()), 1)
+        self.assertEqual(len((self.data / "places.jsonl").read_text().splitlines()), 1)
+        leads = self.cli("place-cache-leads", "--area", "Example City", "--limit", "1")
+        self.assertEqual(leads["cache_role"], "candidate_leads_only")
+        self.assertTrue(leads["requires_current_verification"])
+        self.assertEqual([item["name"] for item in leads["places"]], ["Example Hall"])
 
         resolved = self.cli(
             "resolve-option", "--number", "1", "--search-id", saved["search_id"]
@@ -397,6 +415,39 @@ class Phase1Test(unittest.TestCase):
         excessive = self.shortlist_payload("op-search-excessive")
         excessive["tool_usage"]["source_fetches"] = 13
         self.cli("shortlist-save", payload=excessive, expected=2)
+
+        too_many_calls = self.shortlist_payload("op-search-too-many-calls")
+        too_many_calls["tool_usage"].update(
+            search_queries=3, source_fetches=8, forecast_lookups=1,
+            geocode_lookups=1,
+        )
+        limited = self.cli("shortlist-save", payload=too_many_calls, expected=2)
+        self.assertIn("external calls", limited["error"])
+
+        too_many_options = self.shortlist_payload("op-search-too-many-options")
+        too_many_options["options"] = []
+        for number in range(4):
+            option = self.example_option(
+                title=f"Example Activity {number}",
+                start=f"2030-04-07T1{number}:00:00+00:00",
+            )
+            option["venue"] = f"Example Hall {number}"
+            option["place"]["name"] = option["venue"]
+            option["place"]["address"] = f"{number} Public Road, Example City"
+            too_many_options["options"].append(option)
+        self.cli("shortlist-save", payload=too_many_options, expected=2)
+
+        too_many_cached = self.shortlist_payload("op-search-too-many-cached")
+        second_cached = self.example_option(
+            title="Cached Activity 2", start="2030-04-07T12:00:00+00:00"
+        )
+        for number, option in enumerate((too_many_cached["options"][0], second_cached), 1):
+            option["discovery_origin"] = "cache"
+            option["venue"] = f"Cached Hall {number}"
+            option["place"]["name"] = option["venue"]
+            option["place"]["address"] = f"{number} Cache Road, Example City"
+        too_many_cached["options"].append(second_cached)
+        self.cli("shortlist-save", payload=too_many_cached, expected=2)
 
         duplicate_session = self.shortlist_payload("op-search-duplicate")
         duplicate_session["options"].append(deepcopy(duplicate_session["options"][0]))
@@ -534,9 +585,23 @@ class Phase1Test(unittest.TestCase):
         self.cli("shortlist-save", payload=self.shortlist_payload(), expected=2)
         self.assertEqual((self.data / "shortlists.jsonl").read_bytes(), malformed_history)
 
+    def test_malformed_place_cache_does_not_block_a_valid_shortlist(self):
+        malformed = b'{"schema_version":1,"place_id":"broken"\n'
+        (self.data / "places.jsonl").write_bytes(malformed)
+        result = self.cli(
+            "shortlist-save", payload=self.shortlist_payload("op-cache-warning")
+        )
+        self.assertFalse(result["duplicate"])
+        self.assertIn("warning", result["place_cache"])
+        self.assertEqual((self.data / "places.jsonl").read_bytes(), malformed)
+        self.assertEqual(len((self.data / "shortlists.jsonl").read_text().splitlines()), 1)
+
     def test_skill_routes_phase_one_behavior_contracts(self):
         skill_path = REPO / "hermes-skill" / "SKILL.md"
         skill = " ".join(skill_path.read_text().split())
+        recommendation = " ".join(
+            (REPO / "hermes-skill" / "references" / "recommendation.md").read_text().split()
+        )
         discovery = " ".join(
             (REPO / "hermes-skill" / "references" / "discovery.md").read_text().split()
         )
@@ -553,16 +618,26 @@ class Phase1Test(unittest.TestCase):
         for phrase in (
             "Never invent a fact",
             "numerical match score",
-            "references/discovery.md",
-            "references/briefing.md",
+            "references/recommendation.md",
             "references/memory.md",
+            "Do not inspect helper or validator source code",
         ):
             self.assertIn(phrase, skill)
+        for phrase in (
+            "at most **three search queries**",
+            "**12 external calls total**",
+            "place-cache-leads",
+            "at most one finalist",
+            "`place` block",
+            "automatically upserts",
+            "Do not display research telemetry",
+        ):
+            self.assertIn(phrase, recommendation)
         for phrase in (
             "this weekend",
             "Unknown price does not pass",
             "straight-line distance",
-            "six search queries",
+            "three search queries",
             "place-cache-lookup",
             "verification leads only",
             "adjacent municipalities",
@@ -575,7 +650,7 @@ class Phase1Test(unittest.TestCase):
         ):
             self.assertIn(phrase, discovery)
         for phrase in (
-            "four or five genuinely useful confirmed options",
+            "two strong options plus one useful backup",
             "Needs checking",
             "What it is",
             "recommended plan for each day",

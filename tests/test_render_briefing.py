@@ -108,7 +108,7 @@ class RenderBriefingTest(unittest.TestCase):
             url = f"https://example.org/{['one', 'two', 'three'][number - 1]}"
             self.assertIn(heading, rendered)
             self.assertIn(f"**Activity {number}**", rendered)
-            self.assertIn("Fit for each attending family member", rendered)
+            self.assertIn("**Family fit**", rendered)
             self.assertIn("younger child", rendered)
             self.assertIn("older child", rendered)
             self.assertNotIn("**adult**", rendered)

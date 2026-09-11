@@ -91,12 +91,21 @@ python3 <source_dir>/scripts/family_scout.py --data-dir <data_dir> source-remove
 
 Never query disabled or removed sources deliberately.
 
-## Reuse stable place pointers after current-run discovery
+## Use stable place leads and automatic refresh
 
 The private cache at `<data_dir>/places.jsonl` contains stable public venue
-pointers, not recommendation candidates or current operating facts. For a normal
-broad recommendation, do not query it until fresh discovery has independently
-produced the current candidate pool.
+pointers, never current operating facts. Complete the required fresh searches
+first. Then a normal recommendation may request one recent lead for the exact
+public area:
+
+```sh
+python3 <source_dir>/scripts/family_scout.py --data-dir <data_dir> \
+  place-cache-leads --area "Example City" --limit 1
+```
+
+The returned lead may contribute at most one finalist. At least two finalists in
+a three-option answer must originate in fresh discovery. Every cached lead still
+needs current official/date-specific verification.
 
 Look up one or more exact discovered venues in one call:
 
@@ -124,8 +133,7 @@ same-name match returns no pointers. Every response says
 coordinates are leads that can reduce navigation work, but current pages must
 still be opened and validated before making current or exact-date claims.
 
-After reading current public evidence, upsert only stable facts actually
-supported during that run:
+For a manual repair/backfill, upsert only stable facts supported during that run:
 
 ```json
 {
@@ -152,6 +160,11 @@ python3 <source_dir>/scripts/family_scout.py --data-dir <data_dir> \
   place-cache-upsert --input place.json
 ```
 
+Normally, include the same stable `place` object inside each saved option.
+`shortlist-save` automatically upserts it after the recommendation is safely
+saved. A malformed or unusable cache is preserved and reported but does not block
+the recommendation.
+
 The helper accepts only canonical name, area, broad categories,
 official/calendar URL, public address, evidenced coordinates and last-seen time.
 It rejects date-sensitive or unknown fields. Opening, events, sessions,
@@ -177,6 +190,19 @@ closure/cancellation and mandatory-booking availability as `confirmed_match`,
 candidate. If one remains unverified, it may appear only under **Needs checking**.
 
 ## Save the exact shortlist
+
+For recommendations, do not inspect validator source. Print the current compact
+one-shot payload template instead:
+
+```sh
+python3 <source_dir>/scripts/finalize_briefing.py --print-template
+```
+
+Normal effort allows at most three options, three search queries and twelve
+external calls total across search, source reading, forecast and geocoding.
+Set each option's `discovery_origin` to `fresh` or `cache`, and include its
+evidenced stable `place` block for automatic cache refresh. The larger `deep`
+allowance is only for an explicit thorough/comprehensive request.
 
 Call `shortlist-save` before displaying the response. The request stores an
 origin reference and public place label, never private coordinates or an address.
@@ -236,7 +262,8 @@ example is deliberately unrelated to any person:
   "consulted_sources": [
     {"url": "https://events.example.org/example-activity", "status": "read"}
   ],
-  "tool_usage": {"search_queries": 1, "source_fetches": 1, "forecast_lookups": 0}
+  "tool_usage": {"search_queries": 1, "source_fetches": 1,
+                 "forecast_lookups": 0, "geocode_lookups": 0}
 }
 ```
 

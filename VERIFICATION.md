@@ -119,6 +119,34 @@ that produces at least one cache hit and one radius search whose plausible pool
 crosses a municipal boundary. Current official/date-specific verification must
 still succeed independently of the cache before a finalist is confirmed.
 
+## Fast-first simplification checks — 2026-09-11 UTC
+
+A live normal-effort trial took about 18 minutes and 46 tool calls. It performed
+no cache lookup or upsert, spent most external calls verifying early candidates,
+and missed a relevant experience because the required generic local-language
+discovery sweep was skipped. This justified simplifying normal runtime behavior
+rather than adding a venue-specific search rule.
+
+| Check | Outcome | Evidence |
+| --- | --- | --- |
+| Full deterministic suite | Passed | `python3 -m unittest discover -s tests -v` ran 47 tests successfully |
+| Python syntax | Passed | All runtime scripts and six test modules compiled successfully |
+| Hermes skill structure | Passed | Skill Creator `quick_validate.py` reported `Skill is valid!` |
+| Diff whitespace | Passed | `git diff --check` reported no errors |
+| Generic discovery | Passed | The normal workflow uses category-based local-language, general-attraction and dated-event sweeps and contains no named niche-activity search rule |
+| Fast limits | Passed | Normal shortlist saving rejects more than three options, three searches, twelve combined external calls or more than one cache-seeded finalist |
+| Compact payload | Passed | `finalize_briefing.py --print-template` works without state/source arguments; duplicate finalist-enrichment structures are optional |
+| Automatic cache refresh | Passed | A valid saved option upserts stable place pointers without a separate runtime cache command |
+| Non-blocking cache failure | Passed | A deliberately malformed place cache remained byte-for-byte unchanged while the valid shortlist still saved with a warning |
+| Cache lead safety | Passed | Exact-area lead lookup returns at most the requested bound and marks every result as requiring current verification |
+| Compact rendering | Passed | Cards use compact activities, family-fit and links sections while retaining evidence and availability validation |
+
+The remaining gate is a fresh live Hermes run. It should finish a normal search
+with no more than three options and twelve external calls, populate at least one
+stable place automatically, and avoid loading detailed references or validator
+source. Repository tests cannot establish wall-clock latency or live discovery
+quality.
+
 ## Phase 1 real-use validation — pending
 
 ### Trial observation — 2026-09-08 UTC

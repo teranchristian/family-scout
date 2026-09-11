@@ -8,18 +8,23 @@ ROOT = Path(__file__).resolve().parent.parent
 class GenericBriefingContractTest(unittest.TestCase):
     def test_skill_routes_structured_activity_and_family_fit_rendering(self):
         skill = " ".join((ROOT / "hermes-skill" / "SKILL.md").read_text().split())
+        recommendation = " ".join(
+            (ROOT / "hermes-skill" / "references" / "recommendation.md").read_text().split()
+        )
         self.assertLess(len((ROOT / "hermes-skill" / "SKILL.md").read_text().split()), 600)
         for phrase in (
-            "references/quality.md",
+            "references/recommendation.md",
             "venue being open does not prove",
-            "requested-date availability",
-            "what they can actually do",
-            "activities",
-            "family_fit",
             "Google Maps is navigation evidence only",
-            "Paste the returned `numbered_options_markdown` **verbatim**",
+            "Do not inspect helper or validator source code",
         ):
             self.assertIn(phrase, skill)
+        for phrase in (
+            "one to four decision-relevant activities",
+            "child-specific fit",
+            "`numbered_options_markdown` verbatim",
+        ):
+            self.assertIn(phrase, recommendation)
 
     def test_discovery_requires_feature_date_status_child_fit_and_exact_access(self):
         discovery = " ".join(
@@ -42,19 +47,23 @@ class GenericBriefingContractTest(unittest.TestCase):
 
     def test_broad_discovery_precedes_history_and_includes_general_attractions(self):
         skill = " ".join((ROOT / "hermes-skill" / "SKILL.md").read_text().split())
+        recommendation = " ".join(
+            (ROOT / "hermes-skill" / "references" / "recommendation.md").read_text().split()
+        )
         discovery = " ".join(
             (ROOT / "hermes-skill" / "references" / "discovery.md").read_text().split()
         )
         briefing = " ".join(
             (ROOT / "hermes-skill" / "references" / "briefing.md").read_text().split()
         )
+        self.assertIn("references/recommendation.md", skill)
         for phrase in (
-            "broad fresh discovery first",
-            "general-attractions/experiences sweep",
-            "initial ranking from current evidence only",
-            "history only as a final adjustment",
+            "broad, local-language family activity sweep",
+            "broad general attractions/experiences sweep",
+            "category-based",
+            "History and explicit feedback may adjust the final order only after",
         ):
-            self.assertIn(phrase, skill)
+            self.assertIn(phrase, recommendation)
         for phrase in (
             "General-attractions sweep",
             "not framed only around children",
@@ -69,24 +78,31 @@ class GenericBriefingContractTest(unittest.TestCase):
             "This is the only stage where past recommendation repetition affects ordering",
         ):
             self.assertIn(phrase, briefing)
+        standing_contract = (skill + " " + recommendation + " " + discovery).casefold()
+        for overly_specific_term in ("trick-art", "optical-illusion", "3d art"):
+            self.assertNotIn(overly_specific_term, standing_contract)
 
     def test_research_budget_stops_candidate_hunting_and_bounds_deep_effort(self):
-        skill = " ".join((ROOT / "hermes-skill" / "SKILL.md").read_text().split())
+        recommendation = " ".join(
+            (ROOT / "hermes-skill" / "references" / "recommendation.md").read_text().split()
+        )
         discovery = " ".join(
             (ROOT / "hermes-skill" / "references" / "discovery.md").read_text().split()
         )
         for phrase in (
-            "Stop once **6–8 plausible candidates",
-            "Deep exact-date verification is for only **3–5 likely finalists**",
-            "must not expand the candidate hunt",
+            "at most **three search queries**",
+            "Keep **4–6 plausible candidates**",
+            "at most **three likely finalists**",
+            "**12 external calls total**",
+            "returning two is better than slow padding",
         ):
-            self.assertIn(phrase, skill)
+            self.assertIn(phrase, recommendation)
         for phrase in (
             "stop broad candidate hunting",
             "ceilings, not targets",
             "replaces one normal discovery slot",
             "must **not** be used to discover more candidates",
-            "three additional search queries and six additional source-page fetches",
+            "six search queries and twenty-four external calls total",
             "put that lead under **Needs checking** or return fewer confirmed options",
         ):
             self.assertIn(phrase, discovery)
@@ -96,7 +112,8 @@ class GenericBriefingContractTest(unittest.TestCase):
             (ROOT / "hermes-skill" / "references" / "runtime-tools.md").read_text().split()
         )
         for phrase in (
-            "official romanized or English name",
+            "one exact venue/address geocoding attempt",
+            "explicit thorough/comprehensive request",
             "exact public venue/branch and locality",
             "do not invent, estimate or approximate `distance_km`",
             "Keep distance/radius unverified",

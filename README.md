@@ -16,9 +16,9 @@ Repository: <https://github.com/teranchristian/family-scout>
   location's timezone.
 - Searches the live web, reads current source pages and obtains a dated forecast
   using the tools already available to Hermes.
-- Reuses stable official/calendar/address/coordinate pointers only after a place
-  independently appears in fresh discovery; cached pointers never prove current
-  status.
+- Runs a fast-first generic discovery pass, then allows at most one stable cached
+  place lead alongside freshly discovered candidates; cached pointers never
+  prove current status.
 - Lets a radius-aware broad search cover plausible adjacent areas inside the
   existing query budget without moving the named geographic anchor.
 - Applies strict date, radius, group cost, indoor, age, closure and mandatory
@@ -29,14 +29,15 @@ Repository: <https://github.com/teranchristian/family-scout>
   unavailable promoted sub-facilities instead of relying on weekly hours alone.
 - Opens and validates every factual, booking and navigation link that will be
   shown to the user, omitting broken, soft-404 and wrong-target URLs.
-- For broad searches, targets four or five decision-ready ranked options, fewer
-  when evidence is weak, and at most two clearly labelled **Needs checking**
-  leads.
+- For normal broad searches, targets two strong options plus one useful backup,
+  fewer when evidence is weak, and at most two clearly labelled **Needs
+  checking** leads.
 - Gives each option concrete activity details, requested-date hours, age fit,
   family cost, booking status, weather fit and direct factual/map links.
 - For multi-day or weather-sensitive requests, recommends a plan for each day
   with a realistic backup.
-- Saves the exact displayed options with stable activity/session identities.
+- Saves the exact displayed options with stable activity/session identities and
+  automatically refreshes evidenced stable place pointers.
 - Remembers explicit feedback across fresh conversations, including corrections
   and retractions, and can use it for “more like this”.
 - Supports explicit home/travel context, profile corrections and custom source
@@ -51,12 +52,10 @@ Phase 1 deliberately excludes databases, background scraping, provider
 frameworks, routing, booking integrations, web UI, accounts, machine learning
 and numerical match scores.
 
-The installed skill uses progressive disclosure so its entry point stays small:
-`SKILL.md` routes recommendation work to separate discovery and briefing
-references, discovery loads focused runtime-tool and venue-status notes, and
-feedback/profile work uses a memory reference. Hermes loads only the modules
-required for the current task instead of one increasingly large instruction
-file.
+The installed skill uses progressive disclosure so its entry point stays small.
+Normal recommendations load one self-contained fast workflow. Detailed discovery,
+briefing and evidence references are reserved for an explicit thorough search;
+feedback/profile work uses the memory and CLI references.
 
 ## Install or update
 
@@ -98,7 +97,7 @@ overwritten, parsed or repaired by the installer. New data directories use mode
 | Location | Purpose |
 | --- | --- |
 | `hermes-skill/SKILL.md` | Thin task router and shared boundaries |
-| `hermes-skill/references/` | Focused discovery, briefing, runtime, memory and helper contracts |
+| `hermes-skill/references/` | Fast recommendation workflow plus detailed discovery, briefing, runtime, memory and helper contracts |
 | `scripts/family_scout.py` | Deterministic validation and persistence helper |
 | `<hermes-home>/skills/family-scout/` | Installed copy of the skill instruction tree |
 | `<hermes-home>/skills/family-scout/installation.json` | Owned-file hashes plus repository and private-state paths |
@@ -106,7 +105,7 @@ overwritten, parsed or repaired by the installer. New data directories use mode
 | `~/.local/share/family-scout/sources.yaml` | Private custom source list |
 | `~/.local/share/family-scout/shortlists.jsonl` | Append-only exact shortlist history |
 | `~/.local/share/family-scout/feedback.jsonl` | Append-only explicit feedback and corrections |
-| `~/.local/share/family-scout/places.jsonl` | Mutable stable-place verification pointers; never current opening/event truth |
+| `~/.local/share/family-scout/places.jsonl` | Mutable stable-place candidate/verification pointers; never current opening/event truth |
 
 The `.yaml` documents use indented JSON, which is valid YAML and can be handled
 without an added YAML package. Exact blank files created by Phase 0 are accepted
@@ -175,7 +174,7 @@ Run the deterministic repository checks with:
 
 ```sh
 python3 -m unittest discover -s tests -v
-python3 -m py_compile scripts/setup.py scripts/family_scout.py tests/test_phase1.py tests/test_place_cache.py
+python3 -m py_compile scripts/setup.py scripts/family_scout.py scripts/discovery_context.py scripts/finalize_briefing.py scripts/render_briefing.py tests/*.py
 python3 /root/.codex/skills/.system/skill-creator/scripts/quick_validate.py hermes-skill
 ```
 

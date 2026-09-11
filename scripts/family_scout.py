@@ -559,6 +559,41 @@ def merge_place(existing, incoming, observed_at):
     return result
 
 
+def upsert_place_record(records, incoming, observed_at):
+    """Return an updated in-memory place list without touching disk."""
+    if incoming.get("place_id"):
+        matches = place_matches(records, {"place_id": incoming["place_id"]})
+        require(matches, "place_id was not found; omit it to create a new place")
+    else:
+        matches = place_matches(records, incoming)
+    require(len(matches) <= 1,
+            "place identity is ambiguous; provide the exact address or place_id")
+    if (matches and not incoming.get("place_id") and matches[0].get("address")
+            and not incoming.get("address")):
+        require(incoming.get("official_url") == matches[0].get("official_url"),
+                "existing place has a stronger address; provide that exact address "
+                "or place_id before changing its pointers")
+    if matches:
+        index = records.index(matches[0])
+        updated = merge_place(matches[0], incoming, observed_at)
+        duplicate = updated == matches[0]
+        records[index] = updated
+        place_id = updated["place_id"]
+    else:
+        identity = "|".join(
+            (incoming["name"], incoming.get("area", ""), incoming.get("address", ""))
+        )
+        place_id = stable_id("place", place_identity_text(identity))
+        require(all(record["place_id"] != place_id for record in records),
+                "generated place identity conflicts with an existing place")
+        created = {"schema_version": SCHEMA_VERSION, **incoming,
+                   "place_id": place_id, "last_seen_at": observed_at}
+        validate_place_record(created, "new place")
+        records.append(created)
+        duplicate = False
+    return records, duplicate, place_id
+
+
 def command_place_cache_lookup(data_dir, args):
     payload = read_payload(args.input)
     require(isinstance(payload, dict) and set(payload) == {"candidates"},
@@ -587,6 +622,27 @@ def command_place_cache_lookup(data_dir, args):
     })
 
 
+def command_place_cache_leads(data_dir, args):
+    area = place_text(args.area, "--area")
+    require(1 <= args.limit <= 5, "--limit must be between 1 and 5")
+    with state_lock(data_dir):
+        records = load_places(data_dir / "places.jsonl")
+    area_identity = place_identity_text(area)
+    matches = [
+        deepcopy(record) for record in records
+        if record.get("area")
+        and place_identity_text(record["area"]) == area_identity
+    ]
+    matches.sort(key=lambda item: item["last_seen_at"], reverse=True)
+    emit({
+        "ok": True,
+        "cache_role": "candidate_leads_only",
+        "requires_current_verification": True,
+        "max_cached_finalists": 1,
+        "places": matches[:args.limit],
+    })
+
+
 def command_place_cache_upsert(data_dir, args):
     payload = read_payload(args.input)
     require(isinstance(payload, dict)
@@ -611,36 +667,9 @@ def command_place_cache_upsert(data_dir, args):
     with state_lock(data_dir):
         path = data_dir / "places.jsonl"
         records = load_places(path)
-        if incoming.get("place_id"):
-            matches = place_matches(records, {"place_id": incoming["place_id"]})
-            require(matches, "place_id was not found; omit it to create a new place")
-        else:
-            matches = place_matches(records, incoming)
-        require(len(matches) <= 1,
-                "place identity is ambiguous; provide the exact address or place_id")
-        if (matches and not incoming.get("place_id") and matches[0].get("address")
-                and not incoming.get("address")):
-            require(incoming.get("official_url") == matches[0].get("official_url"),
-                    "existing place has a stronger address; provide that exact address "
-                    "or place_id before changing its pointers")
-        if matches:
-            index = records.index(matches[0])
-            updated = merge_place(matches[0], incoming, observed_at)
-            duplicate = updated == matches[0]
-            records[index] = updated
-            place_id = updated["place_id"]
-        else:
-            identity = "|".join(
-                (incoming["name"], incoming.get("area", ""), incoming.get("address", ""))
-            )
-            place_id = stable_id("place", place_identity_text(identity))
-            require(all(record["place_id"] != place_id for record in records),
-                    "generated place identity conflicts with an existing place")
-            created = {"schema_version": SCHEMA_VERSION, **incoming,
-                       "place_id": place_id, "last_seen_at": observed_at}
-            validate_place_record(created, "new place")
-            records.append(created)
-            duplicate = False
+        records, duplicate, place_id = upsert_place_record(
+            records, incoming, observed_at
+        )
         if not duplicate:
             atomic_records(path, records)
     emit({"ok": True, "duplicate": duplicate, "place_id": place_id})
@@ -1167,6 +1196,20 @@ def normalize_option(option, number, timezone_name, request):
     require(not booking["required"] or booking["availability"] == "available",
             "an option requiring booking must have verified availability")
     validate_link_checks(link_checks, "option.link_checks", urls, booking["required"])
+    discovery_origin = result.get("discovery_origin", "fresh")
+    require(discovery_origin in ("fresh", "cache"),
+            "option.discovery_origin must be fresh or cache")
+    result["discovery_origin"] = discovery_origin
+    if result.get("place") is not None:
+        stable_place = normalize_place(result["place"], "option.place")
+        require(place_identity_text(stable_place["name"])
+                == place_identity_text(result["venue"]),
+                "option.place.name must match option.venue exactly")
+        for key in ("official_url", "calendar_url"):
+            if stable_place.get(key):
+                require(stable_place[key] in urls,
+                        f"option.place.{key} must be a verified option source URL")
+        result["place"] = stable_place
     require(isinstance(result.get("why"), str) and result["why"].strip(),
             "option.why is required")
     constraint_results = result.get("constraint_results")
@@ -1250,12 +1293,20 @@ def command_shortlist_save(data_dir, args):
     payload = read_payload(args.input)
     require(isinstance(payload, dict), "shortlist payload must be an object")
     operation_id = valid_id(payload.get("operation_id"), "operation_id")
+    effort_mode = payload.get("effort_mode", "normal")
+    require(effort_mode in ("normal", "deep"), "effort_mode must be normal or deep")
     saved_request = sanitize_request(payload.get("request"))
     options_input = payload.get("options")
-    require(isinstance(options_input, list) and len(options_input) <= 5,
-            "options must be a list with at most five entries")
+    option_limit = 3 if effort_mode == "normal" else 5
+    require(isinstance(options_input, list) and len(options_input) <= option_limit,
+            f"options must be a list with at most {option_limit} entries for {effort_mode} effort")
     options = [normalize_option(option, index, saved_request["timezone"], saved_request)
                for index, option in enumerate(options_input, 1)]
+    cached_options = sum(1 for option in options
+                         if option["discovery_origin"] == "cache")
+    if effort_mode == "normal":
+        require(cached_options <= 1,
+                "normal effort allows at most one cache-seeded finalist")
     session_ids = [item["session_id"] for item in options]
     require(len(session_ids) == len(set(session_ids)),
             "duplicate activity session; combine its source evidence before saving")
@@ -1276,17 +1327,30 @@ def command_shortlist_save(data_dir, args):
                                  "needs_checking.link_checks", lead_urls)
     tool_usage = payload.get("tool_usage", {})
     require(isinstance(tool_usage, dict), "tool_usage must be an object")
-    limits = {"search_queries": 6, "source_fetches": 12, "forecast_lookups": 1}
-    effort_mode = payload.get("effort_mode", "normal")
-    require(effort_mode in ("normal", "deep"), "effort_mode must be normal or deep")
-    for key, limit in limits.items():
+    limits = {
+        "normal": {"search_queries": 3, "source_fetches": 12,
+                   "forecast_lookups": 1, "geocode_lookups": 3,
+                   "external_calls": 12},
+        "deep": {"search_queries": 6, "source_fetches": 12,
+                 "forecast_lookups": 1, "geocode_lookups": 5,
+                 "external_calls": 24},
+    }
+    actual_usage = {}
+    for key in ("search_queries", "source_fetches", "forecast_lookups",
+                "geocode_lookups"):
         value = tool_usage.get(key, 0)
         require(isinstance(value, int) and not isinstance(value, bool) and value >= 0,
                 f"{key} must be a non-negative integer")
-        if effort_mode == "normal":
-            require(isinstance(value, int) and not isinstance(value, bool)
-                    and 0 <= value <= limit,
-                    f"normal request {key} must be between 0 and {limit}")
+        require(value <= limits[effort_mode][key],
+                f"{effort_mode} request {key} must be between 0 and "
+                f"{limits[effort_mode][key]}")
+        actual_usage[key] = value
+    external_calls = sum(actual_usage.values())
+    require(external_calls <= limits[effort_mode]["external_calls"],
+            f"{effort_mode} request external calls must not exceed "
+            f"{limits[effort_mode]['external_calls']}")
+    tool_usage = {**tool_usage, "geocode_lookups": actual_usage["geocode_lookups"],
+                  "external_calls": external_calls}
     weather = payload.get("weather")
     require(isinstance(weather, dict) and weather.get("status") in ("known", "unknown"),
             "weather must state known or unknown")
@@ -1330,8 +1394,30 @@ def command_shortlist_save(data_dir, args):
             emit({"ok": True, "duplicate": True, "search_id": existing["search_id"]})
             return
         append_record(path, record)
+        cache_report = {"upserted": 0, "unchanged": 0,
+                        "skipped": sum(1 for option in options if not option.get("place"))}
+        place_options = [option for option in options if option.get("place")]
+        if place_options:
+            try:
+                places_path = data_dir / "places.jsonl"
+                places = load_places(places_path)
+                changed = False
+                for option in place_options:
+                    places, duplicate, unused_place_id = upsert_place_record(
+                        places, option["place"], option["checked_at"]
+                    )
+                    if duplicate:
+                        cache_report["unchanged"] += 1
+                    else:
+                        cache_report["upserted"] += 1
+                        changed = True
+                if changed:
+                    atomic_records(places_path, places)
+            except (ScoutError, OSError, UnicodeError) as exc:
+                cache_report = {"upserted": 0, "unchanged": 0,
+                                "skipped": len(options), "warning": str(exc)}
     emit({"ok": True, "duplicate": False, "search_id": record["search_id"],
-          "option_count": len(options)})
+          "option_count": len(options), "place_cache": cache_report})
 
 
 def select_shortlist(records, search_id=None, conversation_ref=None):
@@ -1467,6 +1553,11 @@ def build_parser():
         "place-cache-lookup", help="Reuse stable pointers for exact discovered places"
     )
     place_lookup.add_argument("--input", default="-", help="JSON file or - for stdin")
+    place_leads = commands.add_parser(
+        "place-cache-leads", help="List recent cache-seeded candidate leads for one exact area"
+    )
+    place_leads.add_argument("--area", required=True)
+    place_leads.add_argument("--limit", type=int, default=1)
     place_upsert = commands.add_parser(
         "place-cache-upsert", help="Update stable place facts from current public evidence"
     )
@@ -1509,6 +1600,8 @@ def main():
             command_evaluate(args)
         elif args.command == "place-cache-lookup":
             command_place_cache_lookup(data_dir, args)
+        elif args.command == "place-cache-leads":
+            command_place_cache_leads(data_dir, args)
         elif args.command == "place-cache-upsert":
             command_place_cache_upsert(data_dir, args)
         elif args.command == "shortlist-save":

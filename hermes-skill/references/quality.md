@@ -1,8 +1,8 @@
 # Recommendation quality guardrails
 
-Read this file in full for every find, compare, plan or “more like this” request.
-It supplements `discovery.md` and `briefing.md`. When it is more specific about
-freshness, wording, maps, weather or compact presentation, follow this file.
+Read this detailed file for an explicit thorough/comprehensive request. Normal
+recommendations use `recommendation.md`. This supplements `discovery.md` and
+`briefing.md`; when more specific, follow this file.
 
 ## 0. Preserve research integrity before optimizing the answer
 
@@ -13,11 +13,10 @@ municipal source or bad-weather forecast silently redefine a broad “things to
 do” request into a much narrower category search.
 
 Tool-usage telemetry must describe what actually happened. Never reduce or edit
-search/fetch counts to satisfy a normal-effort validator. When material coverage
-or verification gaps require going beyond the normal budget, use the bounded
-`deep` escalation defined in `discovery.md`, set `effort_mode` accordingly, and
-save the actual counts. If truthful telemetry still cannot be accepted, do not
-persist a falsified record.
+counts to satisfy a normal-effort validator. When gaps remain, return fewer
+results or put them under Needs checking. Use bounded `deep` mode only when the
+user explicitly asks for a thorough/comprehensive search, set `effort_mode`
+accordingly, and save actual counts. Never persist falsified telemetry.
 
 ## 1. Resolve the newest applicable official evidence first
 
