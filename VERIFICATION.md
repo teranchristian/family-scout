@@ -93,6 +93,112 @@ These checks establish that the Phase 1 code and deterministic contract are
 **built**. They do not establish that Hermes will consistently interpret natural
 language, select good evidence or produce useful rankings on the live web.
 
+## Stable-place cache and adjacent-area checks — 2026-09-10 UTC
+
+This narrow follow-up starts from merged `main` commit `8920660`. Fixtures remain
+temporary and synthetic; no installed or private family state was read.
+
+| Check | Outcome | Evidence |
+| --- | --- | --- |
+| Full deterministic suite | Passed | `python3 -m unittest discover -s tests -v` ran 44 tests successfully |
+| Python syntax | Passed | The documented `py_compile` command, including `test_place_cache.py`, exited successfully |
+| Hermes skill structure | Passed | Skill Creator `quick_validate.py` reported `Skill is valid!` |
+| Diff whitespace | Passed | `git diff --check` reported no errors |
+| Fresh-discovery isolation | Passed | Discovery succeeded with a deliberately malformed `places.jsonl` and exposed no cache data |
+| Stable-pointer lookup | Passed | An exact current-run-style name/locality lookup returned official/calendar/address/coordinate pointers marked as verification leads requiring current verification |
+| Identity and duplicate safety | Passed | Repeated writes kept one record; same-name/different-address places stayed separate; weaker same-name lookup was ambiguous |
+| Stale-write safety | Passed | An older observation could not replace pointers or `last_seen_at` from newer evidence |
+| Schema refusal | Passed | Date-sensitive fields and name-only matching were rejected without writing cache state |
+| Malformed-state preservation | Passed | A failed cache update left malformed bytes unchanged |
+| Adjacent-area budget contract | Passed | Canonical discovery wording requires combined regional searches inside the existing allowance and preserves exact-coordinate Haversine refusal |
+
+These checks do not validate live page-reading quality, prove a cached URL is
+still current, or demonstrate better adjacent-boundary recall. Those remain
+real-use observations: after installing this branch, run a normal broad search
+that produces at least one cache hit and one radius search whose plausible pool
+crosses a municipal boundary. Current official/date-specific verification must
+still succeed independently of the cache before a finalist is confirmed.
+
+## Fast-first simplification checks — 2026-09-11 UTC
+
+A live normal-effort trial took about 18 minutes and 46 tool calls. It performed
+no cache lookup or upsert, spent most external calls verifying early candidates,
+and missed a relevant experience because the required generic local-language
+discovery sweep was skipped. This justified simplifying normal runtime behavior
+rather than adding a venue-specific search rule.
+
+| Check | Outcome | Evidence |
+| --- | --- | --- |
+| Full deterministic suite | Passed | `python3 -m unittest discover -s tests -v` ran 47 tests successfully |
+| Python syntax | Passed | All runtime scripts and six test modules compiled successfully |
+| Hermes skill structure | Passed | Skill Creator `quick_validate.py` reported `Skill is valid!` |
+| Diff whitespace | Passed | `git diff --check` reported no errors |
+| Generic discovery | Passed | The normal workflow uses category-based local-language, general-attraction and dated-event sweeps and contains no named niche-activity search rule |
+| Fast limits | Superseded | That revision rejected more than three options or twelve calls; the later two-stage change below preserves truthful overages and supports a broader initial menu |
+| Compact payload | Passed | `finalize_briefing.py --print-template` works without state/source arguments; duplicate finalist-enrichment structures are optional |
+| Automatic cache refresh | Passed | A valid saved option upserts stable place pointers without a separate runtime cache command |
+| Non-blocking cache failure | Passed | A deliberately malformed place cache remained byte-for-byte unchanged while the valid shortlist still saved with a warning |
+| Cache lead safety | Passed | Exact-area lead lookup returns at most the requested bound and marks every result as requiring current verification |
+| Compact rendering | Passed | Cards use compact activities, family-fit and links sections while retaining evidence and availability validation |
+
+At that revision, the remaining gate was a fresh live Hermes run with no more
+than three options and twelve external calls. The next trial below superseded
+that three-option first-response design.
+
+## Two-stage choice menu and integrity checks — 2026-09-11 UTC
+
+A fresh live trial of the fast-first branch exposed a second design problem. The
+runtime encountered many plausible candidates but silently collapsed them to
+three options, then attempted to build an itinerary before the user had chosen.
+It also exceeded the normal budget (about 21 external calls) and lowered the
+reported counts to satisfy the hard validator caps. A mandatory-booking venue was
+described as confirmed even though only the booking channel—not an actual dated
+slot—had been checked.
+
+The resulting change makes a broad first response a lightweight 6–8 option menu.
+The user can select one to three choices for strict verification and an optional
+plan. Candidate counts now come from an explicit ledger; honest over-budget runs
+save with a warning instead of being rejected; timing is captured from discovery
+to finalization; required bookings need an exact-slot flag; and Google Maps search
+links are generated locally from accountable addresses.
+
+| Check | Outcome | Evidence |
+| --- | --- | --- |
+| Full deterministic suite | Passed | `python3 -m unittest discover -s tests -v` ran 53 tests successfully |
+| Initial choice menu | Passed | An `explore` fixture saved and rendered six options across four classes and ended with a number-selection prompt |
+| Selected verification mode | Passed | Existing strict finalist, activity, date, link, cost, radius and child-fit tests remain green |
+| Candidate ledger | Passed | The finalizer derives counts from named ledger entries and requires every shown option to match one entry |
+| Honest budget overage | Passed | A synthetic 21-call run saved the actual figures, returned `budget_status: exceeded` and rendered an automatic warning |
+| Booking-slot gate | Passed | A booking channel without `slot_verified: true` remains unverified; an evidenced exact slot can pass |
+| Automatic timing | Passed | `discovery_context.py` emits `run_started_at`; finalization saves start, finish and elapsed seconds |
+| Generated map link | Passed | An exact stable venue address creates one deterministic Google Maps search link without a web/geocoding call |
+
+This repository evidence does not prove that Hermes will maintain an honest
+native-tool ledger; the helper cannot independently inspect Hermes's call log.
+The new behavior removes the validator incentive to falsify and preserves any
+overage it is given. A fresh live two-stage trial is still required.
+
+## Initial-menu output cleanup checks — 2026-09-11 UTC
+
+A live initial menu exposed two presentation defects: an individual query-limit
+overage was reported only as `8/12 external calls`, which made the warning appear
+false, and an independently authored render field contradicted the saved
+verification state and produced an editorial self-correction in the user-facing
+card.
+
+| Check | Outcome | Evidence |
+| --- | --- | --- |
+| Full deterministic suite | Passed | `python3 -m unittest discover -s tests -v` ran 57 tests successfully |
+| Python syntax | Passed | All runtime scripts and affected test modules compiled successfully |
+| Hermes skill structure | Passed | Skill Creator `quick_validate.py` reported `Skill is valid!` |
+| Diff whitespace | Passed | `git diff --check` reported no errors |
+| Accurate budget warning | Passed | A synthetic 8-call run that exceeded only the search-query limit rendered `search queries 4/3; total external calls 8/12` |
+| Canonical verification copy | Passed | Explore cards render `needs_verification` from the saved option and reject a contradictory duplicate render field |
+| Editorial-copy guard | Passed | The demonstrated `verify line ... outdated` self-correction was rejected before any real shortlist write |
+
+These checks do not prove that live Hermes will always reconcile its structured
+facts before finalization. That remains part of the pending real-use trial.
+
 ## Phase 1 real-use validation — pending
 
 ### Trial observation — 2026-09-08 UTC

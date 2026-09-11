@@ -40,10 +40,24 @@ class FinalizeBriefingTest(unittest.TestCase):
         checked = "2030-04-06T09:00:00Z"
         return {
             "discovery": {
+                "run_started_at": checked,
                 "fresh_discovery_completed": True,
-                "candidates_considered": 6,
                 "activity_classes_searched": [
                     "dated_events", "play", "culture", "commercial"
+                ],
+                "candidate_ledger": [
+                    {"title": "Example Activity", "primary_class": "commercial",
+                     "discovery_origin": "fresh", "disposition": "shown"},
+                    {"title": "Example Event", "primary_class": "dated_events",
+                     "discovery_origin": "fresh", "disposition": "not_shortlisted"},
+                    {"title": "Example Playground", "primary_class": "play",
+                     "discovery_origin": "fresh", "disposition": "not_shortlisted"},
+                    {"title": "Example Museum", "primary_class": "culture",
+                     "discovery_origin": "fresh", "disposition": "not_shortlisted"},
+                    {"title": "Example Workshop", "primary_class": "commercial",
+                     "discovery_origin": "fresh", "disposition": "not_shortlisted"},
+                    {"title": "Example Library", "primary_class": "culture",
+                     "discovery_origin": "fresh", "disposition": "not_shortlisted"},
                 ],
                 "exact_date_event_searched": True,
                 "exact_date_event_source_urls": [calendar],
@@ -81,6 +95,7 @@ class FinalizeBriefingTest(unittest.TestCase):
                 "created_at": checked,
                 "conversation_ref": "conversation-example",
                 "effort_mode": "normal",
+                "result_mode": "verified",
                 "request": {
                     "origin_ref": "explicit",
                     "place_label": "Example City",
@@ -125,7 +140,7 @@ class FinalizeBriefingTest(unittest.TestCase):
                     {"url": facts, "status": "read"},
                     {"url": calendar, "status": "read"},
                 ],
-                "tool_usage": {"search_queries": 4, "source_fetches": 8,
+                "tool_usage": {"search_queries": 3, "source_fetches": 8,
                                "forecast_lookups": 0},
             },
             "render": {
@@ -236,6 +251,7 @@ class FinalizeBriefingTest(unittest.TestCase):
         payload = self.payload()
         payload["shortlist"]["operation_id"] = "op-finalize-local-title"
         payload["shortlist"]["options"][0]["title"] = "サンプル活動"
+        payload["discovery"]["candidate_ledger"][0]["title"] = "サンプル活動"
         result = self.run_finalize(payload)
         self.assertIn("サンプル活動", result["numbered_options_markdown"])
         self.assertIn("Hands-on session", result["numbered_options_markdown"])
@@ -254,7 +270,7 @@ class FinalizeBriefingTest(unittest.TestCase):
         self.assertEqual(coverage["exact_date_event_findings_captured"], 1)
         self.assertEqual(coverage["finalist_date_evidence_sources"], 2)
         self.assertEqual(coverage["finalist_dated_findings"], 2)
-        self.assertIn("6 fresh candidates across 4 categories",
+        self.assertIn("6 fresh + 0 cached lead(s) across 4 categories",
                       result["research_summary_markdown"])
         self.assertIn("1 exact-date event/calendar source(s) checked",
                       result["research_summary_markdown"])
@@ -262,6 +278,202 @@ class FinalizeBriefingTest(unittest.TestCase):
                       result["research_summary_markdown"])
         self.assertIn("Hands-on session", result["numbered_options_markdown"])
         self.assertEqual(len((self.data / "shortlists.jsonl").read_text().splitlines()), 1)
+
+    def test_compact_payload_omits_duplicate_enrichment_structures(self):
+        payload = self.payload()
+        payload["shortlist"]["operation_id"] = "op-finalize-compact"
+        payload["discovery"].pop("exact_date_event_findings")
+        payload["discovery"].pop("finalist_date_enrichment")
+        payload["shortlist"]["options"][0]["place"] = {
+            "name": "Example Hall",
+            "area": "Example City",
+            "categories": ["hands-on"],
+            "official_url": "https://events.example.org/activity",
+            "address": "1 Public Road, Example City",
+        }
+        result = self.run_finalize(payload)
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["place_cache"]["upserted"], 1)
+        self.assertEqual(len((self.data / "places.jsonl").read_text().splitlines()), 1)
+
+    def test_explore_mode_saves_and_renders_a_six_option_menu(self):
+        payload = self.payload()
+        payload["shortlist"]["operation_id"] = "op-explore-menu"
+        payload["shortlist"]["result_mode"] = "explore"
+        payload["discovery"]["cache_lookup_performed"] = True
+        payload["shortlist"]["options"] = []
+        payload["render"]["cards"] = []
+        classes = ["dated_events", "play", "culture", "commercial", "play", "culture"]
+        payload["discovery"]["candidate_ledger"] = []
+        for index, candidate_class in enumerate(classes, 1):
+            title = f"Example Possibility {index}"
+            venue = f"Example Venue {index}"
+            payload["discovery"]["candidate_ledger"].append({
+                "title": title,
+                "primary_class": candidate_class,
+                "discovery_origin": "fresh",
+                "disposition": "shown",
+            })
+            payload["shortlist"]["options"].append({
+                "title": title,
+                "venue": venue,
+                "candidate_class": candidate_class,
+                "discovery_origin": "fresh",
+                "checked_at": "2030-04-06T09:00:00Z",
+                "source_urls": ["https://events.example.org/activity"],
+                "link_checks": [{
+                    "url": "https://events.example.org/activity",
+                    "purposes": ["facts"],
+                    "result": "content_verified",
+                    "checked_at": "2030-04-06T09:00:00Z",
+                }],
+                "why": "A distinct possibility for the family to consider.",
+                "known": ["Listed by the current source."],
+                "needs_verification": ["Requested-date details"],
+            })
+            payload["render"]["cards"].append({
+                "number": index,
+                "body": "A possible activity to compare before detailed verification.",
+                "highlights": ["Different from the other menu choices"],
+            })
+        result = self.run_finalize(payload)
+        self.assertEqual(result["research_coverage"]["menu_options"], 6)
+        self.assertEqual(result["research_coverage"]["confirmed_recommendations"], 0)
+        self.assertIn("**6. Example Possibility 6**", result["numbered_options_markdown"])
+        self.assertIn("Requested-date details", result["numbered_options_markdown"])
+        self.assertIn("Reply with the number or numbers", result["numbered_options_markdown"])
+        saved = json.loads((self.data / "shortlists.jsonl").read_text().splitlines()[0])
+        self.assertEqual(saved["result_mode"], "explore")
+        self.assertEqual(len(saved["research"]["candidate_ledger"]), 6)
+        self.assertIn("elapsed_seconds", saved["run_timing"])
+
+    def test_explore_mode_refuses_to_collapse_to_three_options(self):
+        payload = json.loads(subprocess.run(
+            [PYTHON, FINALIZE, "--print-template"],
+            text=True, capture_output=True, cwd=REPO, check=True,
+        ).stdout)
+        payload["shortlist"]["operation_id"] = "op-three-option-menu"
+        payload["discovery"]["candidate_ledger"] = payload["discovery"][
+            "candidate_ledger"
+        ][:3]
+        payload["shortlist"]["options"] = payload["shortlist"]["options"][:3]
+        payload["render"]["cards"] = payload["render"]["cards"][:3]
+        result = self.run_finalize(payload, expected=2)
+        self.assertIn("at least four distinct options", result["error"])
+        self.assert_no_real_write()
+
+    def test_candidate_counts_cannot_be_backfilled_manually(self):
+        payload = self.payload()
+        payload["discovery"]["candidates_considered"] = 4
+        result = self.run_finalize(payload, expected=2)
+        self.assertIn("counts are derived", result["error"])
+        self.assert_no_real_write()
+
+    def test_shown_option_must_match_candidate_ledger(self):
+        payload = self.payload()
+        payload["discovery"]["candidate_ledger"][0]["title"] = "Different Candidate"
+        result = self.run_finalize(payload, expected=2)
+        self.assertIn("displayed option", result["error"])
+        self.assert_no_real_write()
+
+    def test_over_budget_finalize_preserves_actual_counts_and_warns(self):
+        payload = self.payload()
+        payload["shortlist"]["operation_id"] = "op-honest-over-budget"
+        payload["shortlist"]["tool_usage"] = {
+            "search_queries": 6,
+            "source_fetches": 7,
+            "forecast_lookups": 1,
+            "geocode_lookups": 7,
+        }
+        result = self.run_finalize(payload)
+        self.assertEqual(result["budget_status"], "exceeded")
+        self.assertIn("search queries 6/3", result["numbered_options_markdown"])
+        self.assertIn("geocode lookups 7/3", result["numbered_options_markdown"])
+        self.assertIn("external calls 21/12", result["numbered_options_markdown"])
+        saved = json.loads((self.data / "shortlists.jsonl").read_text().splitlines()[0])
+        self.assertEqual(saved["tool_usage"]["external_calls"], 21)
+        self.assertEqual(saved["tool_usage"]["search_queries"], 6)
+
+    def test_individual_budget_overage_names_the_actual_limit(self):
+        payload = self.payload()
+        payload["shortlist"]["operation_id"] = "op-search-budget-overage"
+        payload["shortlist"]["tool_usage"] = {
+            "search_queries": 4,
+            "source_fetches": 3,
+            "forecast_lookups": 1,
+            "geocode_lookups": 0,
+        }
+        result = self.run_finalize(payload)
+        warning = result["numbered_options_markdown"].split("\n\n", 1)[0]
+        self.assertEqual(result["budget_status"], "exceeded")
+        self.assertIn("search queries 4/3", warning)
+        self.assertIn("total external calls 8/12", warning)
+        self.assertNotIn("(8/12 external calls)", warning)
+
+    def test_explore_mode_rejects_internal_editorial_notes(self):
+        payload = json.loads(subprocess.run(
+            [PYTHON, FINALIZE, "--print-template"],
+            text=True, capture_output=True, cwd=REPO, check=True,
+        ).stdout)
+        payload["shortlist"]["operation_id"] = "op-editorial-note"
+        payload["render"]["cards"][0]["body"] = (
+            "I already confirmed the hours above, so the verify line below is outdated."
+        )
+        result = self.run_finalize(payload, expected=2)
+        self.assertIn("final user-facing copy", result["error"])
+        self.assert_no_real_write()
+
+    def test_explore_mode_rejects_a_stale_render_verification_copy(self):
+        payload = json.loads(subprocess.run(
+            [PYTHON, FINALIZE, "--print-template"],
+            text=True, capture_output=True, cwd=REPO, check=True,
+        ).stdout)
+        payload["shortlist"]["operation_id"] = "op-stale-verification-copy"
+        payload["render"]["cards"][0]["needs_verification"] = [
+            "A stale independently written item"
+        ]
+        result = self.run_finalize(payload, expected=2)
+        self.assertIn("must match the saved option exactly", result["error"])
+        self.assert_no_real_write()
+
+    def test_explore_saved_verification_copy_must_be_english(self):
+        payload = json.loads(subprocess.run(
+            [PYTHON, FINALIZE, "--print-template"],
+            text=True, capture_output=True, cwd=REPO, check=True,
+        ).stdout)
+        payload["shortlist"]["operation_id"] = "op-local-verification-copy"
+        payload["shortlist"]["options"][0]["needs_verification"] = ["営業時間"]
+        result = self.run_finalize(payload, expected=2)
+        self.assertIn("render content must be English", result["error"])
+        self.assert_no_real_write()
+
+    def test_print_template_needs_no_state_or_source_reads(self):
+        completed = subprocess.run(
+            [PYTHON, FINALIZE, "--print-template"],
+            text=True, capture_output=True, cwd=REPO, check=False,
+        )
+        self.assertEqual(completed.returncode, 0, msg=completed.stderr)
+        template = json.loads(completed.stdout)
+        self.assertEqual(template["shortlist"]["effort_mode"], "normal")
+        self.assertEqual(template["shortlist"]["result_mode"], "explore")
+        self.assertIn("candidate_ledger", template["discovery"])
+        self.assertEqual(len(template["discovery"]["candidate_ledger"]), 6)
+        self.assertEqual(len(template["shortlist"]["options"]), 6)
+        self.assertIn("place", template["shortlist"]["options"][0])
+        self.assertNotIn("needs_verification", template["render"]["cards"][0])
+        self.assertNotIn("finalist_date_enrichment", template["discovery"])
+
+    def test_verified_template_is_self_contained_and_finalizes(self):
+        completed = subprocess.run(
+            [PYTHON, FINALIZE, "--print-template", "--template-mode", "verified"],
+            text=True, capture_output=True, cwd=REPO, check=False,
+        )
+        self.assertEqual(completed.returncode, 0, msg=completed.stderr)
+        template = json.loads(completed.stdout)
+        template["shortlist"]["operation_id"] = "op-verified-template"
+        result = self.run_finalize(template)
+        self.assertEqual(result["research_coverage"]["result_mode"], "verified")
+        self.assertIn("Example activity", result["numbered_options_markdown"])
 
 
 if __name__ == "__main__":

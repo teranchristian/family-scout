@@ -3,6 +3,7 @@ profile.yaml
 sources.yaml
 shortlists.jsonl
 feedback.jsonl
+places.jsonl
 installation.json
 .family-scout.lock
 private/

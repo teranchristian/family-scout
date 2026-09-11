@@ -1,8 +1,8 @@
 # Recommendation quality guardrails
 
-Read this file in full for every find, compare, plan or “more like this” request.
-It supplements `discovery.md` and `briefing.md`. When it is more specific about
-freshness, wording, maps, weather or compact presentation, follow this file.
+Read this detailed file for an explicit thorough/comprehensive request. Normal
+recommendations use `recommendation.md`. This supplements `discovery.md` and
+`briefing.md`; when more specific, follow this file.
 
 ## 0. Preserve research integrity before optimizing the answer
 
@@ -13,11 +13,10 @@ municipal source or bad-weather forecast silently redefine a broad “things to
 do” request into a much narrower category search.
 
 Tool-usage telemetry must describe what actually happened. Never reduce or edit
-search/fetch counts to satisfy a normal-effort validator. When material coverage
-or verification gaps require going beyond the normal budget, use the bounded
-`deep` escalation defined in `discovery.md`, set `effort_mode` accordingly, and
-save the actual counts. If truthful telemetry still cannot be accepted, do not
-persist a falsified record.
+counts to satisfy a normal-effort validator. When gaps remain, return fewer
+results or put them under Needs checking. Use bounded `deep` mode only when the
+user explicitly asks for a thorough/comprehensive search, set `effort_mode`
+accordingly, and save actual counts. Never persist falsified telemetry.
 
 ## 1. Resolve the newest applicable official evidence first
 
@@ -139,13 +138,10 @@ When an accountable source provides the exact current venue address:
 
 1. preserve that address in the saved option and include it in the rendered
    card body;
-2. create a Google Maps navigation/search URL for the same venue and verified
-   address, preferably:
-   `https://www.google.com/maps/search/?api=1&query=<URL-encoded venue + address>`;
-3. perform a current reachability check;
-4. store the exact checked URL in `link_checks` with purpose `map` and result
-   `reachable`;
-5. show both the address and Google Maps link in the final option card.
+2. include the stable `place` block with the exact venue and address;
+3. let the helper generate and store the Google Maps search URL locally with
+   purpose `map` and result `generated`;
+4. show both the address and generated Google Maps link in the final option card.
 
 The Google Maps query must identify the same venue and address as the official
 evidence. If the address cannot be established, omit the map link rather than

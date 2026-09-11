@@ -11,8 +11,14 @@ from urllib.parse import urlparse
 
 ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9._-]{2,95}$")
 URL_PATTERN = re.compile(r"https?://", re.IGNORECASE)
+EDITORIAL_COPY_PATTERN = re.compile(
+    r"\b(?:verify|verification)\s+(?:line|section|field)\b"
+    r"|\b(?:line|section|field)\s+(?:above|below)\b"
+    r"|\balready confirmed\b.{0,80}\b(?:above|below)\b",
+    re.IGNORECASE,
+)
 LINK_PURPOSES = {"facts", "booking", "map", "other"}
-LINK_RESULTS = {"content_verified", "reachable"}
+LINK_RESULTS = {"content_verified", "reachable", "generated"}
 ACTIVITY_KINDS = {
     "everyday_facility", "scheduled_activity", "sub_facility", "interaction", "other"
 }
@@ -56,6 +62,13 @@ def text_list(value, label, allow_empty=True):
     return [item.strip() for item in value]
 
 
+def final_user_copy(value, label):
+    text = non_empty_text(value, label)
+    require(EDITORIAL_COPY_PATTERN.search(text) is None,
+            f"{label} must be final user-facing copy, not drafting or field commentary")
+    return text
+
+
 def load_shortlist(path, search_id):
     require(path.is_file(), "shortlists.jsonl was not found")
     matches = []
@@ -95,7 +108,7 @@ def verified_links(option):
                 f"link_checks[{index}].purposes is invalid")
         require(result in LINK_RESULTS, f"link_checks[{index}].result is invalid")
         require(result == "content_verified" or set(purposes) <= {"map"},
-                "reachable is allowed only for map links")
+                "reachable/generated are allowed only for map links")
         by_url[url] = check
         ordered.append(check)
 
@@ -122,8 +135,8 @@ def purpose_label(purposes):
 
 def normalize_activities(card, facts_urls):
     raw = card.get("activities")
-    require(isinstance(raw, list) and raw,
-            "each render card must include at least one evidenced activity")
+    require(isinstance(raw, list) and 1 <= len(raw) <= 4,
+            "each render card must include one to four decision-relevant activities")
     seen = set()
     activities = []
     for index, item in enumerate(raw):
@@ -196,11 +209,30 @@ def normalize_family_fit(card, expected_member_ids, activities):
     return fits
 
 
-def activity_status_label(value):
+def normalize_explore_card(card, saved_option):
+    highlights = text_list(
+        card.get("highlights"), "highlights", allow_empty=False
+    )
+    require(len(highlights) <= 3,
+            "an initial-menu card may have at most three highlights")
+    highlights = [final_user_copy(value, "highlight") for value in highlights]
+    needs = text_list(
+        saved_option.get("needs_verification", []),
+        "saved option needs_verification",
+    )
+    needs = [final_user_copy(value, "saved verification item") for value in needs]
+    if "needs_verification" in card:
+        duplicate = text_list(card["needs_verification"], "needs_verification")
+        require(duplicate == needs,
+                "render needs_verification must match the saved option exactly")
+    return {"highlights": highlights, "needs_verification": needs}
+
+
+def activity_prefix(value):
     return {
-        "available": "Available on the requested date",
-        "unavailable": "Unavailable on the requested date",
-        "unknown": "Availability not established",
+        "available": "",
+        "unavailable": "⚠️ Unavailable — ",
+        "unknown": "⚠️ Not confirmed — ",
     }[value]
 
 
@@ -234,6 +266,9 @@ def render(shortlist, payload):
                     for value in raw_member_ids),
             "saved attending_member_ids are invalid")
     expected_member_ids = set(raw_member_ids)
+    result_mode = shortlist.get("result_mode", "verified")
+    require(result_mode in ("explore", "verified"),
+            "saved result_mode must be explore or verified")
 
     require(isinstance(payload, dict), "render payload must be an object")
     cards = payload.get("cards")
@@ -247,7 +282,7 @@ def render(shortlist, payload):
                 "render card number is invalid")
         require(number not in normalized_cards, "render payload repeats an option number")
         require(number in saved, "render payload contains an option that was not saved")
-        require(isinstance(body, str) and body.strip(), "render card body must be non-empty text")
+        body = final_user_copy(body, "render card body")
         require(URL_PATTERN.search(body) is None,
                 "render card body must not contain URLs; verified links are appended automatically")
 
@@ -256,14 +291,20 @@ def render(shortlist, payload):
             check["url"] for check in checks
             if "facts" in check["purposes"] and check["result"] == "content_verified"
         }
-        activities = normalize_activities(card, facts_urls)
-        family_fit = normalize_family_fit(card, expected_member_ids, activities)
-        normalized_cards[number] = {
-            "body": body.strip(),
-            "activities": activities,
-            "family_fit": family_fit,
-            "checks": checks,
-        }
+        if result_mode == "explore":
+            explore = normalize_explore_card(card, saved[number])
+            normalized_cards[number] = {
+                "body": body, "checks": checks, **explore,
+            }
+        else:
+            activities = normalize_activities(card, facts_urls)
+            family_fit = normalize_family_fit(card, expected_member_ids, activities)
+            normalized_cards[number] = {
+                "body": body,
+                "activities": activities,
+                "family_fit": family_fit,
+                "checks": checks,
+            }
 
     require(set(normalized_cards) == set(saved),
             "render payload must contain exactly one card for every saved option")
@@ -273,29 +314,37 @@ def render(shortlist, payload):
     for number in sorted(saved):
         option = saved[number]
         card = normalized_cards[number]
-        lines = [f"**{number}. {option['title'].strip()}**", card["body"], "",
-                 "**What you can actually do**"]
-        for activity in card["activities"]:
-            lines.append(
-                f"- **{activity['name']}** — {activity_status_label(activity['availability'])}. "
-                f"{activity['detail']}"
-            )
+        lines = [f"**{number}. {option['title'].strip()}**", card["body"]]
+        if result_mode == "explore":
+            lines.extend(["", f"**Type:** {option['candidate_class']}",
+                          "**Why consider it**"])
+            lines.extend(f"- {value}" for value in card["highlights"])
+            if card["needs_verification"]:
+                lines.extend(["", "**Verify if you choose it**"])
+                lines.extend(f"- {value}" for value in card["needs_verification"])
+        else:
+            lines.extend(["", "**Activities**"])
+            for activity in card["activities"]:
+                lines.append(
+                    f"- **{activity['name']}** — {activity_prefix(activity['availability'])}"
+                    f"{activity['detail']}"
+                )
 
-        lines.extend(["", "**Fit for each attending family member**"])
-        for fit in card["family_fit"]:
-            if fit["fit"] == "guardian":
-                continue
-            activities_text = ", ".join(fit["activity_names"])
-            limitation_text = (
-                " Limitations: " + "; ".join(fit["limitations"]) + "."
-                if fit["limitations"] else ""
-            )
-            lines.append(
-                f"- **{fit['label']}** — {fit_label(fit['fit'])}; "
-                f"can do: {activities_text}.{limitation_text}"
-            )
+            lines.extend(["", "**Family fit**"])
+            for fit in card["family_fit"]:
+                if fit["fit"] == "guardian":
+                    continue
+                activities_text = ", ".join(fit["activity_names"])
+                limitation_text = (
+                    " Limitations: " + "; ".join(fit["limitations"]) + "."
+                    if fit["limitations"] else ""
+                )
+                lines.append(
+                    f"- **{fit['label']}** — {fit_label(fit['fit'])}: "
+                    f"{activities_text}.{limitation_text}"
+                )
 
-        lines.extend(["", "🔗 Verified links:"])
+        lines.extend(["", "**Links**"])
         rendered_links = []
         for check in card["checks"]:
             label = purpose_label(check["purposes"])

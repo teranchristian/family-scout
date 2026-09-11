@@ -32,13 +32,11 @@ exact home location.
 - Use a geocoding service that returns coordinates for a public place name. A
   plain `curl` to the Nominatim (OpenStreetMap) search endpoint is one reliable
   option where network access allows.
-- If an exact Japanese venue name/address returns no usable result, retry within
-  the existing research budget using the same venue's official romanized or
-  English name, locality, or other accountable public wording. A language hint
-  such as English may be used when the geocoder supports it.
-- Accept a retry only when the returned place clearly matches the exact public
-  venue/branch and locality. A nearby station, neighbourhood, similarly named
-  branch or city centroid is not venue-coordinate evidence.
+- In normal effort, make one exact venue/address geocoding attempt. A second
+  wording attempt is reserved for an explicit thorough/comprehensive request.
+  Accept a result only when it clearly matches the exact public venue/branch and
+  locality. A nearby station, neighbourhood, similarly named branch or city
+  centroid is not venue-coordinate evidence.
 - Treat returned coordinates as evidence to feed the helper's `distance`
   calculation; the helper itself does not geocode.
 - If venue geocoding still fails, **do not invent, estimate or approximate
@@ -82,9 +80,12 @@ result, snippet, cached title or previously saved URL is not a link check.
 - For factual and booking links, open and read the exact URL after redirects.
   Confirm that the resulting page is the intended current venue, branch,
   activity or session and still contains the fact the link is meant to support.
-- For a navigation link, perform a current reachability check and confirm that
-  its destination or query names the same current venue and address. A map is
-  navigation evidence only, never operating-status evidence.
+- When an exact accountable address is present in the option's stable `place`
+  block, the helper generates a Google Maps search URL locally from the venue
+  name and address. This deterministic URL needs no extra web call. For any
+  manually supplied navigation link, perform a current reachability check and
+  confirm that its destination or query names the same current venue and address.
+  A map is navigation evidence only, never operating-status evidence.
 - Replace a redirected URL with the current canonical destination when it still
   targets the intended content.
 - Reject `404`/`410`, other HTTP error responses, failed reads, login/error
@@ -96,6 +97,7 @@ result, snippet, cached title or previously saved URL is not a link check.
 Record every link intended for the answer in the option's `link_checks` with its
 purpose, result and check time. Use `content_verified` only after reading the
 correct factual or booking page; use `reachable` only for a navigation link that
-was actually checked. If a useful nonessential link cannot be validated, omit it
+was actually checked and `generated` only for the helper-built exact-address
+Google Maps URL. If a useful nonessential link cannot be validated, omit it
 and give the verified address or facts in text. If the link is essential to a
 hard fact, the option is unverified and cannot be promoted.
