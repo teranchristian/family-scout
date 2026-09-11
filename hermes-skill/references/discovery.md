@@ -69,10 +69,10 @@ independent of recommendation history.
 ### Radius-aware adjacent areas
 
 When the requested radius reasonably extends beyond the named anchor
-municipality or neighbourhood, broad discovery may include adjacent
-municipalities or neighbourhoods that could fall inside that radius. Keep the
-named place or station as the geographic anchor; adjacent-area discovery never
-enlarges the requested radius.
+municipality or neighbourhood, a dated request's exact-date events/calendar
+sweep must include nearby municipalities or neighbourhoods that could fall
+inside that radius. Keep the named place or station as the geographic anchor;
+adjacent-area discovery never enlarges the requested radius.
 
 Fit this into the existing discovery budget. Prefer one combined regional,
 attractions or experience query that can cover several nearby areas/classes.

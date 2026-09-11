@@ -41,8 +41,9 @@ already-known official, calendar or booking URLs.
 Use generic classes such as events, play/community spaces, learning/culture,
 animals/nature, commercial attractions, hands-on experiences and outdoor
 options. Standing searches must remain category-based and must not name a niche
-activity or venue. Adjacent areas may appear inside the same queries when they
-could fit the requested radius; the named place or station remains the anchor.
+activity or venue. When nearby municipalities could fall inside the requested
+radius, the exact-date events/calendar sweep must include them in the same
+query; the named place or station remains the anchor.
 
 Before detailed reading, keep a working ledger of the exact plausible candidates
 you intend to show. Each ledger entry needs its title, primary class,

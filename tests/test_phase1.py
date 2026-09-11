@@ -691,7 +691,7 @@ class Phase1Test(unittest.TestCase):
             "three search queries",
             "place-cache-lookup",
             "verification leads only",
-            "adjacent municipalities",
+            "exact-date events/calendar sweep must include nearby municipalities",
             "separate query allowance",
             "One failed page, PDF or reader path",
             "[runtime-tools.md](runtime-tools.md)",

@@ -64,6 +64,7 @@ class GenericBriefingContractTest(unittest.TestCase):
             "broad, local-language family activity sweep",
             "broad general attractions/experiences sweep",
             "category-based",
+            "exact-date events/calendar sweep must include them",
             "History and explicit feedback may adjust the final order only after",
         ):
             self.assertIn(phrase, recommendation)
@@ -72,6 +73,7 @@ class GenericBriefingContractTest(unittest.TestCase):
             "not framed only around children",
             "Do not inspect prior shortlists or feedback during this stage",
             "not an extra phase or extra query allowance",
+            "exact-date events/calendar sweep must include nearby municipalities",
         ):
             self.assertIn(phrase, discovery)
         for phrase in (
