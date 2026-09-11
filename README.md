@@ -27,16 +27,17 @@ Repository: <https://github.com/teranchristian/family-scout>
   signals before investing in detailed research or calling a venue open.
 - Checks current official notices for requested-date closures, maintenance and
   unavailable promoted sub-facilities instead of relying on weekly hours alone.
-- Opens and validates every factual, booking and navigation link that will be
-  shown to the user, omitting broken, soft-404 and wrong-target URLs.
-- For normal broad searches, targets two strong options plus one useful backup,
-  fewer when evidence is weak, and at most two clearly labelled **Needs
-  checking** leads.
-- Gives each option concrete activity details, requested-date hours, age fit,
-  family cost, booking status, weather fit and direct factual/map links.
+- Opens and validates factual and booking links, omits broken or wrong-target
+  URLs, and can generate a Google Maps search link locally from an exact address.
+- For a normal broad search, first shows a varied menu aiming for 6–8 plausible
+  possibilities; after the user chooses, deeply verifies at most three selected
+  options and can turn them into a practical plan.
+- Keeps the initial menu lightweight and explicit about facts still needing
+  verification; selected options then receive concrete activity details,
+  requested-date hours, age fit, family cost, booking status and factual/map links.
 - For multi-day or weather-sensitive requests, recommends a plan for each day
   with a realistic backup.
-- Saves the exact displayed options with stable activity/session identities and
+- Saves both the exact initial menu and selected verified options with stable identities and
   automatically refreshes evidenced stable place pointers.
 - Remembers explicit feedback across fresh conversations, including corrections
   and retractions, and can use it for “more like this”.
@@ -134,11 +135,14 @@ Check that Hermes:
 1. Reads live pages rather than relying only on snippets.
 2. Searches multiple relevant source classes in the local language when useful.
 3. Uses the right dated forecast or explicitly reports it unavailable.
-4. Rejects or labels unknown hard facts instead of assuming they pass.
-5. Gives decision-ready option details with direct factual and map links that
-   were opened or reachability-checked during the current search.
-6. Makes its ranking agree with the weather and attending ages.
-7. Saves the exact shortlist before presenting it.
+4. Initially presents a varied menu—normally 6–8 options across at least four
+   experience classes—without pretending it is already a verified itinerary.
+5. Saves the exact menu and asks the user to select one or more numbers.
+6. After selection, rejects or labels unknown hard facts instead of assuming they pass.
+7. Gives selected options decision-ready details and generates a Google Maps
+   search link locally when an exact accountable address is available.
+8. Preserves actual usage counts and labels an over-budget run instead of
+   lowering the numbers to pass validation.
 
 Then refer to an option by number and give explicit feedback. In a new
 conversation, ask for another search and confirm Hermes loads that feedback only

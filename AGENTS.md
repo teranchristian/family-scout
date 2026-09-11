@@ -63,9 +63,11 @@ finalists in a three-option answer must originate in fresh discovery.
 - Match the exact current venue, branch, address and host across sources. Use
   current official venue, brand, host or municipal sources for operating status;
   map and third-party directory labels are for discovery or navigation, not proof.
-- Validate every link that will be shown to the user during the current search.
-  Reject HTTP errors, failed reads, soft-404/error pages and wrong-target
-  redirects; never copy an opaque search-result handle into the briefing.
+- Validate every factual, booking and manually supplied navigation link shown to
+  the user. A Google Maps search URL may instead be generated deterministically
+  from an exact accountable venue address. Reject HTTP errors, failed reads,
+  soft-404/error pages and wrong-target redirects; never copy an opaque
+  search-result handle into the briefing.
 - Use evidenced coordinates and unrounded Haversine distance for the inclusive
   radius comparison. Label displayed results as straight-line distance.
 - Apply hard requirements before qualitative ordering. Never calculate or show
@@ -76,9 +78,11 @@ finalists in a three-option answer must originate in fresh discovery.
   supersede prior events; never rewrite JSONL. Current instructions override
   saved preferences, and contextual complaints must not become global bans.
 - Keep normal search within three queries and twelve total external calls across
-  search, page reading, forecast and geocoding. Return at most three confirmed
-  options. Deep effort is allowed only for an explicit thorough/comprehensive
-  request. Report gaps honestly when the budget is exhausted.
+  search, page reading, forecast and geocoding. A broad first response is a
+  lightweight menu aiming for 6–8 varied candidates; after the user selects,
+  deeply verify at most three choices and only then build a plan. Deep effort is
+  allowed only for an explicit thorough/comprehensive request. Preserve actual
+  usage and mark an over-budget run instead of rejecting or rewriting telemetry.
 - Cover adjacent areas inside the requested radius through the same bounded
   discovery budget; do not add a town-by-category phase or approximate radius.
 

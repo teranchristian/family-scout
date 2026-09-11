@@ -373,6 +373,16 @@ class Phase1Test(unittest.TestCase):
         booking.update(title="Unknown Booking",
                        booking={"required": True, "availability": "unknown"})
         cases.append(booking)
+        no_slot = deepcopy(base)
+        no_slot.update(title="Booking Channel Without Slot",
+                       booking={"required": True, "availability": "available",
+                                "slot_verified": False})
+        cases.append(no_slot)
+        exact_slot = deepcopy(base)
+        exact_slot.update(title="Exact Booking Slot",
+                          booking={"required": True, "availability": "available",
+                                   "slot_verified": True})
+        cases.append(exact_slot)
         closed = deepcopy(base)
         closed.update(title="Closed Session", closure_status="closed")
         cases.append(closed)
@@ -386,6 +396,8 @@ class Phase1Test(unittest.TestCase):
         self.assertEqual(by_title["Old Session"], "confirmed_failure")
         self.assertEqual(by_title["Restricted Session"], "confirmed_failure")
         self.assertEqual(by_title["Unknown Booking"], "unverified")
+        self.assertEqual(by_title["Booking Channel Without Slot"], "unverified")
+        self.assertEqual(by_title["Exact Booking Slot"], "confirmed_match")
         self.assertEqual(by_title["Closed Session"], "confirmed_failure")
 
     def test_shortlist_identity_retry_privacy_budget_and_ambiguity(self):
@@ -406,6 +418,12 @@ class Phase1Test(unittest.TestCase):
             "resolve-option", "--number", "1", "--search-id", saved["search_id"]
         )
         self.assertEqual(resolved["option"]["title"], "Example Activity")
+        generated_maps = [
+            check for check in resolved["option"]["link_checks"]
+            if check.get("result") == "generated" and "map" in check.get("purposes", [])
+        ]
+        self.assertEqual(len(generated_maps), 1)
+        self.assertIn("google.com/maps/search", generated_maps[0]["url"])
 
         private_request = self.shortlist_payload("op-search-private")
         private_request["request"]["street_address"] = "1 Example Road"
@@ -414,15 +432,21 @@ class Phase1Test(unittest.TestCase):
 
         excessive = self.shortlist_payload("op-search-excessive")
         excessive["tool_usage"]["source_fetches"] = 13
-        self.cli("shortlist-save", payload=excessive, expected=2)
+        over_budget = self.cli("shortlist-save", payload=excessive)
+        self.assertEqual(over_budget["budget_status"], "exceeded")
+        self.assertEqual(over_budget["budget_violations"][0]["metric"],
+                         "source_fetches")
 
         too_many_calls = self.shortlist_payload("op-search-too-many-calls")
         too_many_calls["tool_usage"].update(
             search_queries=3, source_fetches=8, forecast_lookups=1,
             geocode_lookups=1,
         )
-        limited = self.cli("shortlist-save", payload=too_many_calls, expected=2)
-        self.assertIn("external calls", limited["error"])
+        limited = self.cli("shortlist-save", payload=too_many_calls)
+        self.assertEqual(limited["budget_status"], "exceeded")
+        self.assertIn("external_calls", {
+            item["metric"] for item in limited["budget_violations"]
+        })
 
         too_many_options = self.shortlist_payload("op-search-too-many-options")
         too_many_options["options"] = []
@@ -483,6 +507,31 @@ class Phase1Test(unittest.TestCase):
             "reason": "required booking is available",
         })
         self.cli("shortlist-save", payload=missing_booking_link, expected=2)
+
+        no_exact_slot = self.shortlist_payload("op-search-no-exact-slot")
+        no_exact_slot["options"][0]["booking"] = {
+            "required": True,
+            "availability": "available",
+            "slot_verified": False,
+        }
+        no_exact_slot["options"][0]["link_checks"][0]["purposes"].append("booking")
+        no_exact_slot["options"][0]["constraint_results"].append({
+            "requirement": "booking", "status": "confirmed_match",
+            "reason": "booking channel exists",
+        })
+        exact_slot_error = self.cli(
+            "shortlist-save", payload=no_exact_slot, expected=2
+        )
+        self.assertIn("exact requested-date slot", exact_slot_error["error"])
+
+        exact_slot = deepcopy(no_exact_slot)
+        exact_slot["operation_id"] = "op-search-exact-slot"
+        exact_slot["options"][0]["booking"]["slot_verified"] = True
+        exact_slot["options"][0]["constraint_results"][-1]["reason"] = (
+            "requested-date slot was verified"
+        )
+        saved_exact_slot = self.cli("shortlist-save", payload=exact_slot)
+        self.assertEqual(saved_exact_slot["budget_status"], "within_budget")
 
         unchecked_lead_link = self.shortlist_payload("op-search-unchecked-lead")
         unchecked_lead_link["needs_checking"] = [{
@@ -625,12 +674,14 @@ class Phase1Test(unittest.TestCase):
             self.assertIn(phrase, skill)
         for phrase in (
             "at most **three search queries**",
-            "**12 external calls total**",
+            "twelve external calls total",
+            "**6–8 plausible options**",
             "place-cache-leads",
-            "at most one finalist",
+            "at most one displayed option",
             "`place` block",
-            "automatically upserts",
-            "Do not display research telemetry",
+            "automatically creates the Google Maps search link",
+            "Do not display normal research telemetry",
+            "Never reduce, reset, estimate downward",
         ):
             self.assertIn(phrase, recommendation)
         for phrase in (
@@ -650,7 +701,8 @@ class Phase1Test(unittest.TestCase):
         ):
             self.assertIn(phrase, discovery)
         for phrase in (
-            "two strong options plus one useful backup",
+            "6–8 varied possibilities",
+            "Do not announce a recommended daily flow before the user chooses",
             "Needs checking",
             "What it is",
             "recommended plan for each day",

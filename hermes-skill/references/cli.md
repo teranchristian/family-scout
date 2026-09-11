@@ -191,18 +191,20 @@ candidate. If one remains unverified, it may appear only under **Needs checking*
 
 ## Save the exact shortlist
 
-For recommendations, do not inspect validator source. Print the current compact
-one-shot payload template instead:
+For recommendations, do not inspect validator source. Print the appropriate
+compact one-shot payload template instead:
 
 ```sh
-python3 <source_dir>/scripts/finalize_briefing.py --print-template
+python3 <source_dir>/scripts/finalize_briefing.py --print-template --template-mode explore
+python3 <source_dir>/scripts/finalize_briefing.py --print-template --template-mode verified
 ```
 
-Normal effort allows at most three options, three search queries and twelve
-external calls total across search, source reading, forecast and geocoding.
-Set each option's `discovery_origin` to `fresh` or `cache`, and include its
-evidenced stable `place` block for automatic cache refresh. The larger `deep`
-allowance is only for an explicit thorough/comprehensive request.
+Normal effort allows an initial `explore` menu of at most eight options or a
+selected `verified` result of at most three options, with three search queries
+and twelve external calls total across search, source reading, forecast and
+geocoding. Set each option's `discovery_origin` to `fresh` or `cache`, and include
+its evidenced stable `place` block for automatic cache refresh. Honest overages
+are saved with `budget_status: exceeded`; they are never rejected or rewritten.
 
 Call `shortlist-save` before displaying the response. The request stores an
 origin reference and public place label, never private coordinates or an address.
@@ -215,6 +217,7 @@ example is deliberately unrelated to any person:
   "created_at": "2030-04-06T09:00:00Z",
   "conversation_ref": "conversation-example",
   "effort_mode": "normal",
+  "result_mode": "verified",
   "request": {
     "origin_ref": "explicit",
     "place_label": "Example City",
@@ -278,8 +281,9 @@ identities.
 `link_checks` is the complete list of links that may appear in the option card.
 Every `source_urls` entry must have a matching `content_verified` check with the
 `facts` purpose. A mandatory booking needs a `content_verified` link with the
-`booking` purpose. A checked navigation link may use `reachable` with the `map`
-purpose. Do not put `failed`, unchecked, search-handle, 404/soft-404 or
+`booking` purpose. A manually checked navigation link may use `reachable`; the
+helper's exact-address Google Maps link uses `generated`, both with purpose
+`map`. Do not put `failed`, unchecked, search-handle, 404/soft-404 or
 wrong-target URLs in `link_checks`, and do not add a link to the displayed answer
 after `shortlist-save` succeeds. Apply the same structure to a **Needs checking**
 lead whenever it includes a link.

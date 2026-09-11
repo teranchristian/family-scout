@@ -64,6 +64,6 @@ relocation or reopening notice when those exist.
   closure notice found.
 
 The map link in the final briefing is for location and navigation only and must
-resolve to the same venue name and address used in the official evidence. Record
-the official status pages and failed reads among the consulted sources so a later
-refresh can repeat the check.
+be generated from or resolve to the same venue name and address used in the
+official evidence. Record official status pages and failed reads among the
+consulted sources so a later refresh can repeat the check.

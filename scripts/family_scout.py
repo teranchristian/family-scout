@@ -15,7 +15,7 @@ import re
 import sys
 import tempfile
 import unicodedata
-from urllib.parse import urlparse
+from urllib.parse import quote_plus, urlparse
 import uuid
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -47,7 +47,7 @@ FEEDBACK_STATES = {
     "too_crowded", "too_expensive", "too_much_walking", "note", "retracted",
 }
 LINK_PURPOSES = {"facts", "booking", "map", "other"}
-LINK_RESULTS = {"content_verified", "reachable"}
+LINK_RESULTS = {"content_verified", "reachable", "generated"}
 PLACE_INPUT_FIELDS = {
     "place_id", "name", "area", "categories", "official_url", "calendar_url",
     "address", "latitude", "longitude",
@@ -128,7 +128,7 @@ def validate_link_checks(checks, label, source_urls=(), booking_required=False):
         require(link_result in LINK_RESULTS,
                 f"{label}[{index}].result is invalid")
         require(link_result == "content_verified" or set(purposes) <= {"map"},
-                "reachable is allowed only for navigation links")
+                "reachable/generated are allowed only for navigation links")
         valid_timestamp(check.get("checked_at"), f"{label}[{index}].checked_at")
         checks_by_url[url] = check
     for url in source_urls:
@@ -144,6 +144,29 @@ def validate_link_checks(checks, label, source_urls=(), booking_required=False):
                     for check in checks),
                 "an option requiring booking must have a content-verified booking link")
     return checks_by_url
+
+
+def google_maps_search_url(name, address):
+    """Build a deterministic navigation URL from an evidenced public address."""
+    return "https://www.google.com/maps/search/?api=1&query=" + quote_plus(
+        f"{name} {address}"
+    )
+
+
+def add_generated_map_link(option, stable_place):
+    """Add a no-network Google Maps search link when the exact address is known."""
+    if not stable_place or not stable_place.get("address"):
+        return
+    checks = option.setdefault("link_checks", [])
+    if any(isinstance(check, dict) and "map" in check.get("purposes", [])
+           for check in checks):
+        return
+    checks.append({
+        "url": google_maps_search_url(stable_place["name"], stable_place["address"]),
+        "purposes": ["map"],
+        "result": "generated",
+        "checked_at": option["checked_at"],
+    })
 
 
 def valid_number(value, label, minimum=None, maximum=None):
@@ -1083,14 +1106,20 @@ def evaluate_candidate(request, candidate):
         require(booking.get("availability") in
                 ("available", "unavailable", "unknown", "not_applicable"),
                 "candidate.booking availability is invalid")
+        if "slot_verified" in booking:
+            require(isinstance(booking["slot_verified"], bool),
+                    "booking.slot_verified must be true or false")
     if isinstance(booking, dict) and booking.get("required"):
         availability = booking.get("availability")
-        if availability == "available":
+        if availability == "available" and booking.get("slot_verified") is True:
             checks.append(requirement("booking", "confirmed_match", "required booking is available"))
         elif availability == "unavailable":
             checks.append(requirement("booking", "confirmed_failure", "required booking is unavailable"))
         else:
-            checks.append(requirement("booking", "unverified", "required booking availability is unknown"))
+            checks.append(requirement(
+                "booking", "unverified",
+                "an exact requested-date booking slot was not verified"
+            ))
 
     statuses = {item["status"] for item in checks}
     overall = ("confirmed_failure" if "confirmed_failure" in statuses
@@ -1173,6 +1202,22 @@ def normalize_option(option, number, timezone_name, request):
     require(isinstance(urls, list) and urls, "option.source_urls must not be empty")
     for url in urls:
         valid_url(url, "option source URL")
+    discovery_origin = result.get("discovery_origin", "fresh")
+    require(discovery_origin in ("fresh", "cache"),
+            "option.discovery_origin must be fresh or cache")
+    result["discovery_origin"] = discovery_origin
+    stable_place = None
+    if result.get("place") is not None:
+        stable_place = normalize_place(result["place"], "option.place")
+        require(place_identity_text(stable_place["name"])
+                == place_identity_text(result["venue"]),
+                "option.place.name must match option.venue exactly")
+        for key in ("official_url", "calendar_url"):
+            if stable_place.get(key):
+                require(stable_place[key] in urls,
+                        f"option.place.{key} must be a verified option source URL")
+        result["place"] = stable_place
+    add_generated_map_link(result, stable_place)
     link_checks = result.get("link_checks")
     if result.get("distance_km") is not None:
         valid_number(result["distance_km"], "option.distance_km", 0)
@@ -1193,23 +1238,14 @@ def normalize_option(option, number, timezone_name, request):
     require(booking.get("availability") in
             ("available", "unavailable", "unknown", "not_applicable"),
             "option.booking availability is invalid")
+    if booking["required"]:
+        require(isinstance(booking.get("slot_verified"), bool),
+                "a required booking must state whether an exact slot was verified")
     require(not booking["required"] or booking["availability"] == "available",
             "an option requiring booking must have verified availability")
+    require(not booking["required"] or booking.get("slot_verified") is True,
+            "an option requiring booking needs an exact requested-date slot verification")
     validate_link_checks(link_checks, "option.link_checks", urls, booking["required"])
-    discovery_origin = result.get("discovery_origin", "fresh")
-    require(discovery_origin in ("fresh", "cache"),
-            "option.discovery_origin must be fresh or cache")
-    result["discovery_origin"] = discovery_origin
-    if result.get("place") is not None:
-        stable_place = normalize_place(result["place"], "option.place")
-        require(place_identity_text(stable_place["name"])
-                == place_identity_text(result["venue"]),
-                "option.place.name must match option.venue exactly")
-        for key in ("official_url", "calendar_url"):
-            if stable_place.get(key):
-                require(stable_place[key] in urls,
-                        f"option.place.{key} must be a verified option source URL")
-        result["place"] = stable_place
     require(isinstance(result.get("why"), str) and result["why"].strip(),
             "option.why is required")
     constraint_results = result.get("constraint_results")
@@ -1289,19 +1325,127 @@ def normalize_option(option, number, timezone_name, request):
     return result
 
 
+def normalize_explore_option(option, number, request):
+    """Validate a lightweight candidate shown before detailed verification."""
+    require(isinstance(option, dict), "each option must be an object")
+    result = deepcopy(option)
+    for key in ("title", "venue", "checked_at", "why", "candidate_class"):
+        require(isinstance(result.get(key), str) and result[key].strip(),
+                f"option.{key} is required")
+    valid_timestamp(result["checked_at"], "option.checked_at")
+    result["status"] = "candidate"
+    origin = result.get("discovery_origin", "fresh")
+    require(origin in ("fresh", "cache"),
+            "option.discovery_origin must be fresh or cache")
+    result["discovery_origin"] = origin
+
+    urls = result.get("source_urls", [])
+    require(isinstance(urls, list) and urls,
+            "an explore option must have at least one read source URL")
+    for url in urls:
+        valid_url(url, "option source URL")
+
+    stable_place = None
+    if result.get("place") is not None:
+        stable_place = normalize_place(result["place"], "option.place")
+        require(place_identity_text(stable_place["name"])
+                == place_identity_text(result["venue"]),
+                "option.place.name must match option.venue exactly")
+        for key in ("official_url", "calendar_url"):
+            if stable_place.get(key):
+                require(stable_place[key] in urls,
+                        f"option.place.{key} must be a verified option source URL")
+        result["place"] = stable_place
+    add_generated_map_link(result, stable_place)
+
+    checks = result.get("link_checks", [])
+    require(checks, "an explore option must include link checks")
+    validate_link_checks(checks, "option.link_checks", urls)
+
+    known = result.get("known", [])
+    needs_verification = result.get("needs_verification", [])
+    for value, label in ((known, "option.known"),
+                         (needs_verification, "option.needs_verification")):
+        require(isinstance(value, list)
+                and all(isinstance(item, str) and item.strip() for item in value),
+                f"{label} must be a list of non-empty text")
+
+    identity = result.get("identity_key") or (
+        result["title"].strip().lower() + "|" + result["venue"].strip().lower()
+    )
+    require(isinstance(identity, str) and identity.strip(),
+            "option.identity_key must be non-empty text")
+    activity_id = result.get("activity_id") or stable_id("activity", identity)
+    valid_id(activity_id, "option.activity_id")
+    request_date = request.get("date_start", "undated")
+    session_id = result.get("session_id") or stable_id(
+        "session", activity_id + "|candidate|" + request_date
+    )
+    valid_id(session_id, "option.session_id")
+    result.update({"number": number, "activity_id": activity_id,
+                   "session_id": session_id})
+    return result
+
+
+TOOL_USAGE_LIMITS = {
+    "normal": {"search_queries": 3, "source_fetches": 12,
+               "forecast_lookups": 1, "geocode_lookups": 3,
+               "external_calls": 12},
+    "deep": {"search_queries": 6, "source_fetches": 12,
+             "forecast_lookups": 1, "geocode_lookups": 5,
+             "external_calls": 24},
+}
+
+
+def normalize_tool_usage(tool_usage, effort_mode):
+    """Preserve honest usage and classify overages instead of rejecting them."""
+    require(isinstance(tool_usage, dict), "tool_usage must be an object")
+    actual = {}
+    for key in ("search_queries", "source_fetches", "forecast_lookups",
+                "geocode_lookups"):
+        value = tool_usage.get(key, 0)
+        require(isinstance(value, int) and not isinstance(value, bool) and value >= 0,
+                f"{key} must be a non-negative integer")
+        actual[key] = value
+    actual["external_calls"] = sum(actual.values())
+    limits = TOOL_USAGE_LIMITS[effort_mode]
+    violations = [
+        {"metric": key, "actual": actual[key], "limit": limit}
+        for key, limit in limits.items() if actual[key] > limit
+    ]
+    return {
+        **tool_usage,
+        **actual,
+        "budget_status": "exceeded" if violations else "within_budget",
+        "budget_limits": deepcopy(limits),
+        "budget_violations": violations,
+    }
+
+
 def command_shortlist_save(data_dir, args):
     payload = read_payload(args.input)
     require(isinstance(payload, dict), "shortlist payload must be an object")
     operation_id = valid_id(payload.get("operation_id"), "operation_id")
     effort_mode = payload.get("effort_mode", "normal")
     require(effort_mode in ("normal", "deep"), "effort_mode must be normal or deep")
+    result_mode = payload.get("result_mode", "verified")
+    require(result_mode in ("explore", "verified"),
+            "result_mode must be explore or verified")
     saved_request = sanitize_request(payload.get("request"))
     options_input = payload.get("options")
-    option_limit = 3 if effort_mode == "normal" else 5
+    if result_mode == "explore":
+        option_limit = 8 if effort_mode == "normal" else 10
+    else:
+        option_limit = 3 if effort_mode == "normal" else 5
     require(isinstance(options_input, list) and len(options_input) <= option_limit,
             f"options must be a list with at most {option_limit} entries for {effort_mode} effort")
-    options = [normalize_option(option, index, saved_request["timezone"], saved_request)
-               for index, option in enumerate(options_input, 1)]
+    require(options_input, "options must contain at least one entry")
+    if result_mode == "explore":
+        options = [normalize_explore_option(option, index, saved_request)
+                   for index, option in enumerate(options_input, 1)]
+    else:
+        options = [normalize_option(option, index, saved_request["timezone"], saved_request)
+                   for index, option in enumerate(options_input, 1)]
     cached_options = sum(1 for option in options
                          if option["discovery_origin"] == "cache")
     if effort_mode == "normal":
@@ -1325,32 +1469,7 @@ def command_shortlist_save(data_dir, args):
         if lead_urls or lead.get("link_checks") is not None:
             validate_link_checks(lead.get("link_checks"),
                                  "needs_checking.link_checks", lead_urls)
-    tool_usage = payload.get("tool_usage", {})
-    require(isinstance(tool_usage, dict), "tool_usage must be an object")
-    limits = {
-        "normal": {"search_queries": 3, "source_fetches": 12,
-                   "forecast_lookups": 1, "geocode_lookups": 3,
-                   "external_calls": 12},
-        "deep": {"search_queries": 6, "source_fetches": 12,
-                 "forecast_lookups": 1, "geocode_lookups": 5,
-                 "external_calls": 24},
-    }
-    actual_usage = {}
-    for key in ("search_queries", "source_fetches", "forecast_lookups",
-                "geocode_lookups"):
-        value = tool_usage.get(key, 0)
-        require(isinstance(value, int) and not isinstance(value, bool) and value >= 0,
-                f"{key} must be a non-negative integer")
-        require(value <= limits[effort_mode][key],
-                f"{effort_mode} request {key} must be between 0 and "
-                f"{limits[effort_mode][key]}")
-        actual_usage[key] = value
-    external_calls = sum(actual_usage.values())
-    require(external_calls <= limits[effort_mode]["external_calls"],
-            f"{effort_mode} request external calls must not exceed "
-            f"{limits[effort_mode]['external_calls']}")
-    tool_usage = {**tool_usage, "geocode_lookups": actual_usage["geocode_lookups"],
-                  "external_calls": external_calls}
+    tool_usage = normalize_tool_usage(payload.get("tool_usage", {}), effort_mode)
     weather = payload.get("weather")
     require(isinstance(weather, dict) and weather.get("status") in ("known", "unknown"),
             "weather must state known or unknown")
@@ -1369,6 +1488,16 @@ def command_shortlist_save(data_dir, args):
         valid_url(source.get("url"), "consulted source URL")
         require(source.get("status") in ("read", "failed", "skipped"),
                 "consulted source status is invalid")
+    run_timing = payload.get("run_timing")
+    if run_timing is not None:
+        require(isinstance(run_timing, dict), "run_timing must be an object")
+        valid_timestamp(run_timing.get("started_at"), "run_timing.started_at")
+        valid_timestamp(run_timing.get("finalized_at"), "run_timing.finalized_at")
+        valid_number(run_timing.get("elapsed_seconds"),
+                     "run_timing.elapsed_seconds", 0)
+    research = payload.get("research")
+    require(research is None or isinstance(research, dict),
+            "research must be an object or null")
     record = {
         "schema_version": 1,
         "search_id": stable_id("search", operation_id),
@@ -1376,12 +1505,15 @@ def command_shortlist_save(data_dir, args):
         "created_at": payload.get("created_at", iso_now()),
         "conversation_ref": payload.get("conversation_ref"),
         "effort_mode": effort_mode,
+        "result_mode": result_mode,
         "request": saved_request,
         "weather": deepcopy(weather),
         "options": options,
         "needs_checking": deepcopy(needs_checking),
         "consulted_sources": deepcopy(consulted_sources),
         "tool_usage": deepcopy(tool_usage),
+        "run_timing": deepcopy(run_timing),
+        "research": deepcopy(research),
     }
     valid_timestamp(record["created_at"], "created_at")
     require(record["conversation_ref"] is None or isinstance(record["conversation_ref"], str),
@@ -1417,7 +1549,10 @@ def command_shortlist_save(data_dir, args):
                 cache_report = {"upserted": 0, "unchanged": 0,
                                 "skipped": len(options), "warning": str(exc)}
     emit({"ok": True, "duplicate": False, "search_id": record["search_id"],
-          "option_count": len(options), "place_cache": cache_report})
+          "option_count": len(options), "result_mode": result_mode,
+          "budget_status": tool_usage["budget_status"],
+          "budget_violations": tool_usage["budget_violations"],
+          "place_cache": cache_report})
 
 
 def select_shortlist(records, search_id=None, conversation_ref=None):

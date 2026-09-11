@@ -8,7 +8,8 @@ It never emits a partial/freehand briefing.
 """
 
 import argparse
-from datetime import date
+from copy import deepcopy
+from datetime import date, datetime, timezone
 import json
 from pathlib import Path
 import re
@@ -26,23 +27,27 @@ DATED_FINDING_KINDS = {
 DATED_FINDING_STATUSES = {"available", "unavailable"}
 
 
-FINALIZE_TEMPLATE = {
+EXPLORE_FINALIZE_TEMPLATE = {
     "discovery": {
+        "run_started_at": "2030-04-06T09:00:00Z",
         "fresh_discovery_completed": True,
-        "candidates_considered": 4,
-        "fresh_candidates_considered": 4,
-        "cache_candidates_considered": 0,
         "activity_classes_searched": [
-            "events", "play", "learning", "experiences"
+            "events", "play", "culture", "experiences", "animals", "commercial"
         ],
         "exact_date_event_searched": True,
-        "exact_date_event_source_urls": ["https://example.org/calendar"],
+        "cache_lookup_performed": True,
+        "candidate_ledger": [{
+            "title": "Example Activity",
+            "primary_class": "experiences",
+            "discovery_origin": "fresh",
+            "disposition": "shown",
+        }],
     },
     "shortlist": {
         "operation_id": "op-replace-me",
-        "created_at": "2030-04-06T09:00:00Z",
         "conversation_ref": None,
         "effort_mode": "normal",
+        "result_mode": "explore",
         "request": {
             "origin_ref": "explicit",
             "place_label": "Example City",
@@ -56,9 +61,8 @@ FINALIZE_TEMPLATE = {
         "options": [{
             "title": "Example Activity",
             "venue": "Example Venue",
+            "candidate_class": "experiences",
             "discovery_origin": "fresh",
-            "date_start": "2030-04-07T10:00:00+00:00",
-            "date_end": "2030-04-07T11:00:00+00:00",
             "checked_at": "2030-04-06T09:00:00Z",
             "source_urls": ["https://example.org/venue"],
             "link_checks": [{
@@ -66,6 +70,122 @@ FINALIZE_TEMPLATE = {
                 "purposes": ["facts"],
                 "result": "content_verified",
                 "checked_at": "2030-04-06T09:00:00Z",
+            }],
+            "why": "Concise evidence-based reason.",
+            "known": ["An accountable source lists this place."],
+            "needs_verification": ["requested-date opening", "family cost"],
+            "place": {
+                "name": "Example Venue",
+                "area": "Example City",
+                "categories": ["hands-on"],
+                "official_url": "https://example.org/venue",
+                "address": "1 Public Road, Example City",
+            },
+        }],
+        "needs_checking": [],
+        "consulted_sources": [{
+            "url": "https://example.org/venue", "status": "read",
+        }],
+        "tool_usage": {
+            "search_queries": 2, "source_fetches": 6,
+            "forecast_lookups": 0, "geocode_lookups": 0,
+        },
+    },
+    "render": {"cards": [{
+        "number": 1,
+        "body": "A concise explanation of what makes this candidate interesting.",
+        "highlights": ["A distinct experience worth considering"],
+        "needs_verification": ["Requested-date opening and exact family cost"],
+    }]},
+}
+
+# Six complete examples make the preferred initial-menu shape explicit without
+# duplicating a large literal in source.
+for _number, _candidate_class in enumerate(
+        ("events", "play", "culture", "animals", "commercial"), 2):
+    _title = f"Example Activity {_number}"
+    _venue = f"Example Venue {_number}"
+    _url = f"https://example.org/venue-{_number}"
+    EXPLORE_FINALIZE_TEMPLATE["discovery"]["candidate_ledger"].append({
+        "title": _title,
+        "primary_class": _candidate_class,
+        "discovery_origin": "fresh",
+        "disposition": "shown",
+    })
+    EXPLORE_FINALIZE_TEMPLATE["shortlist"]["options"].append({
+        "title": _title,
+        "venue": _venue,
+        "candidate_class": _candidate_class,
+        "discovery_origin": "fresh",
+        "checked_at": "2030-04-06T09:00:00Z",
+        "source_urls": [_url],
+        "link_checks": [{
+            "url": _url, "purposes": ["facts"],
+            "result": "content_verified", "checked_at": "2030-04-06T09:00:00Z",
+        }],
+        "why": "Concise evidence-based reason.",
+        "known": ["An accountable source lists this place."],
+        "needs_verification": ["requested-date opening", "family cost"],
+        "place": {
+            "name": _venue, "area": "Example City",
+            "categories": [_candidate_class], "official_url": _url,
+            "address": f"{_number} Public Road, Example City",
+        },
+    })
+    EXPLORE_FINALIZE_TEMPLATE["shortlist"]["consulted_sources"].append(
+        {"url": _url, "status": "read"}
+    )
+    EXPLORE_FINALIZE_TEMPLATE["render"]["cards"].append({
+        "number": _number,
+        "body": "A concise explanation of what makes this candidate interesting.",
+        "highlights": ["A distinct experience worth considering"],
+        "needs_verification": ["Requested-date opening and exact family cost"],
+    })
+
+
+VERIFIED_FINALIZE_TEMPLATE = {
+    "discovery": {
+        "run_started_at": "2030-04-06T09:00:00Z",
+        "fresh_discovery_completed": True,
+        "activity_classes_searched": ["events", "play", "culture", "experiences"],
+        "exact_date_event_searched": True,
+        "exact_date_event_source_urls": ["https://example.org/calendar"],
+        "candidate_ledger": [{
+            "title": "Example Activity", "primary_class": "experiences",
+            "discovery_origin": "fresh", "disposition": "shown",
+        }, {
+            "title": "Example Event", "primary_class": "events",
+            "discovery_origin": "fresh", "disposition": "not_shortlisted",
+        }, {
+            "title": "Example Play Space", "primary_class": "play",
+            "discovery_origin": "fresh", "disposition": "not_shortlisted",
+        }, {
+            "title": "Example Museum", "primary_class": "culture",
+            "discovery_origin": "fresh", "disposition": "not_shortlisted",
+        }],
+    },
+    "shortlist": {
+        "operation_id": "op-replace-me",
+        "conversation_ref": None,
+        "effort_mode": "normal",
+        "result_mode": "verified",
+        "request": {
+            "origin_ref": "explicit", "place_label": "Example City",
+            "date_start": "2030-04-07", "date_end": "2030-04-07",
+            "timezone": "Etc/UTC", "radius_km": 10,
+            "attending_member_ids": [],
+        },
+        "weather": {"status": "unknown", "reason": "not available"},
+        "options": [{
+            "title": "Example Activity", "venue": "Example Venue",
+            "discovery_origin": "fresh",
+            "date_start": "2030-04-07T10:00:00+00:00",
+            "date_end": "2030-04-07T11:00:00+00:00",
+            "checked_at": "2030-04-06T09:00:00Z",
+            "source_urls": ["https://example.org/venue"],
+            "link_checks": [{
+                "url": "https://example.org/venue", "purposes": ["facts"],
+                "result": "content_verified", "checked_at": "2030-04-06T09:00:00Z",
             }],
             "distance_km": 1.2,
             "cost": {"status": "known", "amount": 0,
@@ -82,41 +202,30 @@ FINALIZE_TEMPLATE = {
             }],
             "features": ["hands-on"],
             "place": {
-                "name": "Example Venue",
-                "area": "Example City",
+                "name": "Example Venue", "area": "Example City",
                 "categories": ["hands-on"],
                 "official_url": "https://example.org/venue",
                 "address": "1 Public Road, Example City",
-                "latitude": 1.25,
-                "longitude": 2.5,
             },
         }],
         "needs_checking": [],
-        "consulted_sources": [{
-            "url": "https://example.org/venue", "status": "read",
-        }, {
-            "url": "https://example.org/calendar", "status": "read",
-        }],
-        "tool_usage": {
-            "search_queries": 2, "source_fetches": 3,
-            "forecast_lookups": 0, "geocode_lookups": 1,
-        },
+        "consulted_sources": [{"url": "https://example.org/venue", "status": "read"},
+                              {"url": "https://example.org/calendar", "status": "read"}],
+        "tool_usage": {"search_queries": 2, "source_fetches": 3,
+                       "forecast_lookups": 0, "geocode_lookups": 1},
     },
     "render": {"cards": [{
         "number": 1,
         "body": "Concise hours, cost, booking, address and ranking context.",
         "activities": [{
-            "name": "Example activity",
-            "kind": "everyday_facility",
+            "name": "Example activity", "kind": "everyday_facility",
             "availability": "available",
             "detail": "A concrete activity supported by the current source.",
             "source_url": "https://example.org/venue",
         }],
         "family_fit": [{
-            "member_id": "member-example",
-            "label": "Example child",
-            "fit": "good",
-            "activity_names": ["Example activity"],
+            "member_id": "member-example", "label": "Example child",
+            "fit": "good", "activity_names": ["Example activity"],
             "limitations": [],
         }],
     }]},
@@ -451,29 +560,83 @@ def validate_date_evidence(discovery, shortlist, options, render, request, dated
     }
 
 
+def validate_candidate_ledger(discovery, classes, options, needs_checking,
+                              effort_mode, result_mode):
+    require("candidates_considered" not in discovery,
+            "use discovery.candidate_ledger; candidate counts are derived, never typed")
+    ledger = discovery.get("candidate_ledger")
+    limit = 8 if effort_mode == "normal" else 10
+    require(isinstance(ledger, list) and 1 <= len(ledger) <= limit,
+            f"discovery.candidate_ledger must contain 1-{limit} candidates")
+    allowed_dispositions = {"shown", "needs_checking", "not_shortlisted"}
+    titles = set()
+    entries = {}
+    for index, item in enumerate(ledger):
+        require(isinstance(item, dict),
+                f"discovery.candidate_ledger[{index}] must be an object")
+        title = non_empty_text(item.get("title"),
+                               f"candidate_ledger[{index}].title")
+        require(title not in titles, "candidate_ledger titles must be unique")
+        titles.add(title)
+        primary_class = non_empty_text(
+            item.get("primary_class"), f"candidate_ledger[{index}].primary_class"
+        )
+        require(primary_class in classes,
+                "candidate_ledger primary_class must appear in activity_classes_searched")
+        origin = item.get("discovery_origin")
+        require(origin in ("fresh", "cache"),
+                f"candidate_ledger[{index}].discovery_origin is invalid")
+        disposition = item.get("disposition")
+        require(disposition in allowed_dispositions,
+                f"candidate_ledger[{index}].disposition is invalid")
+        entries[title] = item
+
+    option_titles = []
+    shown_classes = set()
+    for index, option in enumerate(options):
+        require(isinstance(option, dict), f"shortlist.options[{index}] must be an object")
+        title = non_empty_text(option.get("title"), f"shortlist.options[{index}].title")
+        require(title in entries and entries[title]["disposition"] == "shown",
+                "every displayed option must be a shown candidate-ledger entry")
+        require(option.get("discovery_origin", "fresh")
+                == entries[title]["discovery_origin"],
+                "option discovery_origin must match its candidate-ledger entry")
+        if result_mode == "explore":
+            require(option.get("candidate_class") == entries[title]["primary_class"],
+                    "explore option candidate_class must match its candidate-ledger entry")
+            shown_classes.add(option["candidate_class"])
+        option_titles.append(title)
+    require(len(option_titles) == len(set(option_titles)),
+            "displayed option titles must be unique")
+
+    needs_titles = {
+        item.get("title") for item in needs_checking if isinstance(item, dict)
+    }
+    for title, item in entries.items():
+        if item["disposition"] == "shown":
+            require(title in option_titles,
+                    "every candidate marked shown must be in shortlist.options")
+        elif item["disposition"] == "needs_checking":
+            require(title in needs_titles,
+                    "every candidate marked needs_checking must be saved there")
+
+    if result_mode == "explore":
+        require(len(options) >= 4,
+                "an initial menu needs at least four distinct options; otherwise report the discovery shortfall")
+        require(all(item["disposition"] == "shown" for item in ledger),
+                "an initial menu must show every plausible candidate it keeps")
+        require(len(shown_classes) >= min(4, len(options)),
+                "an initial menu must offer genuinely different activity classes")
+
+    return ledger
+
+
 def validate_discovery(payload, shortlist, render):
     discovery = payload.get("discovery")
     require(isinstance(discovery, dict),
             "broad recommendation requires discovery coverage")
     require(discovery.get("fresh_discovery_completed") is True,
             "fresh discovery must complete before finalization")
-
-    candidates = discovery.get("candidates_considered")
-    require(isinstance(candidates, int) and not isinstance(candidates, bool)
-            and candidates >= 0,
-            "discovery.candidates_considered must be a non-negative integer")
-    fresh_candidates = discovery.get("fresh_candidates_considered", candidates)
-    cache_candidates = discovery.get("cache_candidates_considered", 0)
-    for value, label in (
-        (fresh_candidates, "fresh_candidates_considered"),
-        (cache_candidates, "cache_candidates_considered"),
-    ):
-        require(isinstance(value, int) and not isinstance(value, bool) and value >= 0,
-                f"discovery.{label} must be a non-negative integer")
-    if ("fresh_candidates_considered" in discovery
-            or "cache_candidates_considered" in discovery):
-        require(candidates == fresh_candidates + cache_candidates,
-                "candidates_considered must equal fresh plus cache candidates")
 
     classes = discovery.get("activity_classes_searched")
     require(isinstance(classes, list)
@@ -488,8 +651,9 @@ def validate_discovery(payload, shortlist, render):
     options = shortlist.get("options")
     require(isinstance(options, list) and options,
             "shortlist.options must contain at least one finalist")
-    require(candidates >= len(options),
-            "candidates_considered cannot be smaller than the final shortlist")
+    result_mode = shortlist.get("result_mode", "verified")
+    require(result_mode in ("explore", "verified"),
+            "shortlist.result_mode must be explore or verified")
     cache_finalists = sum(
         1 for option in options
         if isinstance(option, dict) and option.get("discovery_origin", "fresh") == "cache"
@@ -497,25 +661,49 @@ def validate_discovery(payload, shortlist, render):
     fresh_finalists = len(options) - cache_finalists
     effort_mode = shortlist.get("effort_mode", "normal")
     if effort_mode == "normal":
-        require(len(options) <= 3,
-                "normal effort allows at most three confirmed recommendations")
+        option_limit = 8 if result_mode == "explore" else 3
+        require(len(options) <= option_limit,
+                f"normal {result_mode} mode allows at most {option_limit} options")
         require(cache_finalists <= 1,
                 "normal effort allows at most one cache-seeded finalist")
         require(fresh_finalists >= min(2, len(options)),
-                "normal effort requires fresh discovery for at least two finalists")
+                "normal effort requires fresh discovery for at least two displayed options")
 
     needs_checking = shortlist.get("needs_checking", [])
     require(isinstance(needs_checking, list),
             "shortlist.needs_checking must be a list")
-    require(candidates >= len(options) + len(needs_checking),
-            "fresh candidate count cannot be smaller than confirmed plus needs-checking results")
+    ledger = validate_candidate_ledger(
+        discovery, set(normalized_classes), options, needs_checking,
+        effort_mode, result_mode
+    )
+    candidates = len(ledger)
+    fresh_candidates = sum(
+        1 for item in ledger if item["discovery_origin"] == "fresh"
+    )
+    cache_candidates = candidates - fresh_candidates
 
     request = shortlist.get("request")
     require(isinstance(request, dict), "shortlist.request must be an object")
     dated_request = bool(request.get("date_start"))
-    date_evidence = validate_date_evidence(
-        discovery, shortlist, options, render, request, dated_request
-    )
+    if result_mode == "verified":
+        date_evidence = validate_date_evidence(
+            discovery, shortlist, options, render, request, dated_request
+        )
+    else:
+        require(discovery.get("cache_lookup_performed") is True,
+                "an initial menu must query the stable-place cache after fresh discovery")
+        event_searched = discovery.get("exact_date_event_searched")
+        require(isinstance(event_searched, bool),
+                "discovery.exact_date_event_searched must be boolean")
+        require(not dated_request or event_searched,
+                "dated initial menus require an exact-date event search")
+        date_evidence = {
+            "exact_date_event_searched": event_searched,
+            "exact_date_event_sources_checked": 0,
+            "exact_date_event_findings_captured": 0,
+            "finalist_date_evidence_sources": 0,
+            "finalist_dated_findings": 0,
+        }
 
     not_shortlisted = candidates - len(options) - len(needs_checking)
     return {
@@ -524,9 +712,12 @@ def validate_discovery(payload, shortlist, render):
         "cache_candidates": cache_candidates,
         "fresh_finalists": fresh_finalists,
         "cache_finalists": cache_finalists,
+        "result_mode": result_mode,
         "activity_classes_checked": len(normalized_classes),
-        "finalists_deeply_verified": len(options),
-        "confirmed_recommendations": len(options),
+        "cache_lookup_performed": bool(discovery.get("cache_lookup_performed", False)),
+        "menu_options": len(options) if result_mode == "explore" else 0,
+        "finalists_deeply_verified": len(options) if result_mode == "verified" else 0,
+        "confirmed_recommendations": len(options) if result_mode == "verified" else 0,
         "needs_checking": len(needs_checking),
         "not_shortlisted": not_shortlisted,
         **date_evidence,
@@ -534,13 +725,17 @@ def validate_discovery(payload, shortlist, render):
 
 
 def research_summary(coverage):
+    result_text = (
+        f"{coverage['menu_options']} initial option(s) shown"
+        if coverage["result_mode"] == "explore"
+        else f"{coverage['confirmed_recommendations']} confirmed"
+    )
     return (
         "Research: "
         f"{coverage['fresh_candidates']} fresh + "
         f"{coverage['cache_candidates']} cached lead(s) across "
         f"{coverage['activity_classes_checked']} categories · "
-        f"{coverage['finalists_deeply_verified']} finalists deeply verified · "
-        f"{coverage['confirmed_recommendations']} confirmed · "
+        f"{result_text} · "
         f"{coverage['needs_checking']} needs checking · "
         f"{coverage['not_shortlisted']} not shortlisted · "
         f"{coverage['exact_date_event_sources_checked']} exact-date event/calendar source(s) checked · "
@@ -551,6 +746,24 @@ def research_summary(coverage):
 def write_json(path, value):
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n",
                     encoding="utf-8")
+
+
+def build_run_timing(discovery):
+    started_text = non_empty_text(discovery.get("run_started_at"),
+                                  "discovery.run_started_at")
+    try:
+        started = datetime.fromisoformat(started_text.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise FinalizeError("discovery.run_started_at must be an ISO date/time") from exc
+    require(started.tzinfo is not None,
+            "discovery.run_started_at must include a timezone offset")
+    finalized = datetime.now(timezone.utc).replace(microsecond=0)
+    elapsed = (finalized - started.astimezone(timezone.utc)).total_seconds()
+    return {
+        "started_at": started.isoformat().replace("+00:00", "Z"),
+        "finalized_at": finalized.isoformat().replace("+00:00", "Z"),
+        "elapsed_seconds": max(0, int(elapsed)),
+    }
 
 
 def execute(source_dir, data_dir, shortlist_path, render_path):
@@ -572,12 +785,27 @@ def execute(source_dir, data_dir, shortlist_path, render_path):
 
 def finalize(args):
     payload = read_json(args.input)
-    shortlist = payload.get("shortlist")
+    shortlist = deepcopy(payload.get("shortlist"))
     render = payload.get("render")
     require(isinstance(shortlist, dict), "finalize payload needs shortlist")
     require(isinstance(render, dict), "finalize payload needs render")
     validate_output_language(render)
     coverage = validate_discovery(payload, shortlist, render)
+    run_timing = build_run_timing(payload["discovery"])
+    shortlist["created_at"] = run_timing["finalized_at"]
+    shortlist["run_timing"] = run_timing
+    shortlist["research"] = {
+        "candidate_ledger": deepcopy(payload["discovery"]["candidate_ledger"]),
+        "activity_classes_searched": deepcopy(
+            payload["discovery"]["activity_classes_searched"]
+        ),
+        "exact_date_event_searched": payload["discovery"][
+            "exact_date_event_searched"
+        ],
+        "cache_lookup_performed": payload["discovery"].get(
+            "cache_lookup_performed", False
+        ),
+    }
 
     source_dir = Path(args.source_dir).expanduser().resolve()
     data_dir = Path(args.data_dir).expanduser().resolve()
@@ -597,14 +825,35 @@ def finalize(args):
         execute(source_dir, sandbox_data, shortlist_path, render_path)
         saved, rendered = execute(source_dir, data_dir, shortlist_path, render_path)
 
+    numbered = rendered["numbered_options_markdown"]
+    budget_status = saved.get("budget_status", "within_budget")
+    if budget_status == "exceeded":
+        actual = sum(
+            shortlist.get("tool_usage", {}).get(key, 0)
+            for key in ("search_queries", "source_fetches", "forecast_lookups",
+                        "geocode_lookups")
+        )
+        limit = 12 if shortlist.get("effort_mode", "normal") == "normal" else 24
+        numbered = (
+            f"⚠️ Research budget exceeded ({actual}/{limit} external calls); "
+            "the actual counts were preserved.\n\n" + numbered
+        )
+    if shortlist.get("result_mode", "verified") == "explore":
+        numbered += (
+            "\n\nReply with the number or numbers that interest you. "
+            "I’ll verify those choices before suggesting a plan."
+        )
     output = {
         "ok": True,
         "search_id": saved["search_id"],
         "duplicate": bool(saved.get("duplicate", False)),
         "research_coverage": coverage,
         "research_summary_markdown": research_summary(coverage),
-        "numbered_options_markdown": rendered["numbered_options_markdown"],
+        "numbered_options_markdown": numbered,
         "links_by_option": rendered.get("links_by_option", []),
+        "run_timing": run_timing,
+        "budget_status": budget_status,
+        "budget_violations": saved.get("budget_violations", []),
         "place_cache": saved.get("place_cache", {}),
     }
     print(json.dumps(output, ensure_ascii=False, indent=2))
@@ -617,10 +866,15 @@ def main():
     parser.add_argument("--input", default="-", help="Complete JSON payload or - for stdin")
     parser.add_argument("--print-template", action="store_true",
                         help="Print the compact normal-effort payload template")
+    parser.add_argument("--template-mode", choices=("explore", "verified"),
+                        default="explore",
+                        help="Choose the initial-menu or selected-option template")
     args = parser.parse_args()
     try:
         if args.print_template:
-            print(json.dumps(FINALIZE_TEMPLATE, ensure_ascii=False, indent=2))
+            template = (EXPLORE_FINALIZE_TEMPLATE if args.template_mode == "explore"
+                        else VERIFIED_FINALIZE_TEMPLATE)
+            print(json.dumps(template, ensure_ascii=False, indent=2))
             return 0
         require(args.source_dir, "--source-dir is required")
         require(args.data_dir, "--data-dir is required")

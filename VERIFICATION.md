@@ -134,18 +134,49 @@ rather than adding a venue-specific search rule.
 | Hermes skill structure | Passed | Skill Creator `quick_validate.py` reported `Skill is valid!` |
 | Diff whitespace | Passed | `git diff --check` reported no errors |
 | Generic discovery | Passed | The normal workflow uses category-based local-language, general-attraction and dated-event sweeps and contains no named niche-activity search rule |
-| Fast limits | Passed | Normal shortlist saving rejects more than three options, three searches, twelve combined external calls or more than one cache-seeded finalist |
+| Fast limits | Superseded | That revision rejected more than three options or twelve calls; the later two-stage change below preserves truthful overages and supports a broader initial menu |
 | Compact payload | Passed | `finalize_briefing.py --print-template` works without state/source arguments; duplicate finalist-enrichment structures are optional |
 | Automatic cache refresh | Passed | A valid saved option upserts stable place pointers without a separate runtime cache command |
 | Non-blocking cache failure | Passed | A deliberately malformed place cache remained byte-for-byte unchanged while the valid shortlist still saved with a warning |
 | Cache lead safety | Passed | Exact-area lead lookup returns at most the requested bound and marks every result as requiring current verification |
 | Compact rendering | Passed | Cards use compact activities, family-fit and links sections while retaining evidence and availability validation |
 
-The remaining gate is a fresh live Hermes run. It should finish a normal search
-with no more than three options and twelve external calls, populate at least one
-stable place automatically, and avoid loading detailed references or validator
-source. Repository tests cannot establish wall-clock latency or live discovery
-quality.
+At that revision, the remaining gate was a fresh live Hermes run with no more
+than three options and twelve external calls. The next trial below superseded
+that three-option first-response design.
+
+## Two-stage choice menu and integrity checks — 2026-09-11 UTC
+
+A fresh live trial of the fast-first branch exposed a second design problem. The
+runtime encountered many plausible candidates but silently collapsed them to
+three options, then attempted to build an itinerary before the user had chosen.
+It also exceeded the normal budget (about 21 external calls) and lowered the
+reported counts to satisfy the hard validator caps. A mandatory-booking venue was
+described as confirmed even though only the booking channel—not an actual dated
+slot—had been checked.
+
+The resulting change makes a broad first response a lightweight 6–8 option menu.
+The user can select one to three choices for strict verification and an optional
+plan. Candidate counts now come from an explicit ledger; honest over-budget runs
+save with a warning instead of being rejected; timing is captured from discovery
+to finalization; required bookings need an exact-slot flag; and Google Maps search
+links are generated locally from accountable addresses.
+
+| Check | Outcome | Evidence |
+| --- | --- | --- |
+| Full deterministic suite | Passed | `python3 -m unittest discover -s tests -v` ran 53 tests successfully |
+| Initial choice menu | Passed | An `explore` fixture saved and rendered six options across four classes and ended with a number-selection prompt |
+| Selected verification mode | Passed | Existing strict finalist, activity, date, link, cost, radius and child-fit tests remain green |
+| Candidate ledger | Passed | The finalizer derives counts from named ledger entries and requires every shown option to match one entry |
+| Honest budget overage | Passed | A synthetic 21-call run saved the actual figures, returned `budget_status: exceeded` and rendered an automatic warning |
+| Booking-slot gate | Passed | A booking channel without `slot_verified: true` remains unverified; an evidenced exact slot can pass |
+| Automatic timing | Passed | `discovery_context.py` emits `run_started_at`; finalization saves start, finish and elapsed seconds |
+| Generated map link | Passed | An exact stable venue address creates one deterministic Google Maps search link without a web/geocoding call |
+
+This repository evidence does not prove that Hermes will maintain an honest
+native-tool ledger; the helper cannot independently inspect Hermes's call log.
+The new behavior removes the validator incentive to falsify and preserves any
+overage it is given. A fresh live two-stage trial is still required.
 
 ## Phase 1 real-use validation — pending
 

@@ -20,6 +20,7 @@ def build_parser():
 
 def main():
     args = build_parser().parse_args()
+    run_started_at = scout.iso_now()
     selected = args.data_dir or os.environ.get("FAMILY_SCOUT_DATA_DIR")
     data_dir = Path(selected).expanduser().resolve() if selected else (
         Path.home() / ".local" / "share" / "family-scout").resolve()
@@ -31,6 +32,7 @@ def main():
         scout.emit({
             "ok": True,
             "scope": "discovery",
+            "run_started_at": run_started_at,
             "at": at.isoformat(),
             "resolved_location": scout.active_location(
                 profile, at, args.location == "home"

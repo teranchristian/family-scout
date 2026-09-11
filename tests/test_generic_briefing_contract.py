@@ -20,8 +20,9 @@ class GenericBriefingContractTest(unittest.TestCase):
         ):
             self.assertIn(phrase, skill)
         for phrase in (
-            "one to four decision-relevant activities",
-            "child-specific fit",
+            "**6–8 plausible options**",
+            "`result_mode: \"explore\"`",
+            "`slot_verified: true`",
             "`numbered_options_markdown` verbatim",
         ):
             self.assertIn(phrase, recommendation)
@@ -91,10 +92,11 @@ class GenericBriefingContractTest(unittest.TestCase):
         )
         for phrase in (
             "at most **three search queries**",
-            "Keep **4–6 plausible candidates**",
-            "at most **three likely finalists**",
-            "**12 external calls total**",
-            "returning two is better than slow padding",
+            "**6–8 plausible options**",
+            "one to three numbers",
+            "twelve external calls total",
+            "candidate count later: the finalizer derives it",
+            "actual counts",
         ):
             self.assertIn(phrase, recommendation)
         for phrase in (

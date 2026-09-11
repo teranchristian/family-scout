@@ -138,13 +138,10 @@ When an accountable source provides the exact current venue address:
 
 1. preserve that address in the saved option and include it in the rendered
    card body;
-2. create a Google Maps navigation/search URL for the same venue and verified
-   address, preferably:
-   `https://www.google.com/maps/search/?api=1&query=<URL-encoded venue + address>`;
-3. perform a current reachability check;
-4. store the exact checked URL in `link_checks` with purpose `map` and result
-   `reachable`;
-5. show both the address and Google Maps link in the final option card.
+2. include the stable `place` block with the exact venue and address;
+3. let the helper generate and store the Google Maps search URL locally with
+   purpose `map` and result `generated`;
+4. show both the address and generated Google Maps link in the final option card.
 
 The Google Maps query must identify the same venue and address as the official
 evidence. If the address cannot be established, omit the map link rather than

@@ -54,6 +54,7 @@ class DiscoveryContextTest(unittest.TestCase):
         self.assertEqual(discovery.returncode, 0, msg=discovery.stderr)
         payload = json.loads(discovery.stdout)
         self.assertEqual(payload["scope"], "discovery")
+        self.assertRegex(payload["run_started_at"], r"^\d{4}-\d{2}-\d{2}T")
         self.assertIn("profile", payload)
         self.assertIn("resolved_location", payload)
         self.assertIn("enabled_sources", payload)
