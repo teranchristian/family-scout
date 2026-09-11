@@ -335,12 +335,12 @@ class FinalizeBriefingTest(unittest.TestCase):
                 "number": index,
                 "body": "A possible activity to compare before detailed verification.",
                 "highlights": ["Different from the other menu choices"],
-                "needs_verification": ["Requested-date details"],
             })
         result = self.run_finalize(payload)
         self.assertEqual(result["research_coverage"]["menu_options"], 6)
         self.assertEqual(result["research_coverage"]["confirmed_recommendations"], 0)
         self.assertIn("**6. Example Possibility 6**", result["numbered_options_markdown"])
+        self.assertIn("Requested-date details", result["numbered_options_markdown"])
         self.assertIn("Reply with the number or numbers", result["numbered_options_markdown"])
         saved = json.loads((self.data / "shortlists.jsonl").read_text().splitlines()[0])
         self.assertEqual(saved["result_mode"], "explore")
@@ -387,10 +387,65 @@ class FinalizeBriefingTest(unittest.TestCase):
         }
         result = self.run_finalize(payload)
         self.assertEqual(result["budget_status"], "exceeded")
-        self.assertIn("21/12 external calls", result["numbered_options_markdown"])
+        self.assertIn("search queries 6/3", result["numbered_options_markdown"])
+        self.assertIn("geocode lookups 7/3", result["numbered_options_markdown"])
+        self.assertIn("external calls 21/12", result["numbered_options_markdown"])
         saved = json.loads((self.data / "shortlists.jsonl").read_text().splitlines()[0])
         self.assertEqual(saved["tool_usage"]["external_calls"], 21)
         self.assertEqual(saved["tool_usage"]["search_queries"], 6)
+
+    def test_individual_budget_overage_names_the_actual_limit(self):
+        payload = self.payload()
+        payload["shortlist"]["operation_id"] = "op-search-budget-overage"
+        payload["shortlist"]["tool_usage"] = {
+            "search_queries": 4,
+            "source_fetches": 3,
+            "forecast_lookups": 1,
+            "geocode_lookups": 0,
+        }
+        result = self.run_finalize(payload)
+        warning = result["numbered_options_markdown"].split("\n\n", 1)[0]
+        self.assertEqual(result["budget_status"], "exceeded")
+        self.assertIn("search queries 4/3", warning)
+        self.assertIn("total external calls 8/12", warning)
+        self.assertNotIn("(8/12 external calls)", warning)
+
+    def test_explore_mode_rejects_internal_editorial_notes(self):
+        payload = json.loads(subprocess.run(
+            [PYTHON, FINALIZE, "--print-template"],
+            text=True, capture_output=True, cwd=REPO, check=True,
+        ).stdout)
+        payload["shortlist"]["operation_id"] = "op-editorial-note"
+        payload["render"]["cards"][0]["body"] = (
+            "I already confirmed the hours above, so the verify line below is outdated."
+        )
+        result = self.run_finalize(payload, expected=2)
+        self.assertIn("final user-facing copy", result["error"])
+        self.assert_no_real_write()
+
+    def test_explore_mode_rejects_a_stale_render_verification_copy(self):
+        payload = json.loads(subprocess.run(
+            [PYTHON, FINALIZE, "--print-template"],
+            text=True, capture_output=True, cwd=REPO, check=True,
+        ).stdout)
+        payload["shortlist"]["operation_id"] = "op-stale-verification-copy"
+        payload["render"]["cards"][0]["needs_verification"] = [
+            "A stale independently written item"
+        ]
+        result = self.run_finalize(payload, expected=2)
+        self.assertIn("must match the saved option exactly", result["error"])
+        self.assert_no_real_write()
+
+    def test_explore_saved_verification_copy_must_be_english(self):
+        payload = json.loads(subprocess.run(
+            [PYTHON, FINALIZE, "--print-template"],
+            text=True, capture_output=True, cwd=REPO, check=True,
+        ).stdout)
+        payload["shortlist"]["operation_id"] = "op-local-verification-copy"
+        payload["shortlist"]["options"][0]["needs_verification"] = ["営業時間"]
+        result = self.run_finalize(payload, expected=2)
+        self.assertIn("render content must be English", result["error"])
+        self.assert_no_real_write()
 
     def test_print_template_needs_no_state_or_source_reads(self):
         completed = subprocess.run(
@@ -405,6 +460,7 @@ class FinalizeBriefingTest(unittest.TestCase):
         self.assertEqual(len(template["discovery"]["candidate_ledger"]), 6)
         self.assertEqual(len(template["shortlist"]["options"]), 6)
         self.assertIn("place", template["shortlist"]["options"][0])
+        self.assertNotIn("needs_verification", template["render"]["cards"][0])
         self.assertNotIn("finalist_date_enrichment", template["discovery"])
 
     def test_verified_template_is_self_contained_and_finalizes(self):

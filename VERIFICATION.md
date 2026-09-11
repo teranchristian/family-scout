@@ -178,6 +178,27 @@ native-tool ledger; the helper cannot independently inspect Hermes's call log.
 The new behavior removes the validator incentive to falsify and preserves any
 overage it is given. A fresh live two-stage trial is still required.
 
+## Initial-menu output cleanup checks — 2026-09-11 UTC
+
+A live initial menu exposed two presentation defects: an individual query-limit
+overage was reported only as `8/12 external calls`, which made the warning appear
+false, and an independently authored render field contradicted the saved
+verification state and produced an editorial self-correction in the user-facing
+card.
+
+| Check | Outcome | Evidence |
+| --- | --- | --- |
+| Full deterministic suite | Passed | `python3 -m unittest discover -s tests -v` ran 57 tests successfully |
+| Python syntax | Passed | All runtime scripts and affected test modules compiled successfully |
+| Hermes skill structure | Passed | Skill Creator `quick_validate.py` reported `Skill is valid!` |
+| Diff whitespace | Passed | `git diff --check` reported no errors |
+| Accurate budget warning | Passed | A synthetic 8-call run that exceeded only the search-query limit rendered `search queries 4/3; total external calls 8/12` |
+| Canonical verification copy | Passed | Explore cards render `needs_verification` from the saved option and reject a contradictory duplicate render field |
+| Editorial-copy guard | Passed | The demonstrated `verify line ... outdated` self-correction was rejected before any real shortlist write |
+
+These checks do not prove that live Hermes will always reconcile its structured
+facts before finalization. That remains part of the pending real-use trial.
+
 ## Phase 1 real-use validation — pending
 
 ### Trial observation — 2026-09-08 UTC

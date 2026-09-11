@@ -11,6 +11,12 @@ from urllib.parse import urlparse
 
 ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9._-]{2,95}$")
 URL_PATTERN = re.compile(r"https?://", re.IGNORECASE)
+EDITORIAL_COPY_PATTERN = re.compile(
+    r"\b(?:verify|verification)\s+(?:line|section|field)\b"
+    r"|\b(?:line|section|field)\s+(?:above|below)\b"
+    r"|\balready confirmed\b.{0,80}\b(?:above|below)\b",
+    re.IGNORECASE,
+)
 LINK_PURPOSES = {"facts", "booking", "map", "other"}
 LINK_RESULTS = {"content_verified", "reachable", "generated"}
 ACTIVITY_KINDS = {
@@ -54,6 +60,13 @@ def text_list(value, label, allow_empty=True):
     require(all(isinstance(item, str) and item.strip() for item in value),
             f"{label} must contain non-empty text")
     return [item.strip() for item in value]
+
+
+def final_user_copy(value, label):
+    text = non_empty_text(value, label)
+    require(EDITORIAL_COPY_PATTERN.search(text) is None,
+            f"{label} must be final user-facing copy, not drafting or field commentary")
+    return text
 
 
 def load_shortlist(path, search_id):
@@ -196,13 +209,22 @@ def normalize_family_fit(card, expected_member_ids, activities):
     return fits
 
 
-def normalize_explore_card(card):
+def normalize_explore_card(card, saved_option):
     highlights = text_list(
         card.get("highlights"), "highlights", allow_empty=False
     )
     require(len(highlights) <= 3,
             "an initial-menu card may have at most three highlights")
-    needs = text_list(card.get("needs_verification", []), "needs_verification")
+    highlights = [final_user_copy(value, "highlight") for value in highlights]
+    needs = text_list(
+        saved_option.get("needs_verification", []),
+        "saved option needs_verification",
+    )
+    needs = [final_user_copy(value, "saved verification item") for value in needs]
+    if "needs_verification" in card:
+        duplicate = text_list(card["needs_verification"], "needs_verification")
+        require(duplicate == needs,
+                "render needs_verification must match the saved option exactly")
     return {"highlights": highlights, "needs_verification": needs}
 
 
@@ -260,7 +282,7 @@ def render(shortlist, payload):
                 "render card number is invalid")
         require(number not in normalized_cards, "render payload repeats an option number")
         require(number in saved, "render payload contains an option that was not saved")
-        require(isinstance(body, str) and body.strip(), "render card body must be non-empty text")
+        body = final_user_copy(body, "render card body")
         require(URL_PATTERN.search(body) is None,
                 "render card body must not contain URLs; verified links are appended automatically")
 
@@ -270,15 +292,15 @@ def render(shortlist, payload):
             if "facts" in check["purposes"] and check["result"] == "content_verified"
         }
         if result_mode == "explore":
-            explore = normalize_explore_card(card)
+            explore = normalize_explore_card(card, saved[number])
             normalized_cards[number] = {
-                "body": body.strip(), "checks": checks, **explore,
+                "body": body, "checks": checks, **explore,
             }
         else:
             activities = normalize_activities(card, facts_urls)
             family_fit = normalize_family_fit(card, expected_member_ids, activities)
             normalized_cards[number] = {
-                "body": body.strip(),
+                "body": body,
                 "activities": activities,
                 "family_fit": family_fit,
                 "checks": checks,

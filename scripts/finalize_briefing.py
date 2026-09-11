@@ -95,7 +95,6 @@ EXPLORE_FINALIZE_TEMPLATE = {
         "number": 1,
         "body": "A concise explanation of what makes this candidate interesting.",
         "highlights": ["A distinct experience worth considering"],
-        "needs_verification": ["Requested-date opening and exact family cost"],
     }]},
 }
 
@@ -139,7 +138,6 @@ for _number, _candidate_class in enumerate(
         "number": _number,
         "body": "A concise explanation of what makes this candidate interesting.",
         "highlights": ["A distinct experience worth considering"],
-        "needs_verification": ["Requested-date opening and exact family cost"],
     })
 
 
@@ -743,6 +741,41 @@ def research_summary(coverage):
     )
 
 
+BUDGET_METRIC_LABELS = {
+    "search_queries": "search queries",
+    "source_fetches": "source fetches",
+    "forecast_lookups": "forecast lookups",
+    "geocode_lookups": "geocode lookups",
+    "external_calls": "external calls",
+}
+
+
+def budget_warning(saved, shortlist):
+    """Describe the limits actually exceeded, not only total call usage."""
+    violations = saved.get("budget_violations", [])
+    details = []
+    for violation in violations:
+        metric = violation.get("metric")
+        label = BUDGET_METRIC_LABELS.get(metric, str(metric).replace("_", " "))
+        details.append(f"{label} {violation.get('actual')}/{violation.get('limit')}")
+
+    usage = shortlist.get("tool_usage", {})
+    total_actual = sum(
+        usage.get(key, 0)
+        for key in ("search_queries", "source_fetches", "forecast_lookups",
+                    "geocode_lookups")
+    )
+    total_limit = 12 if shortlist.get("effort_mode", "normal") == "normal" else 24
+    if not any(item.get("metric") == "external_calls" for item in violations):
+        details.append(f"total external calls {total_actual}/{total_limit}")
+
+    require(details, "an exceeded research budget must identify its violated limit")
+    return (
+        f"⚠️ Research budget exceeded ({'; '.join(details)}); "
+        "the actual counts were preserved."
+    )
+
+
 def write_json(path, value):
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n",
                     encoding="utf-8")
@@ -789,7 +822,14 @@ def finalize(args):
     render = payload.get("render")
     require(isinstance(shortlist, dict), "finalize payload needs shortlist")
     require(isinstance(render, dict), "finalize payload needs render")
-    validate_output_language(render)
+    language_payload = deepcopy(render)
+    if shortlist.get("result_mode", "verified") == "explore":
+        language_payload["saved_needs_verification"] = [
+            option.get("needs_verification", [])
+            for option in shortlist.get("options", [])
+            if isinstance(option, dict)
+        ]
+    validate_output_language(language_payload)
     coverage = validate_discovery(payload, shortlist, render)
     run_timing = build_run_timing(payload["discovery"])
     shortlist["created_at"] = run_timing["finalized_at"]
@@ -828,16 +868,7 @@ def finalize(args):
     numbered = rendered["numbered_options_markdown"]
     budget_status = saved.get("budget_status", "within_budget")
     if budget_status == "exceeded":
-        actual = sum(
-            shortlist.get("tool_usage", {}).get(key, 0)
-            for key in ("search_queries", "source_fetches", "forecast_lookups",
-                        "geocode_lookups")
-        )
-        limit = 12 if shortlist.get("effort_mode", "normal") == "normal" else 24
-        numbered = (
-            f"⚠️ Research budget exceeded ({actual}/{limit} external calls); "
-            "the actual counts were preserved.\n\n" + numbered
-        )
+        numbered = budget_warning(saved, shortlist) + "\n\n" + numbered
     if shortlist.get("result_mode", "verified") == "explore":
         numbered += (
             "\n\nReply with the number or numbers that interest you. "

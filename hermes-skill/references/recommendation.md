@@ -89,6 +89,13 @@ family, useful facts already known, and what still needs verification. Finalize
 once, paste `numbered_options_markdown` verbatim, and let the user reply with one
 or more option numbers.
 
+The saved option is the single source of truth for `known` and
+`needs_verification`; do not repeat `needs_verification` in the render card.
+Before finalizing, remove any item that the current run already established.
+Correct the structured fields directly—never put drafting notes, self-corrections
+or explanations about an outdated line/field into user-facing `body` or
+`highlights`.
+
 ## 3. Selection: verify only what the user chose
 
 When the user chooses one to three numbers, resolve them from the saved menu and

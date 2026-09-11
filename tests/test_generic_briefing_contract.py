@@ -24,6 +24,8 @@ class GenericBriefingContractTest(unittest.TestCase):
             "`result_mode: \"explore\"`",
             "`slot_verified: true`",
             "`numbered_options_markdown` verbatim",
+            "single source of truth for `known` and `needs_verification`",
+            "never put drafting notes, self-corrections",
         ):
             self.assertIn(phrase, recommendation)
 
