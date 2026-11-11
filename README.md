@@ -53,8 +53,8 @@ frameworks, routing, booking integrations, web UI, accounts, machine learning
 and numerical match scores.
 
 For broad weekend/event discovery, Family Scout uses three research specialists
-(local council and community calendars, neighbouring councils, and standout
-wider events/weather) in one parallel batch when available. Aim to discover
+(optional preferred home URLs and official calendars, independent fresh
+local-to-wider events, and weather/indoor backups) in one parallel batch when available. Aim to discover
 10–15 distinct leads before ranking, and give smaller free local events a fair
 chance. The sourced Telegram shortlist is shown directly; optional saving must
 not block delivery. Undated menus and narrow venue follow-ups remain direct.
