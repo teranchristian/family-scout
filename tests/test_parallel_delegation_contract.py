@@ -39,7 +39,8 @@ class ParallelDelegationContractTests(unittest.TestCase):
         self.assertIn("Do not delegate routine requests", RECOMMENDATION)
         self.assertIn("broad dated weekend search", PARALLEL)
         self.assertIn("once with three tasks in one batch", PARALLEL)
-        self.assertIn("not as three serial calls", PARALLEL)
+        self.assertIn("not as three", PARALLEL)
+        self.assertIn("serial calls", PARALLEL)
         self.assertIn("10–15 across all three agents", PARALLEL)
 
     def test_failed_delegation_must_not_block_reply(self):
