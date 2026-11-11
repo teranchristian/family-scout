@@ -25,6 +25,18 @@ skill files, tests, installer or canonical references. Runtime-discovered defect
 should be reported with evidence and reproduced in the development workflow;
 repository changes are made deliberately outside that runtime session.
 
+This includes autonomous skill-maintenance mechanisms: `skill_manage`,
+curator/background review, the memory skill, terminal, file-writing tools and
+subagents must not edit, replace, duplicate or shadow Family Scout's Git-owned
+instructions. The installed skill is a read-only copy owned by `./install.sh`.
+Hermes may record a proposed code/procedure change for review, but must not
+persist that procedure as a conflicting agent-memory instruction. Approved
+family preferences and explicit feedback are stored only in the separate
+private `data_dir` through documented helper commands, not in skill files.
+Locking the installed skill with `hermes curator lock family-scout` (where
+available) is recommended; it supplements but does not replace the installer's
+hash-based drift detection.
+
 For broad recommendations, fresh discovery must occur before prior shortlist
 history is exposed to the agent. `scripts/discovery_context.py` exists for this
 purpose and intentionally does not read `shortlists.jsonl` or `feedback.jsonl`.

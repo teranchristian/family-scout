@@ -94,6 +94,50 @@ Normal recommendations load one self-contained fast workflow. Detailed discovery
 briefing and evidence references are reserved for an explicit thorough search;
 feedback/profile work uses the memory and CLI references.
 
+## One source of truth: Git code, private state, locked skill
+
+Family Scout is **Git-managed**, not an agent-maintained skill. Its three
+distinct stores have different responsibilities:
+
+| Layer | Owner | May Hermes modify it during a normal outing? |
+| --- | --- | --- |
+| `hermes-skill/`, `scripts/` and other repository files | Reviewed Git changes | **No** |
+| `~/.hermes/skills/family-scout/` installed skill copy | `./install.sh` from Git | **No** |
+| Private `<data_dir>/profile.yaml`, `feedback.jsonl`, `sources.yaml`, `shortlists.jsonl`, `places.jsonl` | Family Scout helper commands | **Yes**, using documented safe commands and explicit feedback rules |
+
+Hermes can learn general factual memories and can propose new procedures, but
+**must never turn them into edits of Family Scout skill instructions**.
+If its memory or a run suggests a better search process, report what happened
+and propose a Git issue/PR. Don't silently store a competing Family Scout
+workflow in Hermes memory. Family Scout's private state is authoritative for
+its own saved preferences and feedback; an explicit current user request still
+takes priority. There is no automatic memory-to-skill synchronization.
+
+For an additional preventive guard, recent Hermes versions support locking
+one installed skill so agent tools, subagents and background review cannot
+edit it:
+
+```sh
+hermes curator lock family-scout
+hermes curator status
+```
+
+Run this manually on the Hermes host **if your version supports it**. The lock
+is a Hermes agent-policy guard, not an operating-system security sandbox,
+and does not block your own `git pull` + `./install.sh` updates. If your
+installed version lacks `hermes curator lock`, do not change Hermes config
+automatically; the source-owned instructions and installer ownership checks
+still apply, and recent Hermes also offers a global skill-write approval
+setting. Locking is preferable to requiring approval for every unrelated
+skill, since it targets only Family Scout.
+
+Safe update workflow: make and test a Git change, review/merge the PR,
+`git pull` on the Hermes host, run `./install.sh`, and start a fresh Hermes
+conversation. If installation reports **local edits**, inspect and reconcile
+them deliberately rather than overwriting or resetting private state. The
+installer already checks recorded hashes and refuses to silently overwrite
+modified installed skill files.
+
 ## Install or update
 
 Use an existing Hermes installation, Bash and Python 3.9 or newer. The setup
