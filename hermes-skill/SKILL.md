@@ -36,6 +36,6 @@ Highlight a best pick and wet-weather alternative per day without hiding other g
 
 ## Boundaries
 
-**Git-owned skill — read-only in Hermes.** Never auto-edit it via `skill_manage`, curator, background learning or subagents. Propose Git changes for review. Update private state only with **private Family Scout state commands** when requested.
+**Git-owned skill — read-only in Hermes.** Never auto-edit it via `skill_manage`, curator, background learning or subagents. Submit a **proposed Git change** for review. Update private state only with **private Family Scout state commands** when requested.
 
 Never invent events, dates, eligibility, prices, booking slots, URLs or forecasts. Venue opening hours and Google Maps do not verify an event session. Label unverified requirements honestly. Research needs no saving or finalizer.
