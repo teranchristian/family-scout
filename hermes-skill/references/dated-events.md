@@ -33,9 +33,9 @@ a class is unsuitable; never invent leads or extend the user's hard radius.
 Count a class as searched only when a relevant query or source was actually
 inspected, not because a snippet mentioned it.
 
-Cover the requested dates **day by day**. Inspect local official **general events calendars AND library/event-program calendars**
-as separate discovery
-sources where available, alongside current organiser/booking pages. Do not
+Cover the requested dates **day by day**. Inspect the official
+**general events calendars AND library/event-program calendars** as separate
+discovery sources where available, alongside current organiser/booking pages. Do not
 assume a council's general calendar includes its library sessions or small
 community events. Prefer events with **active participation** for each child,
 rather than merely allowing children inside. Everyday venues remain useful
@@ -140,8 +140,9 @@ debug schemas until the tool-call budget is exhausted.
 
 Show **up to five** verified picks, each with: actual date/time, activity,
 cost, registration status, individual child fit, address and direct checked
-event/booking/map links. Present **choices, not a fixed itinerary**. Optionally highlight one strong
-choice per requested day and a weather-safe alternative; do not stack outings
+event/booking/map links. Present **choices, not a fixed itinerary**.
+Optionally highlight one strong choice per requested day and a weather-safe
+alternative; do not stack outings
 or imply the user selected them unless asked to build a plan.
 
 Keep the research summary brief and evidence-led: **Subagents completed**
