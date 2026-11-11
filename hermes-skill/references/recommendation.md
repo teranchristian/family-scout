@@ -132,7 +132,81 @@ python3 <source_dir>/scripts/finalize_briefing.py \
 Use `result_mode: "verified"`. Return at most the selected three options. Build
 an itinerary only when the user asks for one or after their choices are known.
 
-## 4. Honest budgets and failures
+## 4. Optional one-call parallel delegation
+
+Normal Family Scout recommendations **do not need subagents**. This section applies
+only when the user explicitly requests multiple research agents or an explicitly
+thorough, independent regional comparison warrants them. It changes the
+orchestration of existing research, **not** the normal three-query/twelve-call
+budget, the deep-effort ceilings, or the two-stage shortlist contract. Do not
+delegate a trivial question or a single page read.
+
+When delegation is useful:
+
+1. Split independent discovery across **(a) the named local area first,
+   (b) adjacent areas inside the requested scope, and (c) standout wider-area
+   options/indoor backups**. Respect any tighter user geographic priority.
+   Do not let the wider-area worker crowd out good local events.
+2. Call `delegate_task` **exactly once with all three tasks in its `tasks`
+   array**. Do not submit three separate `delegate_task` calls: those can run
+   sequentially and caused a slow previous trial.
+3. Build each `goal` and `context` as a short, self-contained **single-line
+   string**; avoid embedded newlines and unnecessary quotation marks. Aim for
+   roughly 1.5 KB or less per task and under 8 KB for the complete payload.
+   Check that the JSON parses before dispatching. Pass the public area,
+   absolute dates/timezone, attending **age bands**, relevant constraints and
+   individual search/page-read limits to **each** child. Children have no
+   parent conversation history. Never pass names, home coordinates, full
+   profile, API keys or private state.
+4. Give each agent a share of the **existing total** search and external-call
+   allowance, reserving capacity for parent-side verification and weather.
+   Aggregate **actual** usage, including failures and retries, across children
+   and parent. Three children do **not** create three fresh budgets. If usage
+   is missing, report that gap; never assume the run was under budget.
+5. Ask children to return one compact JSON result: a small set of candidate
+   titles, exact dates/areas, experience classes, direct source URLs, what is
+   known vs unverified, concise reasons and actual tool counts. Do not return
+   verbose transcripts or repeat JSON. Search snippets alone are not proof;
+   the parent still checks current source pages and the saved-link contract
+   before displaying any claims or URLs.
+
+One valid **illustrative JSON payload** (fictional place and dates; replace all
+values to match the real request). The examples allocate three searches and six
+page reads across all agents, leaving capacity for parent work:
+
+<!-- begin single-batch-example -->
+```json
+{
+  "tasks": [
+    {
+      "goal": "Find dated family activities in the named local area",
+      "context": "Public anchor: Sample Bay; dates: 2030-04-06 to 2030-04-07; ages: 6 and 9; priority: local council and library calendars; budget: 1 search and up to 2 page reads; return short JSON candidates with source URLs, verification status and actual tool counts."
+    },
+    {
+      "goal": "Find dated family activities in nearby areas",
+      "context": "Public anchor: Sample Bay; nearby: Example Coast; dates: 2030-04-06 to 2030-04-07; ages: 6 and 9; priority: neighbouring councils and community venues; budget: 1 search and up to 2 page reads; return short JSON candidates with source URLs, verification status and actual tool counts."
+    },
+    {
+      "goal": "Find unusual wider-area options and weather-safe backups",
+      "context": "Public anchor: Sample Bay; dates: 2030-04-06 to 2030-04-07; ages: 6 and 9; priority: standout activities rather than familiar venues; budget: 1 search and up to 2 page reads; return short JSON candidates with source URLs, verification status and actual tool counts."
+    }
+  ]
+}
+```
+<!-- end single-batch-example -->
+
+If the batched call is rejected for a parsing error, shorten the contexts,
+validate the whole `tasks` object and **retry the batch once**. If it still
+fails, report the delegation failure and perform only bounded direct research
+with the **remaining shared budget**. **Never recover by launching the three
+subagents separately.** Do not claim that the agents ran in parallel without
+evidence from the actual invocation. For gateway delivery, do not repeatedly
+poll the background handle.
+
+Use the existing evidence, cache, finalization and selection rules unchanged.
+Do not modify Hermes configuration or installed files to enable this pattern.
+
+## 5. Honest budgets and failures
 
 Normal effort allows at most **three searches and twelve external calls total**,
 including search, page reads, forecast and geocoding. Failed calls count. A page
