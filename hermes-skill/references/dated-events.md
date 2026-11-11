@@ -1,16 +1,16 @@
 # Dated family events — one-pass, local-first shortlist
 
 This self-contained route is for an explicit day, date range, or "this/next
-weekend". Undated general outings use \`recommendation.md\` instead.
+weekend". Undated general outings use `recommendation.md` instead.
 
 ## 1. Resolve the request once
 
-Read \`installation.json\`, run \`discovery_context.py\` once, and retain its
-exact \`run_started_at\`. Resolve relative dates in the **activity location's IANA timezone**.
+Read `installation.json`, run `discovery_context.py` once, and retain its
+exact `run_started_at`. Resolve relative dates in the **activity location's IANA timezone**.
 Use the user's **explicit location and radius** first; otherwise use the
 saved **home/travel** profile. Always resolve the real date window and
 resolved anchor at runtime: **never assume a particular country, city, suburb**
-or a date from an example. Use \`ages-on --date YYYY-MM-DD\` for each relevant
+or a date from an example. Use `ages-on --date YYYY-MM-DD` for each relevant
 activity date when birthdates are saved. Pass derived age bands to web tools,
 never private birthdates, home coordinates or a full family profile.
 
@@ -22,8 +22,7 @@ Search fresh sources, locally first:
 - **Priority 2:** neighbouring suburbs/councils inside the requested scope.
 - **Priority 3:** unusual wider experiences only when genuinely worthwhile.
 
-Cover the requested dates **day by day**. Look at official **general events
-calendars AND library/event-program calendars**, as well as relevant booking
+Cover the requested dates **day by day**. Look at official **general events calendars AND library/event-program calendars**, as well as relevant booking
 and organiser listings. Prefer events with **active participation** for each
 child, rather than merely allowing children inside.
 
@@ -33,10 +32,9 @@ wide or explicitly thorough regional request, optional delegation may be useful:
 use one batched call, never serialize three separate calls. The parent and all
 children share **one shared budget**, not a separate budget per agent.
 
-For this dated route use the existing \`effort_mode: "deep"\` ceiling: **six searches and twenty-four external calls total**, including
+For this dated route use the existing `effort_mode: "deep"` ceiling: **six searches and twenty-four external calls total**, including
 searches, page reads, forecast and geocoding (also delegated calls).
-These are ceilings, not targets. Retain **at most ten retained** distinct
-candidates in the finalizer's ledger, and verify **up to five** best candidates.
+These are ceilings, not targets. Keep at most **ten retained candidates** in the finalizer's ledger, and verify **up to five** best candidates.
 Stop early if the shortlist is useful. Distinguish total discovered leads from
 those retained for validation.
 
@@ -58,10 +56,10 @@ check whether registration or a free ticket is required. Say "no booking" only
 when the official evidence supports walk-in/no-registration. If booking is
 mandatory, verify a specific available slot or mark the event Needs checking.
 A booking-page link alone does not establish availability. Record the checked
-booking link using the \`booking\` purpose in \`link_checks\`.
+booking link using the `booking` purpose in `link_checks`.
 
-Always record direct checked event/organiser URLs as factual \`link_checks\`.
-Add the official address and stable \`place\` block where evidenced; the helper
+Always record direct checked event/organiser URLs as factual `link_checks`.
+Add the official address and stable `place` block where evidenced; the helper
 generates the corresponding Google Maps link. Maps is for navigation only, not
 hours or closure verification. If weather is unavailable, say so; do not invent
 weekend-specific forecasts. Make indoor/outdoor implications practical.
@@ -71,24 +69,24 @@ weekend-specific forecasts. Make indoor/outdoor implications practical.
 Use the helper's own valid, compact example instead of writing a JSON schema
 from memory; do not inspect helper or validator source code:
 
-\`\`\`sh
+```sh
 python3 <source_dir>/scripts/finalize_briefing.py --print-template --template-mode verified
-\`\`\`
+```
 
-Fill the example with current facts. Set \`shortlist.effort_mode = "deep"\`,
-\`shortlist.result_mode = "verified"\` and add at most five options. The usual
+Fill the example with current facts. Set `shortlist.effort_mode = "deep"`,
+`shortlist.result_mode = "verified"` and add at most five options. The usual
 compact payload does **not** need optional duplicated
-\`finalist_date_enrichment\` or \`dated_findings\` structures; the built-in
+`finalist_date_enrichment` or `dated_findings` structures; the built-in
 per-option checked source and available activity evidence is enough.
-Do not invent \`slot_verified: true\`, coordinates, distances or unread sources.
-A source link must be in both \`source_urls\` and the matching content-verified
-facts \`link_checks\`. Keep consulted sources and candidate ledger truthful.
-Run \`finalize_briefing.py\` with the JSON input, once. If it succeeds, paste
-\`numbered_options_markdown\` verbatim: the renderer includes direct checked
+Do not invent `slot_verified: true`, coordinates, distances or unread sources.
+A source link must be in both `source_urls` and the matching content-verified
+facts `link_checks`. Keep consulted sources and candidate ledger truthful.
+Run `finalize_briefing.py` with the JSON input, once. If it succeeds, paste
+`numbered_options_markdown` verbatim: the renderer includes direct checked
 links and Google Maps links automatically. Do not hand-compose a substitute.
 
 If finalization fails, **do not discard the links**. The error JSON may contain
-\`fallback_markdown\`: copy it exactly with its clear **not saved / not validated**
+`fallback_markdown`: copy it exactly with its clear **not saved / not validated**
 disclaimer. It contains only already checked sources, booking pages and maps.
 It is **not** a confirmed shortlist. Report the error; do not invent extra
 verification or claim the save succeeded. Correct one obvious payload mistake
