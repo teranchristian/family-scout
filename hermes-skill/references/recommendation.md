@@ -57,7 +57,12 @@ from this ledger.
 
 History and explicit feedback may adjust the final order only after the fresh
 candidate ledger exists. They may not remove otherwise useful menu choices or
-replace fresh discovery.
+replace fresh discovery. Saved `profile.preferences`, likes/dislikes and
+prior visits are **soft ranking signals, not search or candidate filters**:
+mildly boost or lower choices after fresh discovery, but preserve unfamiliar
+categories and novel options. Only explicit current or lasting hard
+`profile.constraints` requirements may disqualify a candidate; never
+silently interpret a preference as a hard exclusion.
 
 Search results and aggregators are leads. For every displayed candidate, read at
 least one accountable page that establishes it as a real relevant possibility.

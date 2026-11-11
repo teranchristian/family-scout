@@ -88,6 +88,50 @@ class DatedEventsContractTests(unittest.TestCase):
             self.assertIn(required, compact)
         self.assertNotIn("Stop early if the shortlist is useful", EVENTS)
 
+    def test_weekend_ranks_complete_pool_before_saving(self):
+        compact = " ".join(EVENTS.split())
+        for required in (
+            "cinema screenings",
+            "examples, never required picks",
+            "actual date/time, price and age fit",
+            "Finish discovery before choosing or saving",
+            "complete fresh pool",
+            "Never run a residual discovery sweep after finalization",
+            'unsaved "bonus find"',
+            "strong nearby find from the last search",
+            "free or low-cost preference",
+            "free-only",
+        ):
+            self.assertIn(required, compact)
+        parallel = " ".join(PARALLEL.split())
+        for required in (
+            "Wait for the entire batch",
+            "before final ranking and saving",
+            'post-save "bonus" discovery',
+        ):
+            self.assertIn(required, parallel)
+
+    def test_saved_preferences_reorder_without_filtering_novel_options(self):
+        dated = " ".join(EVENTS.split())
+        undated = " ".join(RECOMMENDATION.split())
+        for required in (
+            "Saved profile preferences are ranking signals, not discovery filters",
+            "profile.preferences",
+            "after fresh discovery and initial ranking",
+            "Keep genuinely new options visible",
+            "clear hard constraint",
+            "profile.constraints",
+            "A current user request takes precedence",
+        ):
+            self.assertIn(required, dated)
+        for required in (
+            "profile.preferences",
+            "soft ranking signals, not search or candidate filters",
+            "preserve unfamiliar categories and novel options",
+            "profile.constraints",
+        ):
+            self.assertIn(required, undated)
+
     def test_parallel_example_keeps_budget_for_parent_discovery(self):
         markers = ("<!-- begin single-batch-example -->", "<!-- end single-batch-example -->")
         block = PARALLEL.split(markers[0], 1)[1].split(markers[1], 1)[0]

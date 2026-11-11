@@ -31,7 +31,11 @@ and a general attractions/experiences sweep **not framed only around children**.
 These are coverage goals, not result quotas: search relevant alternatives when
 a class is unsuitable; never invent leads or extend the user's hard radius.
 Count a class as searched only when a relevant query or source was actually
-inspected, not because a snippet mentioned it.
+inspected, not because a snippet mentioned it. Include general local experiences
+such as age-appropriate **cinema screenings**, shows, planetariums and unusual
+interactive attractions when useful. They are **examples, never required picks**:
+confirm actual date/time, price and age fit before promotion; do not pad the list
+with unsuitable films or performances.
 
 Cover the requested dates **day by day**. Inspect the official
 **general events calendars AND library/event-program calendars** as separate
@@ -61,6 +65,18 @@ subagent findings alone establish a verified recommendation.
 For this dated route use the existing `effort_mode: "deep"` ceiling: **six searches and twenty-four external calls total**, including
 searches, page reads, forecast and geocoding (also delegated calls).
 These are ceilings, not targets. Keep at most **ten retained candidates** in the finalizer's ledger, and verify **up to five** best candidates.
+
+**Finish discovery before choosing or saving:** wait for the three agent
+results (or explicit failures), complete any planned parent/local sweep within
+the remaining budget, merge and deduplicate all discovered leads, and rank the
+**complete fresh pool**. A strong nearby find from the last search must compete
+fairly with earlier candidates. Only then choose finalists, verify and
+finalize once. **Never run a residual discovery sweep after finalization** or
+append an unsaved "bonus find" to the rendered shortlist. When a promising lead
+cannot be verified, use **Needs checking** if supported, or report the
+evidence gap; do not call it confirmed or ask the user to repair an already
+known omission.
+
 Complete planned local-calendar coverage and the broad-experience sweep before
 picking finalists. **Do not stop after three good leads** or treat three verified
 options as proof that discovery was complete. Stop when meaningful coverage is
@@ -75,8 +91,24 @@ each child first, then practical proximity, one-off value, total cost, time and
 booking friction. Prefer a worthwhile local hands-on activity to a farther,
 mostly passive outing when the evidence and other constraints are comparable.
 Keep useful variety: don't let passive shopping, markets or one venue class
-crowd out verified interactive alternatives. Apply prior feedback only as a
-final ordering adjustment; it must not suppress fresh discovery.
+crowd out verified interactive alternatives. Distinguish an explicit hard
+**free-only** or price ceiling from a soft **free or low-cost preference**:
+consider relevant affordable paid experiences within the request's constraints
+rather than silently interpreting "low-cost" as "free-only". Apply prior
+feedback only as a final ordering adjustment; it must not suppress fresh
+discovery.
+
+**Saved profile preferences are ranking signals, not discovery filters.**
+The `profile.preferences` list, earlier likes/dislikes, past visits and familiar
+venues may mildly boost or lower otherwise suitable choices only **after fresh
+discovery and initial ranking**. Never exclude a cinema, workshop, attraction
+or other useful class from searches, the candidate ledger, or the shortlist
+solely because it is absent from, or conflicts with, previous preferences.
+Keep genuinely new options visible. Only a **clear hard constraint** in the
+current request or an explicitly saved lasting `profile.constraints` rule
+(e.g. a strict budget, date or distance) can disqualify a candidate; do not
+promote casual preference wording into an exclusion. A current user request
+takes precedence over past soft preferences.
 
 **Weather affects ranking and backups, not discovery coverage**, unless the
 user explicitly requested indoor-only or another hard weather constraint.

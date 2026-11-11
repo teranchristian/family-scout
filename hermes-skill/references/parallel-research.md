@@ -51,6 +51,10 @@ When delegation is useful:
    Agents gather leads rather than selecting the final top three. Search
    snippets alone are not proof; the parent still checks current source pages
    and the saved-link contract before displaying any claims or URLs.
+   **Wait for the entire batch**, collect its results (or explicit failures)
+   and any reserved parent discovery, then merge all leads **before final
+   ranking and saving**. A late local lead must compete with earlier picks;
+   never attach a post-save "bonus" discovery to the saved answer.
 
 One valid **illustrative JSON payload** (placeholders must be replaced by
 resolved request/profile values before dispatch). The example allocates four
