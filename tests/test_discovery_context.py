@@ -45,7 +45,7 @@ class DiscoveryContextTest(unittest.TestCase):
             check=False,
         )
 
-    def test_discovery_context_does_not_read_or_expose_history_or_cached_places(self):
+    def test_discovery_context_does_not_read_or_expose_history_or_legacy_files(self):
         (self.data / "shortlists.jsonl").write_text("{malformed shortlist\n")
         (self.data / "feedback.jsonl").write_text("{malformed feedback\n")
         (self.data / "places.jsonl").write_text("{malformed place cache\n")
