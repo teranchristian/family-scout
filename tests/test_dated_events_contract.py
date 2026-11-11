@@ -54,6 +54,31 @@ class DatedEventsContractTests(unittest.TestCase):
         ):
             self.assertIn(phrase, compact)
 
+    def test_geographic_preflight_uses_existing_location_and_search(self):
+        for phrase in (
+            "one quick web search",
+            "public suburb/town and city",
+            "search-area plan",
+            "specific area names and assigned tier",
+            "Explicit user geographic priorities override",
+            "hard radius still applies",
+            "If the lookup fails",
+        ):
+            self.assertIn(phrase, EVENTS)
+        for phrase in (
+            "before** calling `delegate_task`",
+            "specific local suburbs",
+            "assigned scope",
+            "nearby",
+            "local only",
+            "adjacent only",
+            "wider exceptional options and weather only",
+        ):
+            self.assertIn(phrase, PARALLEL)
+        for example in ("Randwick", "Sydney", "Ema", "Haru"):
+            self.assertNotIn(example, EVENTS)
+            self.assertNotIn(example, PARALLEL)
+
     def test_three_parallel_specialists_and_broader_discovery(self):
         compact = " ".join(EVENTS.split())
         for phrase in (
