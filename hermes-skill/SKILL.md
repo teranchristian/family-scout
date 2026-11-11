@@ -29,7 +29,7 @@ Combine and deduplicate leads, confirm important facts against current official/
 
 Start with a short weather summary for each day. Show a ranked **top five when there are five good options**, plus up to 3–5 additional worthwhile choices if found; never pad the list. Each entry includes:
 
-**Title · day/date and time · suburb/venue · free or group price (if known) · Ema/Haru-equivalent child-by-child fit using the profile, not hardcoded names · a one-sentence description · direct official/event link · Google Maps link when an exact address is evidenced.** Mention booking and meaningful uncertainties. State which child can actually participate, not just a vague age range.
+**Title · day/date and time · suburb/venue · free or group price (if known) · child-by-child fit for the actual attending children from the profile · a one-sentence description · direct official/event link · Google Maps link when an exact address is evidenced.** Mention booking and meaningful uncertainties. State which child can actually participate, not just a vague age range.
 
 For multi-day requests, suggest one best option per day and a realistic wet-weather alternative, without assuming a booking. Keep it readable and skip internal research telemetry unless asked.
 
