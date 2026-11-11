@@ -18,7 +18,10 @@ When delegation is useful:
 1. Split independent discovery across **(a) the named local area first,
    (b) adjacent areas inside the requested scope, and (c) standout wider-area
    options/indoor backups**. Respect any tighter user geographic priority.
-   Do not let the wider-area worker crowd out good local events.
+   Do not let the wider-area worker crowd out good local events. Local discovery
+   should explicitly inspect both general council events and library/program
+   calendars, and not stop at a few easy-to-find results. The wider-area
+   worker should not spend calls duplicating the same local council pages.
 2. Call `delegate_task` **exactly once with all three tasks in its `tasks`
    array**. Do not submit three separate `delegate_task` calls: those can run
    sequentially and caused a slow previous trial.
@@ -31,20 +34,28 @@ When delegation is useful:
    parent conversation history. Never pass names, home coordinates, full
    profile, API keys or private state.
 4. Give each agent a share of the **existing total** search and external-call
-   allowance, reserving capacity for parent-side verification and weather.
-   Aggregate **actual** usage, including failures and retries, across children
-   and parent. Three children do **not** create three fresh budgets. If usage
-   is missing, report that gap; never assume the run was under budget.
-5. Ask children to return one compact JSON result: a small set of candidate
-   titles, exact dates/areas, experience classes, direct source URLs, what is
-   known vs unverified, concise reasons and actual tool counts. Do not return
-   verbose transcripts or repeat JSON. Search snippets alone are not proof;
-   the parent still checks current source pages and the saved-link contract
-   before displaying any claims or URLs.
+   allowance, reserving capacity for the parent's fresh general-attractions
+   sweep, missed local coverage, final verification and weather. A suggested
+   maximum allocation within the existing six-search ceiling is: **two local
+   searches, one neighbouring, one wider, and up to two parent searches**.
+   The parent can leave unused searches unspent. Reserve page reads within the
+   same **twenty-four total external calls**; never interpret these as 24
+   additional page reads after searches. Aggregate **actual** usage, including
+   failures and retries, across children and parent. Three children do **not**
+   create three fresh budgets. If usage is missing, report that gap; never
+   assume the run was under budget.
+5. Ask children to return one compact JSON result: a small set of **distinct**
+   candidate titles, exact dates/areas, experience classes, direct source URLs,
+   what is known vs unverified, concise reasons, calendars actually inspected
+   and actual tool counts. Do not return verbose transcripts or repeat JSON.
+   Agents gather leads rather than selecting the final top three. Search
+   snippets alone are not proof; the parent still checks current source pages
+   and the saved-link contract before displaying any claims or URLs.
 
 One valid **illustrative JSON payload** (placeholders must be replaced by
-resolved request/profile values before dispatch). The examples allocate three
-searches and six page reads across all agents, leaving capacity for parent work:
+resolved request/profile values before dispatch). The example allocates four search calls and six page reads across the three
+agents, reserving up to two searches and remaining external calls for the
+parent's general-attractions sweep, coverage gaps, verification and weather:
 
 <!-- begin single-batch-example -->
 ```json
@@ -52,7 +63,7 @@ searches and six page reads across all agents, leaving capacity for parent work:
   "tasks": [
     {
       "goal": "Find dated family activities in the named local area",
-      "context": "Resolved public anchor: <area from request or profile>; dates: <resolved date window and timezone>; ages: <resolved age bands>; priority: local councils and libraries; budget: 1 search and up to 2 page reads; return compact JSON candidates with official URLs, verification and actual tool counts."
+      "context": "Resolved public anchor: <area from request or profile>; dates: <resolved date window and timezone>; ages: <resolved age bands>; priority: distinct local council event and library-program calendars, plus community one-offs; budget: 2 searches and up to 2 page reads; return compact JSON candidates with official URLs, verification and actual tool counts."
     },
     {
       "goal": "Find dated family activities in nearby areas",
