@@ -85,13 +85,12 @@ helper's inclusive Haversine radius check. If exact venue coordinates cannot be
 established, keep radius unverified rather than substituting a station,
 neighbourhood or municipality centroid.
 
-### Do not seed discovery from past venues
+### Fresh discovery only
 
-Use fresh live sources for every new recommendation. Do not read
-`places.jsonl`, call venue-cache commands, or insert a candidate merely
-because it was previously saved. Keep the saved file intact for legacy
-compatibility. Once a fresh venue's address is confirmed, the current-run
-`place` block can still generate a Google Maps link without caching it.
+Use current sources for new recommendations, never previously saved venue
+pointers. A current-run verified address can generate a Google Maps link
+without an extra lookup. Historical shortlists remain available for explicit
+follow-up or feedback, not for generating new candidate lists.
 
 ### Cost and stopping rules
 
