@@ -54,25 +54,33 @@ class DatedEventsContractTests(unittest.TestCase):
         ):
             self.assertIn(phrase, compact)
 
-    def test_geographic_preflight_uses_existing_location_and_search(self):
+    def test_geographic_preflight_is_model_first_with_conditional_lookup(self):
         for phrase in (
-            "one quick web search",
+            "Hermes's existing AI model knowledge",
             "public suburb/town and city",
+            "not a new subagent, tool call or mandatory web search",
             "search-area plan",
-            "specific area names and assigned tier",
-            "Explicit user geographic priorities override",
-            "hard radius still applies",
+            "search leads, not",
+            "user's explicitly specified tiers",
+            "exact event venue",
+            "at most one quick web search",
             "If the lookup fails",
+            "specific area names and assigned tier",
+            "no separate council",
         ):
             self.assertIn(phrase, EVENTS)
+        self.assertNotIn("Before the three research agents start, make **one quick web search**", EVENTS)
         for phrase in (
+            "model-first geographic preflight",
             "before** calling `delegate_task`",
+            "one web lookup only when needed",
             "specific local suburbs",
             "assigned scope",
             "nearby",
             "local only",
             "adjacent only",
             "wider exceptional options and weather only",
+            "Each agent finds its own official council calendars",
         ):
             self.assertIn(phrase, PARALLEL)
         for example in ("Randwick", "Sydney", "Ema", "Haru"):
