@@ -1,170 +1,119 @@
-# Dated family events: one-pass, local-first research
+# Dated family events — one-pass, local-first shortlist
 
-Use this route only when the request is to **find events or activities on an
-explicit date, on a named day, this/next weekend, or another bounded date
-window**, and the family wants practical suggestions now. Keep the general
-`recommendation.md` two-stage menu for open-ended or undated "things to do"
-requests and selection/follow-up workflows.
+This self-contained route is for an explicit day, date range, or "this/next
+weekend". Undated general outings use `recommendation.md` instead.
 
-## 1. Resolve context dynamically
+## 1. Resolve the request once
 
-- Resolve `this weekend`, `next weekend`, `Saturday`, etc. into **absolute
-  dates in the requested activity location's IANA timezone** at run time.
-  "This weekend" on a weekend means the remaining usable portion.
-- Prefer the user's **explicit location and radius**. Otherwise use the
-  applicable saved **home/travel** profile from `discovery_context.py`; never
-  assume a particular country, city, suburb, fixed weekday, or date. If no
-  usable activity area can be established, request that missing fact.
-- Resolve attending ages, free-only/budget constraints, travel limits and
-  weather/indoor constraints from the request and available family context.
-  When a member has a saved `date_of_birth`, use the **local `ages-on` helper
-  for the actual event date** before age eligibility checks and before
-  dispatching subagents; do not rely on an old numerical age. Recalculate
-  for each day if the date window crosses a birthday. If no birthdate is
-  saved, the numeric age remains a fallback and should be treated as
-  potentially stale. Pass derived age bands, not names, birthdates or
-  private coordinates, in public web/delegation queries. Do not disclose
-  the full private profile or home address.
-- Read `installation.json` and run `discovery_context.py` once; retain the
-  exact `run_started_at` for finalization. Use actual current local date,
-  not dates in examples, previous events or earlier sessions.
+Read `installation.json`, run `discovery_context.py` once, and retain its
+exact `run_started_at`. Resolve relative dates in the **activity location's IANA timezone**.
+Use the user's **explicit location and radius** first; otherwise use the
+saved **home/travel** profile. Always resolve the real date window and
+resolved anchor at runtime: **never assume a particular country, city, suburb**
+or a date from an example. Use `ages-on --date YYYY-MM-DD` for each relevant
+activity date when birthdates are saved. Pass derived age bands to web tools,
+never private birthdates, home coordinates or a full family profile.
 
-## 2. Geographic priorities and source coverage
+## 2. Find useful candidates (three agents for broad weekend searches)
 
-Build three relative priority areas for **this request**, not a permanent
-list of suburbs:
+Search fresh sources, locally first:
 
-1. **Priority 1 — closest to the resolved anchor:** the named locality,
-   nearby suburbs and its local council/library branches, within the
-   requested radius.
-2. **Priority 2 — neighbouring areas:** other local councils, libraries,
-   community venues and family events in the requested region/radius.
-3. **Priority 3 — wider standout experiences:** only unusual activities
-   that justify longer travel and still satisfy the user's scope.
+- **Priority 1:** named locality, local council, library, community events.
+- **Priority 2:** neighbouring suburbs/councils inside the requested scope.
+- **Priority 3:** unusual wider experiences only when genuinely worthwhile.
 
-For a travel request, build these areas around the travel destination, not
-the home profile. Never silently expand a hard radius. Search the official
-**general events calendars AND library/event-program calendars** where
-available, including small free community, seasonal and one-off activities.
-Use reliable current booking/event organisers as supplements. A popular
-museum or generic attraction should not automatically outrank a similarly
-good local one-off event. Cover the date window **day by day**, not just the
-first day. Prefer active participation by each attending child; being
-allowed in a venue is not enough.
+Cover the requested dates **day by day**. Look at official **general events calendars AND library/event-program calendars**, as well as relevant booking
+and organiser listings. Prefer events with **active participation** for each
+child, rather than merely allowing children inside.
 
-## 3. Efficient research using one parallel delegation
+**For broad weekend/event searches, use three parallel subagents by default.**
+Read [parallel-research.md](parallel-research.md) and call `delegate_task`
+**once with three tasks in one batch**. Give each agent a distinct geographic
+scope: local councils/libraries, neighbouring areas, and standout wider-area
+events/indoor backups. Avoid duplicate research; tell agents to return concise
+candidate evidence, direct official URLs and actual call counts. The parent
+deduplicates, independently verifies the finalists and handles saving/rendering.
+Do not launch agents for a narrow venue check or follow-up on an existing
+selection. If delegation is unavailable, use bounded direct research rather
+than abandoning the outing search or launching three serial calls.
 
-For a broad weekend/event search that benefits from independent regional
-coverage, launch **one** `delegate_task` call with a `tasks` array containing
-three children, not three sequential calls:
+Three agents are a deliberate default, not a minimum: **do not add more by
+default**. More agents split the same limited calls, repeat searches and
+increase coordination overhead. The parent and all children share **one shared budget**, not a separate budget per agent. Reserve enough calls for parent-side
+verification, exact booking checks, forecast and finalization; never assume
+subagent findings alone establish a verified recommendation.
 
-- **Local specialist:** Priority 1 — official council events, library
-  programs, neighbourhood and community listings.
-- **Neighbouring-area specialist:** Priority 2 — adjoining councils,
-  libraries, galleries and special family activities.
-- **Wider-area specialist:** Priority 3 — genuinely exceptional events,
-  indoor backups and forecast leads.
+For this dated route use the existing `effort_mode: "deep"` ceiling: **six searches and twenty-four external calls total**, including
+searches, page reads, forecast and geocoding (also delegated calls).
+These are ceilings, not targets. Keep at most **ten retained candidates** in the finalizer's ledger, and verify **up to five** best candidates.
+Stop early if the shortlist is useful. Distinguish total discovered leads from
+those retained for validation.
 
-Pass the **resolved public area, exact dates/timezone, age bands, relevant
-constraints and individual work limits to every task**. Children do not
-inherit parent context. Each `goal`/`context` must be concise, single-line
-strings; keep each context <= ~1.5 KB and the whole JSON payload < 8 KB.
-Use the exact one-call pattern and parse-failure retry rules in
-`recommendation.md`. After one malformed batch, rebuild shorter and retry
-the full batch once; **never serialize the three tasks as a fallback**.
+Fresh discovery comes before past shortlist/feedback. Cached place records are
+leads only and never establish an event's current date, cost or availability.
 
-Research is **bounded across the parent and all children together**:
-`effort_mode: "deep"` permits **at most six searches and twenty-four
-external calls total**, including page fetches, weather and geocoding.
-Give agents explicit portions of this shared budget and reserve calls for
-the parent's final verification. Aim for **up to ten distinct retained
-candidates**, not exhaustive scraping; stop early after enough varied,
-high-quality local leads. Count failures, retries and fetch batches
-truthfully. Do not change Hermes configuration or install paid providers.
+## 3. Verify each finalist, including its links
 
-Use a working page reader (such as DonSeTch `web_fetch` if currently
-available) rather than retrying `web_extract` when the search backend
-cannot read pages. Tool interfaces vary: confirm arguments before use
-rather than guessing. Batch compatible URLs when the reader supports it.
-After a blocked/error page, use one credible alternative; avoid repetitive
-retries and permanent source blacklists. Search snippets are leads, never
-proof of exact-date availability. Child results should be **one compact
-JSON object each** with candidate title, exact session date/location,
-activity type, source URL, verification status, short child-fit reason,
-tool counts, calendars checked and any failures. No verbose transcripts
-or duplicate JSON.
+For every event, open an accountable **source URL** showing the actual requested
+date and activity. Search snippets or a regular venue page alone are not proof.
+Check the current venue/branch, exact session and time, eligibility and meaningful
+activity for each child, mandatory group cost, closures, and indoor/outdoor fit.
+A venue being open does not prove a scheduled feature is running; keep a good
+venue if another concrete suitable activity is available. Unknown hard
+requirements belong under **Needs checking**, never among confirmed picks.
 
-If delegation is unavailable or fails twice, do bounded direct research
-with the remaining budget, return any usable findings, and report the
-subagent shortfall. For a narrow single-venue/date follow-up, do not
-spawn three agents.
+**Booking matters even when entry is free.** Open the event/ticket page and
+check whether registration or a free ticket is required. Say "no booking" only
+when the official evidence supports walk-in/no-registration. If booking is
+mandatory, verify a specific available slot or mark the event Needs checking.
+A booking-page link alone does not establish availability. Record the checked
+booking link using the `booking` purpose in `link_checks`.
 
-## 4. Verify, rank and render
+Always record direct checked event/organiser URLs as factual `link_checks`.
+Add the official address and stable `place` block where evidenced; the helper
+generates the corresponding Google Maps link. Maps is for navigation only, not
+hours or closure verification. If weather is unavailable, say so; do not invent
+weekend-specific forecasts. Make indoor/outdoor implications practical.
 
-Deduplicate event occurrences, distinguish recurring venues from exact-date
-sessions, and preserve **fresh independent discovery before history or
-feedback**. After forming the fresh candidate pool, cached stable-place
-pointers may supplement current verification but may not prove event
-dates, current opening or pricing. Consult feedback only as a final ranking
-adjustment, not as a way to suppress fresh options.
+## 4. Finalize once; never lose checked links
 
-Verify the most promising **up to five** candidates against current
-accountable/official event or booking pages **for their exact dates**.
-Check: the actual session; exact venue/branch; both children's activities
-and eligibility; mandatory total family cost; booking requirements and
-available slots when booking is compulsory; requested radius when hard;
-current closures/cancellations; and links after redirects. Unknown hard
-requirements must not be called confirmed. If fewer than five are
-supportable, return fewer, without fabricated filler. Up to two plausible
-but unresolved leads may appear under **Needs checking** when permitted
-by the helper; label missing evidence precisely.
+Use the helper's own valid, compact example instead of writing a JSON schema
+from memory; do not inspect helper or validator source code:
 
-For a date-specific one-pass shortlist, use the existing helper:
 ```sh
 python3 <source_dir>/scripts/finalize_briefing.py --print-template --template-mode verified
 ```
 
-Set `shortlist.effort_mode = "deep"` and
-`shortlist.result_mode = "verified"` (the existing helper accepts up to
-five verified options in deep mode). Fill the dynamic request and the
-fresh candidate ledger, with at most **ten retained candidates**.
-Include date-specific event source evidence and valid `link_checks`
-for every displayed factual/booking link; follow the template's
-`discovery`, `shortlist` and `render` fields. Finalize once and paste
-`numbered_options_markdown` **verbatim**; do not bypass failed
-validation, fabricate facts or hide honest budget-overage warnings.
+Fill the example with current facts. Set `shortlist.effort_mode = "deep"`,
+`shortlist.result_mode = "verified"` and add at most five options. The usual
+compact payload does **not** need optional duplicated
+`finalist_date_enrichment` or `dated_findings` structures; the built-in
+per-option checked source and available activity evidence is enough.
+Do not invent `slot_verified: true`, coordinates, distances or unread sources.
+A source link must be in both `source_urls` and the matching content-verified
+facts `link_checks`. Keep consulted sources and candidate ledger truthful.
+Run `finalize_briefing.py` with the JSON input, once. If it succeeds, paste
+`numbered_options_markdown` verbatim: the renderer includes direct checked
+links and Google Maps links automatically. Do not hand-compose a substitute.
 
-Rank first by suitability and active participation for each child, then
-practical distance from the resolved anchor, special/one-off value,
-cost, timing/booking friction and weather. A wider-area event wins only
-if materially better. Keep an indoor fallback where possible. A daily
-rain probability does not mean rain all day.
+If finalization fails, **do not discard the links**. The error JSON may contain
+`fallback_markdown`: copy it exactly with its clear **not saved / not validated**
+disclaimer. It contains only already checked sources, booking pages and maps.
+It is **not** a confirmed shortlist. Report the error; do not invent extra
+verification or claim the save succeeded. Correct one obvious payload mistake
+only if possible within the remaining calls. Never conceal failure or repeatedly
+debug schemas until the tool-call budget is exhausted.
 
-## 5. Practical Telegram output and research summary
+## 5. Concise Telegram response and research summary
 
-Give one concise response: the **top five or fewer verified picks** with
-date/time, locality, what the children can do, mandatory group cost,
-booking needs and **direct checked links**. If there are valuable
-alternatives, mention 2–3 briefly only with evidence and clear uncertainty.
-Suggest one main activity per requested day, with an indoor/weather backup
-when relevant; never invent a nap schedule or travel time.
+Show **up to five** verified picks, each with: actual date/time, activity,
+cost, registration status, individual child fit, address and direct checked
+event/booking/map links. Suggest one activity per requested day, plus a
+weather-safe alternative when useful.
 
-At the end include a **brief research summary** for this event-search
-route (not for ordinary chat or an undated general menu):
-
-- Subagents completed, e.g. `2/3`, or `not used`.
-- **Distinct candidate events actually discovered**, if recorded; if not
-  recorded, say `not tracked`. Never present the finalizer's capped
-  candidate ledger as the full discovery total.
-- Counts for **Priority 1 / 2 / 3** among deduplicated discoveries, if
-  tracked. If attribution is unclear, mark the breakdown unavailable,
-  rather than guessing.
-- Official council, library and event calendars **actually checked**,
-  not merely suggested in prompts.
-- Material verification gaps, blocked sites and unverified availability.
-
-The helper's `research_coverage`/ledger counts describe only candidates
-**retained for validation** (at most ten), which may be fewer than all
-candidates seen in searches. Do not imply that the helper confirms
-children finished or that uncited agent counts are verified. Avoid
-repeating entire event descriptions in the summary.
+Keep the research summary brief and evidence-led: **Subagents completed**
+(e.g. "3/3", "2/3", or "not used" if delegation failed), **Distinct candidate events actually discovered** (or
+"not tracked"), counts in **Priority 1 / 2 / 3** when tracked, calendars
+**actually checked**, and material **verification gaps**. Do not invent
+counts or present the helper's candidates retained for validation as the
+full number of discoveries.

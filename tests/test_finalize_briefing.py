@@ -240,6 +240,35 @@ class FinalizeBriefingTest(unittest.TestCase):
         self.assertIn("exact-date event", result["error"])
         self.assert_no_real_write()
 
+    def test_failed_finalize_returns_only_checked_links_without_saving(self):
+        payload = self.payload()
+        unverified = "https://events.example.org/unverified"
+        option = payload["shortlist"]["options"][0]
+        option["source_urls"].append(unverified)
+        option["link_checks"].append({
+            "url": unverified, "purposes": ["facts"],
+            "result": "reachable", "checked_at": "2030-04-06T09:00:00Z",
+        })
+        payload["discovery"]["finalist_date_enrichment"] = []
+        result = self.run_finalize(payload, expected=2)
+        fallback = result["fallback_markdown"]
+        self.assertIn("could not validate or save", fallback)
+        self.assertIn("not confirmed recommendations", fallback)
+        self.assertIn("https://events.example.org/activity", fallback)
+        self.assertIn("https://maps.example.org/?q=example", fallback)
+        self.assertNotIn(unverified, fallback)
+        self.assert_no_real_write()
+
+    def test_failed_finalize_without_checked_source_has_no_link_fallback(self):
+        payload = self.payload()
+        payload["discovery"]["finalist_date_enrichment"] = []
+        for check in payload["shortlist"]["options"][0]["link_checks"]:
+            if "facts" in check["purposes"]:
+                check["result"] = "reachable"
+        result = self.run_finalize(payload, expected=2)
+        self.assertNotIn("fallback_markdown", result)
+        self.assert_no_real_write()
+
     def test_japanese_descriptive_content_fails_without_real_write(self):
         payload = self.payload()
         payload["render"]["cards"][0]["activities"][0]["name"] = "屋内遊び場"
