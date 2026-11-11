@@ -18,7 +18,7 @@ class ParallelDelegationContractTests(unittest.TestCase):
         self.assertIn(start_marker, RECOMMENDATION)
         self.assertIn(end_marker, RECOMMENDATION)
         block = RECOMMENDATION.split(start_marker, 1)[1].split(end_marker, 1)[0]
-        payload = json.loads(block.split("{", 1)[1].rsplit("}", 1)[0].join(["{", "}"]))
+        payload = json.loads("{" + block.split("{", 1)[1].rsplit("}", 1)[0] + "}")
         self.assertEqual(set(payload), {"tasks"})
         self.assertEqual(len(payload["tasks"]), 3)
         self.assertLess(len(json.dumps(payload, separators=(",", ":"))), 8000)
