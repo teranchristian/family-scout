@@ -52,6 +52,17 @@ class BirthdateAgeTests(unittest.TestCase):
         self.assertEqual(scout.member_ages_on(p, date(2025, 3, 1))[0]["age"], 1)
         self.assertEqual(scout.member_ages_on(p, date(2028, 2, 29))[0]["age"], 4)
 
+    def test_age_reference_uses_activity_location_timezone(self):
+        from datetime import datetime
+        at = datetime.fromisoformat("2030-11-14T14:00:00+00:00")
+        location = {"location": {"timezone": "Australia/Sydney"}}
+        local_date = scout.age_reference_date(at, location)
+        self.assertEqual(local_date.isoformat(), "2030-11-15")
+        p = self.profile([{
+            "id": "member-alpha", "date_of_birth": "2023-11-15"
+        }])
+        self.assertEqual(scout.member_ages_on(p, local_date)[0]["age"], 7)
+
     def test_not_born_at_requested_date(self):
         from datetime import date
         p = self.profile([{"id": "member-alpha", "date_of_birth": "2030-02-03"}])
