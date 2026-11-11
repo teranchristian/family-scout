@@ -2,17 +2,14 @@
 
 ## Current scope
 
-Phase 0 is complete. Phase 1 implements one thin Hermes recommendation,
-shortlist and explicit-feedback cycle. Read `README.md`, `hermes-skill/SKILL.md`,
-all files under `hermes-skill/references/`, the helper and the blank templates
-before changing behavior. Together they are the in-repository contract.
-
-Phase 1 is **built; trial pending** until the real-use gate in `README.md` passes.
-Do not call it validated based on fixture tests. Do not implement Phase 1.5 or
-later work without a request grounded in trial evidence. In particular, do not
-add provider packages, databases, background jobs, a scraper framework, routing,
-booking integrations, web UI, accounts, numerical scoring or an independent
-doctor/purge workflow for anticipated needs.
+This is a personal, Git-managed Hermes skill. Maintain **two distinct working
+routes**: dated weekend/event discovery returns a sourced shortlist directly;
+undated general outings use a two-stage menu. Read `README.md`,
+`hermes-skill/SKILL.md` and the relevant references before changing a route.
+Do not add migrations, backward-compatibility layers or new infrastructure
+without a concrete need. In particular, avoid providers, databases, background
+jobs, scraper frameworks, routing, booking integrations and numerical scoring.
+Protect the user's existing private data and current successful search workflow.
 
 Hermes owns request interpretation, live discovery, source reading, evidence
 selection and qualitative ranking. `scripts/family_scout.py` owns deterministic
@@ -121,9 +118,8 @@ reconcile intended installed behavior into Git. Keep preferences and feedback
 out of committed skill instructions.
 
 The Python code uses only the standard library and supports Python 3.9 or newer.
-The `.yaml` documents are JSON-compatible YAML; exact blank Phase 0 files are a
-supported migration input. Do not add a parser dependency casually or rewrite an
-unknown YAML style automatically.
+Private `.yaml` documents are JSON-compatible YAML. Keep updates safe and do
+not add a parser dependency or migration machinery without a real need.
 
 ## Verification
 
