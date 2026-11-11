@@ -1,0 +1,4 @@
+# Optional location-specific event calendars. Add public URLs by suburb.
+# Example:
+# exampletown:
+#   - https://events.example.org/calendar

@@ -23,6 +23,9 @@ class FamilyScoutWorkflowTest(unittest.TestCase):
             self.assertIn(phrase.casefold(), SKILL.casefold())
         self.assertIn("Shared instructions for Agent 1 and Agent 2", RESEARCH)
         self.assertIn("Agent 3: weather only", RESEARCH)
+        self.assertIn("Agent 4", SKILL)
+        self.assertIn("location_sources.urls", SKILL)
+        self.assertIn("same** delegation batch", RESEARCH)
         self.assertIn("each requested date", RESEARCH)
         self.assertIn("do **not** research events", RESEARCH.casefold())
 

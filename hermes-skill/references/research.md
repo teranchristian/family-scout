@@ -14,13 +14,17 @@ Inputs: public area/suburbs; absolute dates (or the stated undated horizon); chi
 
 Across both discovery agents, **aim for 10–15 distinct useful leads when they exist**, then let the parent rank the best. This is a goal, not a hard minimum. Stop low-yield searching rather than endlessly retrying broken pages. Prefer batching page reads when the working reader supports it; one blocked/404 page should not trigger repeated identical retries. If a page is inaccessible, use an accountable alternative or mark the fact unverified.
 
+## Agent 4: saved suburb sources (only when configured)
+
+If `location_sources.urls` is non-empty, add Agent 4 to the **same** delegation batch. Visit each provided public URL for activities on the requested dates; follow relevant event detail links and apply the **same date/time, age, price, booking and closure checks** as Agents 1 and 2. Return leads in the same compact format. An empty or unhelpful calendar may return zero leads. Avoid deliberately sending Agents 1 and 2 to the same saved URLs, but keep their independent fresh event discovery. Never assume an index page confirms a particular session or treat saved sources as trusted facts. If there is no matching suburb key, do not launch Agent 4.
+
 ## Agent 3: weather only
 
 Check the forecast for **each requested date at the activity location** using available current weather data. Give high/low temperatures when supported, chance/amount of rain, wind or heat risks where relevant, and a concise outdoor/indoor implication. Note forecast uncertainty and dates outside forecast range. Do **not** research events or treat forecast as permission to ignore outdoor candidates unless the user asked for indoor-only.
 
 ## Parent: verify, rank and present
 
-Merge the two event lists; deduplicate by event, venue and session date. Local discoveries get a fair chance: favour a strong nearby event over a similarly good famous attraction. Rank by actual enjoyment and age fit, specialness, distance/convenience, cost, toddler practicality and forecast. User hard constraints override preferences.
+Merge both event lists and optional Agent 4 leads; deduplicate by event, venue and session date. Local discoveries get a fair chance: favour a strong nearby event over a similarly good famous attraction. Rank by actual enjoyment and age fit, specialness, distance/convenience, cost, toddler practicality and forecast. User hard constraints override preferences.
 
 Before recommending an item as confirmed, **open its direct official/organiser page** and check date/session, suitability, price when claiming "free", mandatory booking and relevant cancellations. A source page is proof only for what it says. Unknowns remain labelled **Needs checking**, especially for hard constraints. If a booking is required, distinguish "booking required" from a confirmed available slot. Do not claim live availability without evidence.
 
