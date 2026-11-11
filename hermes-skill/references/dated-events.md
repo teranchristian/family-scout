@@ -98,6 +98,18 @@ rather than silently interpreting "low-cost" as "free-only". Apply prior
 feedback only as a final ordering adjustment; it must not suppress fresh
 discovery.
 
+**Saved profile preferences are ranking signals, not discovery filters.**
+The `profile.preferences` list, earlier likes/dislikes, past visits and familiar
+venues may mildly boost or lower otherwise suitable choices only **after fresh
+discovery and initial ranking**. Never exclude a cinema, workshop, attraction
+or other useful class from searches, the candidate ledger, or the shortlist
+solely because it is absent from, or conflicts with, previous preferences.
+Keep genuinely new options visible. Only a **clear hard constraint** in the
+current request or an explicitly saved lasting `profile.constraints` rule
+(e.g. a strict budget, date or distance) can disqualify a candidate; do not
+promote casual preference wording into an exclusion. A current user request
+takes precedence over past soft preferences.
+
 **Weather affects ranking and backups, not discovery coverage**, unless the
 user explicitly requested indoor-only or another hard weather constraint.
 Offer a weather-safe alternative where possible, without falsely calling a
