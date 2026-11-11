@@ -124,86 +124,17 @@ python3 <source_dir>/scripts/family_scout.py --data-dir <data_dir> source-remove
 
 Never query disabled or removed sources deliberately.
 
-## Use stable place leads and automatic refresh
+## Venue cache disabled for recommendations
 
-The private cache at `<data_dir>/places.jsonl` contains stable public venue
-pointers, never current operating facts. Complete the required fresh searches
-first. Then a normal recommendation may request one recent lead for the exact
-public area:
+Do not read or write `places.jsonl` in recommendation sessions. Do not call
+`place-cache-leads`, `place-cache-lookup` or `place-cache-upsert`, even
+after finding an otherwise interesting venue. These old commands are retained
+only for backwards compatibility; normal shortlist saving no longer updates
+the venue cache. Keep the existing private file untouched.
 
-```sh
-python3 <source_dir>/scripts/family_scout.py --data-dir <data_dir> \
-  place-cache-leads --area "Example City" --limit 1
-```
-
-The returned lead may contribute at most one finalist. At least two finalists in
-a three-option answer must originate in fresh discovery. Every cached lead still
-needs current official/date-specific verification.
-
-Look up one or more exact discovered venues in one call:
-
-```json
-{
-  "candidates": [
-    {
-      "name": "Example Discovery Centre",
-      "area": "Example City",
-      "address": "1 Public Road, Example City"
-    }
-  ]
-}
-```
-
-```sh
-python3 <source_dir>/scripts/family_scout.py --data-dir <data_dir> \
-  place-cache-lookup --input lookup.json
-```
-
-Name-only lookup is refused. Use the exact current-run name plus locality or
-address; use a returned `place_id` only for a known exact venue. An ambiguous
-same-name match returns no pointers. Every response says
-`requires_current_verification: true`: cached official/calendar URLs, address and
-coordinates are leads that can reduce navigation work, but current pages must
-still be opened and validated before making current or exact-date claims.
-
-For a manual repair/backfill, upsert only stable facts supported during that run:
-
-```json
-{
-  "observed_at": "2030-04-06T09:00:00Z",
-  "evidence_urls": [
-    "https://places.example.org/discovery-centre",
-    "https://places.example.org/discovery-centre/calendar"
-  ],
-  "place": {
-    "name": "Example Discovery Centre",
-    "area": "Example City",
-    "categories": ["museum", "indoor"],
-    "official_url": "https://places.example.org/discovery-centre",
-    "calendar_url": "https://places.example.org/discovery-centre/calendar",
-    "address": "1 Public Road, Example City",
-    "latitude": 1.25,
-    "longitude": 2.5
-  }
-}
-```
-
-```sh
-python3 <source_dir>/scripts/family_scout.py --data-dir <data_dir> \
-  place-cache-upsert --input place.json
-```
-
-Normally, include the same stable `place` object inside each saved option.
-`shortlist-save` automatically upserts it after the recommendation is safely
-saved. A malformed or unusable cache is preserved and reported but does not block
-the recommendation.
-
-The helper accepts only canonical name, area, broad categories,
-official/calendar URL, public address, evidenced coordinates and last-seen time.
-It rejects date-sensitive or unknown fields. Opening, events, sessions,
-closures, price, weather, booking, current rank and route time never belong in
-the cache. Repeated exact writes update one stable `place_id`; weaker ambiguous
-matches are refused, and malformed cache state is preserved.
+Current-run evidenced addresses can still be supplied as `place` blocks to
+generate navigation links. Saving exact shortlist history, family settings and
+explicit feedback is separate from caching venue candidates.
 
 ## Calculate distance and classify candidates
 
@@ -235,9 +166,10 @@ python3 <source_dir>/scripts/finalize_briefing.py --print-template --template-mo
 Normal effort allows an initial `explore` menu of at most eight options or a
 selected `verified` result of at most three options, with three search queries
 and twelve external calls total across search, source reading, forecast and
-geocoding. Set each option's `discovery_origin` to `fresh` or `cache`, and include
-its evidenced stable `place` block for automatic cache refresh. Honest overages
-are saved with `budget_status: exceeded`; they are never rejected or rewritten.
+geocoding. All options originate in fresh discovery; omit the optional
+`discovery_origin` field. A current-run evidenced `place` block is useful
+for generating a map link, not for caching. Honest overages are saved with
+`budget_status: exceeded`; they are never rejected or rewritten.
 
 Call `shortlist-save` before displaying the response. The request stores an
 origin reference and public place label, never private coordinates or an address.
