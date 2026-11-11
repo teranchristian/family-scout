@@ -29,14 +29,16 @@ def main():
         with scout.state_lock(data_dir):
             profile = scout.load_document(data_dir / "profile.yaml", "profile")
             sources = scout.load_document(data_dir / "sources.yaml", "sources")
+        resolved_location = scout.active_location(profile, at, args.location == "home")
+        local_date = scout.age_reference_date(at, resolved_location)
         scout.emit({
             "ok": True,
             "scope": "discovery",
             "run_started_at": run_started_at,
             "at": at.isoformat(),
-            "resolved_location": scout.active_location(
-                profile, at, args.location == "home"
-            ),
+            "resolved_location": resolved_location,
+            "age_as_of": local_date.isoformat(),
+            "effective_member_ages": scout.member_ages_on(profile, local_date),
             "profile": profile,
             "enabled_sources": [item for item in sources["sources"] if item["enabled"]],
         })
