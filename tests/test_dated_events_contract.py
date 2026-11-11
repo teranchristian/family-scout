@@ -77,7 +77,7 @@ class DatedEventsContractTests(unittest.TestCase):
             "Search snippets alone",
             "what each child can actively do",
             "total family", "Needs checking",
-            "specific ticket slot",
+            "exact ticket slot",
             "Rain changes", "outdoor",
             "free council/community",
             "Local events",
@@ -102,13 +102,14 @@ class DatedEventsContractTests(unittest.TestCase):
         self.assertNotIn("paste `numbered_options_markdown` verbatim", EVENTS)
 
     def test_preserve_profile_and_new_discovery(self):
+        compact = " ".join(EVENTS.split()).casefold()
         for phrase in (
             "Fresh discovery comes before history or feedback",
             "Saved preferences are gentle ranking signals",
             "hard constraint",
-            "Never invent",
+            "Do not invent",
         ):
-            self.assertIn(phrase.casefold(), EVENTS.casefold())
+            self.assertIn(phrase.casefold(), compact)
 
 
 if __name__ == "__main__":
