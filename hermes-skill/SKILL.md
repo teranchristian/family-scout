@@ -29,7 +29,7 @@ not by rewriting procedural instructions.
 
 ## Route first
 
-- **A date or date range (today, tomorrow, a weekday, weekend or named dates):** read [references/dated-events.md](references/dated-events.md). For broad multi-area searches, use one parallel three-specialist discovery batch when `delegate_task` is available; search directly for simpler requests or if delegation is unavailable. No mandatory candidate quota or saving step. Do not inspect helper or validator source code.
+- **Any dated activity discovery request (today, tomorrow, a weekday, weekend or named dates):** read [references/dated-events.md](references/dated-events.md). For any broad request to find activities, use one parallel three-specialist research batch when `delegate_task` is available, regardless of the day or number of dates. Only checks of specific named venues/events or follow-ups search directly. If delegation is unavailable, search directly. No mandatory candidate quota or saving step. Do not inspect helper or validator source code.
 - **Find undated general outings, compare choices or follow up on a shortlist:** read only [references/recommendation.md](references/recommendation.md). Do not inspect helper or validator source code. Do not inspect any other reference or unowned installed file.
 - **Feedback, history correction, profile/travel, sources, or “more like this”:** read [references/memory.md](references/memory.md) and the applicable part of [references/cli.md](references/cli.md).
 - **Setup/status:** use the redacted `status` command and README.

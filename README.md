@@ -64,14 +64,18 @@ all use the same straightforward path:
 4. Return a practical source-linked shortlist with Google Maps links for
    evidenced addresses. Let the family choose what to do.
 
-The research effort scales with the request. A quick or narrow search runs
-directly. A broad search for the best activities across multiple areas uses
-**three parallel specialists** (local, adjacent, wider/weather) in one batch
-when Hermes supports delegation, with a direct-search fallback. This applies
-on **weekdays and weekends alike**. Such searches aim for 10–15 discovery
-leads if available before selecting a local-first top five, additional options
-and practical day-by-day suggestions. Neither the lead target nor number of
-recommendations is a hard minimum.
+Every broad **dated activity discovery** uses **three parallel specialists**
+(local, adjacent, wider/weather) in one batch when Hermes supports delegation,
+with a direct-search fallback. "Find activities tomorrow", "What's on Wednesday?"
+and "Find the best activities this weekend" trigger the **same research depth**,
+whether one day or several. A request to check one specific event or venue is
+not discovery and runs directly. The geographic scopes respect the user's
+location and radius, without expanding them.
+
+Broad searches aim for 10–15 real leads if available before ranking a
+local-first top five, additional options and an indoor backup. Multi-day
+requests also receive suggestions for each requested day. Neither the lead
+target nor the number of recommendations is a hard minimum.
 
 There is no weekend-only logic, mandatory JSON finalizer or required save step.
 Do not invent candidates to meet a quota. Saving is optional unless requested.

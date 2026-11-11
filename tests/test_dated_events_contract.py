@@ -20,24 +20,29 @@ class DatedEventsContractTests(unittest.TestCase):
         self.assertIn("not a separate", EVENTS)
         self.assertIn("two-stage", RECOMMENDATION)
 
-    def test_parallel_for_broad_searches_but_not_quick_requests(self):
-        for phrase in ("no fixed candidate minimum", "Focused search",
-                       "Broad research", "one batch", "three parallel specialists",
-                       "delegate_task", "any requested day or range", "10–15 distinct leads",
-                       "If delegation fails", "Search the actual requested dates"):
+    def test_parallel_for_all_broad_dated_discovery(self):
+        for phrase in ("no fixed candidate minimum", "Focused verification",
+                       "Broad discovery", "one batch", "three parallel specialists",
+                       "delegate_task", "single weekday", "10–15 distinct leads",
+                       "If delegation fails", "Search the actual requested dates",
+                       "find activities tomorrow", "what's on Wednesday",
+                       "Neither the word \"best\""):
             self.assertIn(phrase, EVENTS)
         for phrase in ("Local specialist", "Adjacent specialist",
                        "Wider/weather specialist", "council general event calendars",
                        "library calendars", "private names", "deduplicate"):
             self.assertIn(phrase, EVENTS)
-        self.assertIn("one parallel three-specialist discovery batch", SKILL)
+        self.assertIn("one parallel three-specialist research batch", SKILL)
+        self.assertIn("same research depth", README.lower())
+        self.assertIn("Find activities tomorrow", README)
+        self.assertIn("What's on Wednesday?", README)
         self.assertIn("no weekend-only logic", README.lower())
         self.assertNotIn("parallel-research.md", SKILL + EVENTS + RECOMMENDATION)
 
-    def test_broad_multi_day_output_and_simple_mode(self):
+    def test_broad_discovery_output_is_consistent_every_day(self):
         for phrase in ("top five", "3–5 additional interesting choices",
-                       "suggested activity for each requested day", "indoor backup",
-                       "simple, single-date"):
+                       "suggested", "indoor backup", "same answer depth",
+                       "Focused venue checks"):
             self.assertIn(phrase, EVENTS)
 
     def test_location_privacy_and_age(self):

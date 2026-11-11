@@ -38,14 +38,16 @@ Find enough varied, genuinely useful options for the request. There is
 
 ### Scale up discovery when useful
 
-- **Focused search** (one venue, a narrow area or a quick simple outing):
-  search directly with Hermes's tools; no subagents.
-- **Broad research** (for example, "find the best activities" across local,
-  adjacent and wider areas, an explicit thorough comparison, or a request for
-  parallel research): when `delegate_task` is available, launch **one batch
-  of three parallel specialists**, each assigned an independent geographic
-  scope. This works for **any requested day or range**, not just weekends.
-  If delegation fails, research directly and report the gap briefly.
+- **Broad discovery** ("find activities tomorrow", "what's on Wednesday",
+  "best things to do this weekend" or another request for activity choices):
+  use **one batch of three parallel specialists** when `delegate_task` is
+  available. Use exactly the **same discovery depth on a single weekday and
+  on a weekend**. Neither the word "best", an explicit multi-area request
+  nor a multiple-day range is required to trigger parallel discovery.
+  If delegation fails or is unavailable, search those scopes directly and
+  report the gap briefly.
+- **Focused verification** (checking a specific named event/venue, a selected
+  option or a follow-up about its hours or price): check directly, no subagents.
 
 Assign the three roles from the request's explicit geographic priority tiers
 or the resolved public locality. Do not hardcode example suburbs or councils:
@@ -105,11 +107,12 @@ family price (or unknown), which children it suits, booking status,
 official source and Google Maps link when supported. Explain why it is
 worth considering and any important weather or availability warning.
 Briefly note meaningful gaps in what was checked. Do not assume an itinerary;
-let the family choose. For a **broad multi-day** request, present a ranked
-**top five**, up to **3–5 additional interesting choices** when available, and
-a suggested activity for each requested day plus one indoor backup. Suggestions
-are options, not booked slots or a fixed itinerary. For simple, single-date
-requests keep the answer shorter.
+let the family choose. For **any broad dated discovery**, present a ranked
+**top five**, up to **3–5 additional interesting choices** when available,
+and one indoor backup. For multiple requested days, include a suggested
+activity for each day. These are options, not booked slots or a fixed
+itinerary. Use the **same answer depth for a weekday and a weekend** when
+the discovery request is comparable. Focused venue checks can be shorter.
 
 **Respond directly from the source evidence.** Do not call `evaluate`,
 `finalize_briefing.py`, `shortlist-save` or a renderer as a prerequisite to
