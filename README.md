@@ -58,7 +58,7 @@ For explicitly delegated regional research, Family Scout documents one batched
 parallel. This is an optional orchestration path, not the default for ordinary
 recommendations. It preserves the shared discovery budget, verification and
 privacy requirements, and does not change Hermes configuration. See
-`hermes-skill/references/recommendation.md` for the dispatch recipe and fallback.
+`hermes-skill/references/parallel-research.md` for the opt-in dispatch recipe.
 
 ## Dated weekend/event discovery
 
@@ -67,9 +67,9 @@ Family Scout now has a separate **one-pass verified events** route. It resolves
 actual dates and the activity area from the request or private home/travel
 context **at runtime**; no dates, cities or family details are built into
 the shipped skill. It prioritises the named locality, then neighbouring areas,
-then exceptionally worthwhile wider events. Where useful, the three independent
-regional searches use **one batched Hermes delegation call**, not three serial
-calls.
+then exceptionally worthwhile wider events. Ordinary weekend searches use direct research, without launching
+subagents. A large or explicitly thorough regional search may optionally use
+one batched delegation call, not three serial calls.
 
 This date-specific route may use the existing deep-effort helper allowance
 (six search queries, 24 external calls **total** across all agents and parent)
@@ -78,7 +78,10 @@ requested days, an indoor backup, and a concise research summary: completed
 agents, actually recorded discoveries and geographic breakdown, calendars
 checked and verification gaps. Missing metrics remain "not tracked"; the
 helper's retained candidate count is not the number of all events discovered.
-It still saves and renders through the existing deterministic validator.
+It still saves and renders through the existing deterministic validator. If
+validation fails, its read-only `fallback_markdown` can preserve checked
+source links with an explicit **not saved / not validated** warning; it never
+pretends that incomplete data was persisted.
 
 Open-ended **undated** outing discovery retains its fast two-stage menu:
 6–8 plausible choices, followed by verification of the user's selections.

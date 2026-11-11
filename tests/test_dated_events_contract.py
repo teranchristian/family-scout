@@ -58,6 +58,11 @@ class DatedEventsContractTests(unittest.TestCase):
         ):
             self.assertIn(required, EVENTS)
 
+    def test_normal_weekend_is_direct_and_booking_is_checked(self):
+        self.assertIn("Do not launch subagents for a normal weekend search", EVENTS)
+        self.assertIn("Booking matters even when entry is free", EVENTS)
+        self.assertIn("fallback_markdown", EVENTS)
+
     def test_summary_requires_evidence_not_made_up_counts(self):
         for required in (
             "Subagents completed", "Distinct candidate events actually discovered",

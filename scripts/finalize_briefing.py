@@ -4,7 +4,7 @@
 Broad recommendation runs should call this once after research. The command
 validates discovery/enrichment coverage, proves the shortlist and render payload
 work together in a temporary copy of state, then performs the real save+render.
-It never emits a partial/freehand briefing.
+On failure it can return an explicitly unvalidated, read-only checked-link fallback.
 """
 
 import argparse
@@ -816,8 +816,7 @@ def execute(source_dir, data_dir, shortlist_path, render_path):
     return saved, rendered
 
 
-def finalize(args):
-    payload = read_json(args.input)
+def finalize(args, payload):
     shortlist = deepcopy(payload.get("shortlist"))
     render = payload.get("render")
     require(isinstance(shortlist, dict), "finalize payload needs shortlist")
@@ -890,6 +889,80 @@ def finalize(args):
     print(json.dumps(output, ensure_ascii=False, indent=2))
 
 
+
+def checked_links_fallback(payload):
+    """Provide a clearly unvalidated, read-only list of checked links on failure.
+
+    Never turn an unchecked source URL or draft activity claim into a
+    recommendation. This runs only after finalization has failed and writes
+    nothing to persistent state.
+    """
+    if not isinstance(payload, dict):
+        return None
+    shortlist = payload.get("shortlist")
+    if not isinstance(shortlist, dict):
+        return None
+    options = shortlist.get("options")
+    if not isinstance(options, list):
+        return None
+
+    blocks = []
+    for number, option in enumerate(options[:5], 1):
+        if not isinstance(option, dict):
+            continue
+        title = option.get("title")
+        sources = option.get("source_urls")
+        checks = option.get("link_checks")
+        if (not isinstance(title, str) or not title.strip()
+                or not isinstance(sources, list) or not isinstance(checks, list)):
+            continue
+        sources = {url for url in sources if isinstance(url, str)}
+        links = []
+        seen = set()
+        has_factual_source = False
+        for check in checks:
+            if not isinstance(check, dict):
+                continue
+            url = check.get("url")
+            purposes = check.get("purposes")
+            result = check.get("result")
+            checked_at = check.get("checked_at")
+            if (not isinstance(url, str) or not isinstance(purposes, list)
+                    or not isinstance(checked_at, str) or not checked_at.strip()):
+                continue
+            try:
+                valid_url(url, "fallback checked URL")
+            except FinalizeError:
+                continue
+            if url in seen:
+                continue
+            if "facts" in purposes and result == "content_verified" and url in sources:
+                label = "Checked source"
+                has_factual_source = True
+            elif "booking" in purposes and result == "content_verified":
+                label = "Booking information"
+            elif "map" in purposes and result in ("reachable", "generated"):
+                label = "Map"
+            else:
+                continue
+            seen.add(url)
+            links.append(f"- {label}: {url}")
+        if not has_factual_source:
+            continue
+        safe_title = " ".join(title.split())[:150]
+        blocks.append(f"**{number}. {safe_title}**\n" + "\n".join(links))
+
+    if not blocks:
+        return None
+    return (
+        "**Family Scout could not validate or save this shortlist.** "
+        "The following are links recorded as checked during research, "
+        "**not confirmed recommendations**. Check the event details, "
+        "dates, booking requirements and weather before travelling.\n\n"
+        + "\n\n".join(blocks)
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-dir")
@@ -901,6 +974,7 @@ def main():
                         default="explore",
                         help="Choose the initial-menu or selected-option template")
     args = parser.parse_args()
+    payload = None
     try:
         if args.print_template:
             template = (EXPLORE_FINALIZE_TEMPLATE if args.template_mode == "explore"
@@ -909,11 +983,15 @@ def main():
             return 0
         require(args.source_dir, "--source-dir is required")
         require(args.data_dir, "--data-dir is required")
-        finalize(args)
+        payload = read_json(args.input)
+        finalize(args, payload)
         return 0
     except (FinalizeError, OSError, UnicodeError) as exc:
-        print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False),
-              file=sys.stderr)
+        error = {"ok": False, "error": str(exc)}
+        fallback = checked_links_fallback(payload)
+        if fallback:
+            error["fallback_markdown"] = fallback
+        print(json.dumps(error, ensure_ascii=False), file=sys.stderr)
         return 2
 
 

@@ -182,6 +182,7 @@ class Phase1Test(unittest.TestCase):
                 "references/discovery.md",
                 "references/dated-events.md",
                 "references/memory.md",
+                "references/parallel-research.md",
                 "references/quality.md",
                 "references/recommendation.md",
                 "references/runtime-tools.md",

@@ -9,15 +9,18 @@ ROOT = Path(__file__).resolve().parents[1]
 RECOMMENDATION = (ROOT / "hermes-skill" / "references" / "recommendation.md").read_text(
     encoding="utf-8"
 )
+PARALLEL = (ROOT / "hermes-skill" / "references" / "parallel-research.md").read_text(
+    encoding="utf-8"
+)
 
 
 class ParallelDelegationContractTests(unittest.TestCase):
     def test_documented_batch_is_valid_three_task_json(self):
         start_marker = "<!-- begin single-batch-example -->"
         end_marker = "<!-- end single-batch-example -->"
-        self.assertIn(start_marker, RECOMMENDATION)
-        self.assertIn(end_marker, RECOMMENDATION)
-        block = RECOMMENDATION.split(start_marker, 1)[1].split(end_marker, 1)[0]
+        self.assertIn(start_marker, PARALLEL)
+        self.assertIn(end_marker, PARALLEL)
+        block = PARALLEL.split(start_marker, 1)[1].split(end_marker, 1)[0]
         payload = json.loads("{" + block.split("{", 1)[1].rsplit("}", 1)[0] + "}")
         self.assertEqual(set(payload), {"tasks"})
         self.assertEqual(len(payload["tasks"]), 3)
@@ -32,13 +35,16 @@ class ParallelDelegationContractTests(unittest.TestCase):
             goals.add(task["goal"])
         self.assertEqual(len(goals), 3)
 
+    def test_routine_work_does_not_delegate(self):
+        self.assertIn("Do not delegate routine requests", RECOMMENDATION)
+
     def test_fallback_does_not_serialize_three_delegations(self):
-        self.assertIn("Never recover by launching the three", RECOMMENDATION)
-        self.assertIn("subagents separately.", RECOMMENDATION)
-        self.assertIn("Three children do **not** create three fresh budgets", RECOMMENDATION)
+        self.assertIn("Never recover by launching the three", PARALLEL)
+        self.assertIn("subagents separately.", PARALLEL)
+        self.assertIn("Three children do **not** create three fresh budgets", PARALLEL)
         self.assertIn(
             "Do not modify Hermes configuration",
-            " ".join(RECOMMENDATION.split()),
+            " ".join(PARALLEL.split()),
         )
 
 
