@@ -35,12 +35,10 @@ EXPLORE_FINALIZE_TEMPLATE = {
             "events", "play", "culture", "experiences", "animals", "commercial"
         ],
         "exact_date_event_searched": True,
-        "cache_lookup_performed": True,
         "candidate_ledger": [{
             "title": "Example Activity",
             "primary_class": "experiences",
-            "discovery_origin": "fresh",
-            "disposition": "shown",
+                "disposition": "shown",
         }],
     },
     "shortlist": {
@@ -62,8 +60,7 @@ EXPLORE_FINALIZE_TEMPLATE = {
             "title": "Example Activity",
             "venue": "Example Venue",
             "candidate_class": "experiences",
-            "discovery_origin": "fresh",
-            "checked_at": "2030-04-06T09:00:00Z",
+                "checked_at": "2030-04-06T09:00:00Z",
             "source_urls": ["https://example.org/venue"],
             "link_checks": [{
                 "url": "https://example.org/venue",
@@ -108,14 +105,12 @@ for _number, _candidate_class in enumerate(
     EXPLORE_FINALIZE_TEMPLATE["discovery"]["candidate_ledger"].append({
         "title": _title,
         "primary_class": _candidate_class,
-        "discovery_origin": "fresh",
         "disposition": "shown",
     })
     EXPLORE_FINALIZE_TEMPLATE["shortlist"]["options"].append({
         "title": _title,
         "venue": _venue,
         "candidate_class": _candidate_class,
-        "discovery_origin": "fresh",
         "checked_at": "2030-04-06T09:00:00Z",
         "source_urls": [_url],
         "link_checks": [{
@@ -176,8 +171,7 @@ VERIFIED_FINALIZE_TEMPLATE = {
         "weather": {"status": "unknown", "reason": "not available"},
         "options": [{
             "title": "Example Activity", "venue": "Example Venue",
-            "discovery_origin": "fresh",
-            "date_start": "2030-04-07T10:00:00+00:00",
+                "date_start": "2030-04-07T10:00:00+00:00",
             "date_end": "2030-04-07T11:00:00+00:00",
             "checked_at": "2030-04-06T09:00:00Z",
             "source_urls": ["https://example.org/venue"],
@@ -574,9 +568,9 @@ def validate_candidate_ledger(discovery, classes, options, needs_checking,
         )
         require(primary_class in classes,
                 "candidate_ledger primary_class must appear in activity_classes_searched")
-        origin = item.get("discovery_origin")
-        require(origin in ("fresh", "cache"),
-                f"candidate_ledger[{index}].discovery_origin is invalid")
+        origin = item.get("discovery_origin", "fresh")
+        require(origin == "fresh",
+                "new recommendations cannot be seeded from saved venue cache")
         disposition = item.get("disposition")
         require(disposition in allowed_dispositions,
                 f"candidate_ledger[{index}].disposition is invalid")
@@ -590,7 +584,7 @@ def validate_candidate_ledger(discovery, classes, options, needs_checking,
         require(title in entries and entries[title]["disposition"] == "shown",
                 "every displayed option must be a shown candidate-ledger entry")
         require(option.get("discovery_origin", "fresh")
-                == entries[title]["discovery_origin"],
+                == entries[title].get("discovery_origin", "fresh"),
                 "option discovery_origin must match its candidate-ledger entry")
         if result_mode == "explore":
             require(option.get("candidate_class") == entries[title]["primary_class"],
@@ -645,20 +639,11 @@ def validate_discovery(payload, shortlist, render):
     result_mode = shortlist.get("result_mode", "verified")
     require(result_mode in ("explore", "verified"),
             "shortlist.result_mode must be explore or verified")
-    cache_finalists = sum(
-        1 for option in options
-        if isinstance(option, dict) and option.get("discovery_origin", "fresh") == "cache"
-    )
-    fresh_finalists = len(options) - cache_finalists
     effort_mode = shortlist.get("effort_mode", "normal")
     if effort_mode == "normal":
         option_limit = 8 if result_mode == "explore" else 3
         require(len(options) <= option_limit,
                 f"normal {result_mode} mode allows at most {option_limit} options")
-        require(cache_finalists <= 1,
-                "normal effort allows at most one cache-seeded finalist")
-        require(fresh_finalists >= min(2, len(options)),
-                "normal effort requires fresh discovery for at least two displayed options")
 
     needs_checking = shortlist.get("needs_checking", [])
     require(isinstance(needs_checking, list),
@@ -668,10 +653,7 @@ def validate_discovery(payload, shortlist, render):
         effort_mode, result_mode
     )
     candidates = len(ledger)
-    fresh_candidates = sum(
-        1 for item in ledger if item["discovery_origin"] == "fresh"
-    )
-    cache_candidates = candidates - fresh_candidates
+    fresh_candidates = candidates
 
     request = shortlist.get("request")
     require(isinstance(request, dict), "shortlist.request must be an object")
@@ -681,8 +663,6 @@ def validate_discovery(payload, shortlist, render):
             discovery, shortlist, options, render, request, dated_request
         )
     else:
-        require(discovery.get("cache_lookup_performed") is True,
-                "an initial menu must query the stable-place cache after fresh discovery")
         event_searched = discovery.get("exact_date_event_searched")
         require(isinstance(event_searched, bool),
                 "discovery.exact_date_event_searched must be boolean")
@@ -700,12 +680,8 @@ def validate_discovery(payload, shortlist, render):
     return {
         "candidates_considered": candidates,
         "fresh_candidates": fresh_candidates,
-        "cache_candidates": cache_candidates,
-        "fresh_finalists": fresh_finalists,
-        "cache_finalists": cache_finalists,
         "result_mode": result_mode,
         "activity_classes_checked": len(normalized_classes),
-        "cache_lookup_performed": bool(discovery.get("cache_lookup_performed", False)),
         "menu_options": len(options) if result_mode == "explore" else 0,
         "finalists_deeply_verified": len(options) if result_mode == "verified" else 0,
         "confirmed_recommendations": len(options) if result_mode == "verified" else 0,
@@ -723,8 +699,7 @@ def research_summary(coverage):
     )
     return (
         "Research: "
-        f"{coverage['fresh_candidates']} fresh + "
-        f"{coverage['cache_candidates']} cached lead(s) across "
+        f"{coverage['fresh_candidates']} freshly discovered candidate(s) across "
         f"{coverage['activity_classes_checked']} categories · "
         f"{result_text} · "
         f"{coverage['needs_checking']} needs checking · "
@@ -834,9 +809,6 @@ def finalize(args, payload):
         "exact_date_event_searched": payload["discovery"][
             "exact_date_event_searched"
         ],
-        "cache_lookup_performed": payload["discovery"].get(
-            "cache_lookup_performed", False
-        ),
     }
 
     source_dir = Path(args.source_dir).expanduser().resolve()
@@ -877,7 +849,6 @@ def finalize(args, payload):
         "run_timing": run_timing,
         "budget_status": budget_status,
         "budget_violations": saved.get("budget_violations", []),
-        "place_cache": saved.get("place_cache", {}),
     }
     print(json.dumps(output, ensure_ascii=False, indent=2))
 
