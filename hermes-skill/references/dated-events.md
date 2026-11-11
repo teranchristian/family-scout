@@ -17,8 +17,14 @@ requests and selection/follow-up workflows.
   usable activity area can be established, request that missing fact.
 - Resolve attending ages, free-only/budget constraints, travel limits and
   weather/indoor constraints from the request and available family context.
-  Use age bands, not names or private coordinates, in public web/delegation
-  queries. Do not disclose the full private profile or home address.
+  When a member has a saved `date_of_birth`, use the **local `ages-on` helper
+  for the actual event date** before age eligibility checks and before
+  dispatching subagents; do not rely on an old numerical age. Recalculate
+  for each day if the date window crosses a birthday. If no birthdate is
+  saved, the numeric age remains a fallback and should be treated as
+  potentially stale. Pass derived age bands, not names, birthdates or
+  private coordinates, in public web/delegation queries. Do not disclose
+  the full private profile or home address.
 - Read `installation.json` and run `discovery_context.py` once; retain the
   exact `run_started_at` for finalization. Use actual current local date,
   not dates in examples, previous events or earlier sessions.
