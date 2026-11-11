@@ -53,6 +53,13 @@ Phase 1 deliberately excludes databases, background scraping, provider
 frameworks, routing, booking integrations, web UI, accounts, machine learning
 and numerical match scores.
 
+For explicitly delegated regional research, Family Scout documents one batched
+`delegate_task(tasks=[...])` call so independent regions can be researched in
+parallel. This is an optional orchestration path, not the default for ordinary
+recommendations. It preserves the shared discovery budget, verification and
+privacy requirements, and does not change Hermes configuration. See
+`hermes-skill/references/recommendation.md` for the dispatch recipe and fallback.
+
 The installed skill uses progressive disclosure so its entry point stays small.
 Normal recommendations load one self-contained fast workflow. Detailed discovery,
 briefing and evidence references are reserved for an explicit thorough search;
