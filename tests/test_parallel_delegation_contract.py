@@ -31,9 +31,14 @@ class ParallelDelegationContractTests(unittest.TestCase):
             self.assertLessEqual(len(task["context"].encode("utf-8")), 1500)
         goals = [task["goal"] for task in payload["tasks"]]
         self.assertEqual(len(set(goals)), 3)
-        self.assertIn("local council", payload["tasks"][0]["context"])
-        self.assertIn("neighbouring council", payload["tasks"][1]["context"])
-        self.assertIn("forecast", payload["tasks"][2]["context"])
+        # Check responsibilities, not exact editorial phrasing in the example.
+        contexts = [task["context"].lower() for task in payload["tasks"]]
+        self.assertIn("calendar", contexts[0])
+        self.assertIn("library", contexts[0])
+        self.assertIn("adjacent", contexts[1])
+        self.assertIn("council", contexts[1])
+        self.assertIn("forecast", contexts[2])
+        self.assertIn("indoor", contexts[2])
 
     def test_weekend_delegates_but_undated_menu_is_direct(self):
         self.assertIn("Do not delegate routine requests", RECOMMENDATION)
