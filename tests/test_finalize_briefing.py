@@ -360,7 +360,7 @@ class FinalizeBriefingTest(unittest.TestCase):
         result = self.run_finalize(payload)
         self.assertTrue(result["ok"])
         self.assertNotIn("place_cache", result)
-        self.assertEqual((self.data / "places.jsonl").read_text(), "")
+        self.assertFalse((self.data / "places.jsonl").exists())
         saved = json.loads((self.data / "shortlists.jsonl").read_text().splitlines()[0])
         self.assertIn("place", saved["options"][0])
         self.assertIn("Map: https://maps.example.org/?q=example", result["numbered_options_markdown"])
@@ -376,7 +376,7 @@ class FinalizeBriefingTest(unittest.TestCase):
             "discovery_origin" not in option for option in payload["shortlist"]["options"]
         ))
         self.assertTrue(self.run_finalize(payload)["ok"])
-        self.assertEqual((self.data / "places.jsonl").read_text(), "")
+        self.assertFalse((self.data / "places.jsonl").exists())
 
     def test_finalizer_rejects_cache_seeded_candidate(self):
         payload = self.payload()
