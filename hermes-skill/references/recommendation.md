@@ -12,8 +12,12 @@ not a premature day plan.
 Read `installation.json`, then run `discovery_context.py` once. Copy its exact
 `run_started_at` into the finalization payload. Resolve the public search anchor,
 absolute date/window, timezone, attending ages, radius and hard cost/indoor
-requirements. Do not send names, private coordinates or the full profile to web
-tools.
+requirements. Use the `effective_member_ages` provided by the discovery
+context for the current local date; for events on other dates calculate ages
+using `family_scout.py ages-on --date YYYY-MM-DD` before age eligibility
+checks. A saved `date_of_birth` takes precedence over static `age`; do
+not invent missing birthdates. Do not send names, birthdates, private
+coordinates or the full profile to web tools.
 
 Weather helps describe and compare the menu. It must not narrow discovery unless
 indoor or outdoor is an explicit hard requirement.
