@@ -30,7 +30,11 @@ send private birthdates, full family profiles or precise home coordinates.
   Don't stop after finding a few large advertised attractions.
 - **Agent 2 — adjacent-area specialist:** neighbouring councils/suburbs,
   libraries, galleries, community organisations, small markets and seasonal
-  events inside the requested scope. Avoid duplicating Agent 1.
+  events inside the requested scope. For each relevant adjacent council, inspect
+  its general events calendar and library programs separately for **each
+  requested date**, including recurring weekend sessions. Treat unconfirmed
+  dated sessions as unverified leads, not proof that no event exists.
+  Avoid duplicating Agent 1.
 - **Agent 3 — wider-area and weather specialist:** genuinely exceptional
   city-wide experiences, worthwhile paid options, indoor rainy-day alternatives
   and the relevant forecast. Do not dominate the result with familiar
@@ -53,7 +57,7 @@ ranking. Do not invent a lead to reach the target.
     },
     {
       "goal": "Find nearby council and community events",
-      "context": "Area plan: anchor=<public suburb/city>; local=<specific local suburbs>; adjacent=<specific nearby councils/suburbs>; wider=<allowed wider region>. Assigned scope: adjacent only. Dates/timezone=<dates>; ages=<bands>. Check neighbouring council calendars, libraries, galleries and community events; avoid local duplicates; return distinct leads with source URLs and unknowns."
+      "context": "Area plan: anchor=<public suburb/city>; local=<specific local suburbs>; adjacent=<specific nearby councils/suburbs>; wider=<allowed wider region>. Assigned scope: adjacent only. Dates/timezone=<dates>; ages=<bands>. Check neighbouring council general calendars AND library programs separately for each date, including recurring weekend sessions; avoid local duplicates; return distinct leads with source URLs and unknowns."
     },
     {
       "goal": "Find exceptional wider events and weather alternatives",
