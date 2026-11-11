@@ -35,8 +35,9 @@ Repository: <https://github.com/teranchristian/family-scout>
   requested-date hours, age fit, family cost, booking status and factual/map links.
 - For multi-day or weather-sensitive requests, recommends a plan for each day
   with a realistic backup.
-- Saves the exact initial menu and selected verified options for follow-ups
-  without storing a separate venue database.
+- Saves undated initial menus and selected verified options for follow-ups
+  without storing a separate venue database. Dated-event searches show the
+  sourced shortlist immediately; saving is optional.
 - Remembers explicit feedback across fresh conversations, including corrections
   and retractions, and can use it for “more like this”.
 - Supports explicit home/travel context, profile corrections and custom source
@@ -51,13 +52,13 @@ Phase 1 deliberately excludes databases, background scraping, provider
 frameworks, routing, booking integrations, web UI, accounts, machine learning
 and numerical match scores.
 
-For broad weekend/event discovery, Family Scout starts with direct local-first
-research. Optional three-agent delegation is for genuinely broad or thorough
-regional comparisons. Ordinary undated menus and narrow venue follow-ups remain
-direct. When used, the agents
-share one research budget and do not replace parent-side verification.
-Adding more agents is not the default. See
-`hermes-skill/references/parallel-research.md` for the dispatch recipe.
+For broad weekend/event discovery, Family Scout uses three research specialists
+(local council and community calendars, neighbouring councils, and standout
+wider events/weather) in one parallel batch when available. Aim to discover
+10–15 distinct leads before ranking, and give smaller free local events a fair
+chance. The sourced Telegram shortlist is shown directly; optional saving must
+not block delivery. Undated menus and narrow venue follow-ups remain direct.
+See `hermes-skill/references/dated-events.md` for the concise recipe.
 
 ## Dated weekend/event discovery
 
