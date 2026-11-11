@@ -713,7 +713,7 @@ class Phase1Test(unittest.TestCase):
             "Unknown price does not pass",
             "straight-line distance",
             "three search queries",
-            "Do not seed discovery from past venues",
+            "Fresh discovery only",
             "adjacent municipalities",
             "separate query allowance",
             "One failed page, PDF or reader path",
