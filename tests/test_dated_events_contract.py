@@ -58,8 +58,11 @@ class DatedEventsContractTests(unittest.TestCase):
         ):
             self.assertIn(required, EVENTS)
 
-    def test_normal_weekend_is_direct_and_booking_is_checked(self):
-        self.assertIn("Do not launch subagents for a normal weekend search", EVENTS)
+    def test_weekend_uses_three_parallel_agents_and_booking_is_checked(self):
+        self.assertIn("three parallel subagents by default", EVENTS)
+        self.assertIn("once with three tasks in one batch", EVENTS)
+        self.assertIn("do not add more by", EVENTS)
+        self.assertIn("narrow venue check", EVENTS)
         self.assertIn("Booking matters even when entry is free", EVENTS)
         self.assertIn("fallback_markdown", EVENTS)
 

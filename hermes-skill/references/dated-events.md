@@ -14,7 +14,7 @@ or a date from an example. Use `ages-on --date YYYY-MM-DD` for each relevant
 activity date when birthdates are saved. Pass derived age bands to web tools,
 never private birthdates, home coordinates or a full family profile.
 
-## 2. Find useful candidates (direct research by default)
+## 2. Find useful candidates (three agents for broad weekend searches)
 
 Search fresh sources, locally first:
 
@@ -26,11 +26,23 @@ Cover the requested dates **day by day**. Look at official **general events cale
 and organiser listings. Prefer events with **active participation** for each
 child, rather than merely allowing children inside.
 
-**Do not launch subagents for a normal weekend search.** The direct workflow
-usually needs fewer tool calls and no delegation overhead. For an unusually
-wide or explicitly thorough regional request, optional delegation may be useful:
-use one batched call, never serialize three separate calls. The parent and all
-children share **one shared budget**, not a separate budget per agent.
+**For broad weekend/event searches, use three parallel subagents by default.**
+Read [parallel-research.md](parallel-research.md) and call `delegate_task`
+**once with three tasks in one batch**. Give each agent a distinct geographic
+scope: local councils/libraries, neighbouring areas, and standout wider-area
+events/indoor backups. Avoid duplicate research; tell agents to return concise
+candidate evidence, direct official URLs and actual call counts. The parent
+deduplicates, independently verifies the finalists and handles saving/rendering.
+Do not launch agents for a narrow venue check or follow-up on an existing
+selection. If delegation is unavailable, use bounded direct research rather
+than abandoning the outing search or launching three serial calls.
+
+Three agents are a deliberate default, not a minimum: **do not add more by
+default**. More agents split the same limited calls, repeat searches and
+increase coordination overhead. The parent and all children share **one shared
+budget**, not a separate budget per agent. Reserve enough calls for parent-side
+verification, exact booking checks, forecast and finalization; never assume
+subagent findings alone establish a verified recommendation.
 
 For this dated route use the existing `effort_mode: "deep"` ceiling: **six searches and twenty-four external calls total**, including
 searches, page reads, forecast and geocoding (also delegated calls).
@@ -101,7 +113,7 @@ event/booking/map links. Suggest one activity per requested day, plus a
 weather-safe alternative when useful.
 
 Keep the research summary brief and evidence-led: **Subagents completed**
-(e.g. "not used"), **Distinct candidate events actually discovered** (or
+(e.g. "3/3", "2/3", or "not used" if delegation failed), **Distinct candidate events actually discovered** (or
 "not tracked"), counts in **Priority 1 / 2 / 3** when tracked, calendars
 **actually checked**, and material **verification gaps**. Do not invent
 counts or present the helper's candidates retained for validation as the

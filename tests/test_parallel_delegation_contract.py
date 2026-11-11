@@ -35,8 +35,9 @@ class ParallelDelegationContractTests(unittest.TestCase):
             goals.add(task["goal"])
         self.assertEqual(len(goals), 3)
 
-    def test_routine_work_does_not_delegate(self):
+    def test_undated_menu_does_not_delegate_but_weekend_does(self):
         self.assertIn("Do not delegate routine requests", RECOMMENDATION)
+        self.assertIn("Broad dated weekend/event discovery uses **three subagents**", PARALLEL)
 
     def test_fallback_does_not_serialize_three_delegations(self):
         self.assertIn("Never recover by launching the three", PARALLEL)
