@@ -49,7 +49,7 @@ ranking. Do not invent a lead to reach the target.
   "tasks": [
     {
       "goal": "Find small local family events for the requested dates",
-      "context": "Area plan: anchor=<public suburb/city>; local=<specific local suburbs>; adjacent=<specific nearby councils/suburbs>; wider=<allowed wider region>. Assigned scope: local only. Dates/timezone=<dates>; ages=<bands>. Check council general calendar AND library programs, community venues, parks, swaps, workshops; return distinct leads with source URLs and unknowns."
+      "context": "Area plan: anchor=<public suburb/city>; local=<specific local suburbs>; adjacent=<specific nearby councils/suburbs>; wider=<allowed wider region>. Assigned scope: local only. Dates/timezone=<dates>; ages=<bands>. Check local council general calendar AND library programs, community venues, parks, swaps, workshops; return distinct leads with source URLs and unknowns."
     },
     {
       "goal": "Find nearby council and community events",
