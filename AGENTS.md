@@ -89,8 +89,11 @@ sources, never venue-cache leads; current pages establish date-sensitive truth.
   radius comparison. Label displayed results as straight-line distance.
 - Apply hard requirements before qualitative ordering. Never calculate or show
   a numerical match score, and never invent candidates to fill a list.
-- Save the exact numbered options before displaying them. Combine evidence for
-  the same occurrence and preserve separate dated sessions.
+- For **dated/weekend discovery**, deliver the researched, source-linked answer
+  directly; saving is optional unless the user explicitly requests it. A
+  formatting, persistence or tool-limit error must not suppress the shortlist.
+  For undated two-stage menus, use the usual saved-number workflow. Combine
+  evidence for the same occurrence and preserve separate dated sessions.
 - Learn only from explicit feedback. Append corrections/retractions that
   supersede prior events; never rewrite JSONL. Current instructions override
   saved preferences, and contextual complaints must not become global bans.
@@ -98,12 +101,14 @@ sources, never venue-cache leads; current pages establish date-sensitive truth.
   calls across search, page reading, forecast and geocoding. For an undated
   broad first response, show a lightweight menu of 6–8 varied candidates;
   verify at most three selected choices after the user chooses.
-  **Date-specific family event/weekend requests** may use the separate
-  `dated-events.md` one-pass verified route: existing `deep` helper mode,
-  up to five verified picks, six searches and twenty-four total external calls
-  shared across parent and all subagents. Deep effort is otherwise only for
-  an explicit thorough/comprehensive request. Preserve actual usage and mark
-  any over-budget run rather than rejecting or rewriting telemetry.
+  **Date-specific family weekend searches** use the simpler
+  `dated-events.md` route: three geographic research specialists when
+  available, approximately 10–15 leads before ranking and roughly 5–8
+  sourced choices. Prioritise small local official/community calendars.
+  Do not impose the undated menu's search quota or mandatory finalizer on
+  this route. Avoid excessive calls and report incomplete coverage honestly.
+  Deep effort is otherwise only for an explicit thorough/comprehensive
+  request. Preserve actual usage where tracked; never fabricate telemetry.
 - Cover adjacent areas inside the requested radius through the same bounded
   discovery budget; do not add a town-by-category phase or approximate radius.
 
