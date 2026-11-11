@@ -65,7 +65,7 @@ class DatedEventsContractTests(unittest.TestCase):
             "exact event venue",
             "at most one quick web search",
             "If the lookup fails",
-            "specific area names and assigned tier",
+            "specific area names and tiers",
             "no separate council",
         ):
             self.assertIn(phrase, EVENTS)
