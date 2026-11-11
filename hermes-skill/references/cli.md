@@ -14,7 +14,7 @@ Commands emit JSON on stdout. Validation and state errors emit JSON on stderr
 and exit with status 2. Never bypass an error by editing or replacing private
 state. Payloads are JSON files or JSON on stdin with `--input -`. For append-only
 writes, create a lowercase operation ID and reuse exactly that ID after an
-uncertain retry. Stable-place cache writes instead upsert one exact identity.
+uncertain retry.
 
 ## Read context
 
@@ -124,18 +124,6 @@ python3 <source_dir>/scripts/family_scout.py --data-dir <data_dir> source-remove
 
 Never query disabled or removed sources deliberately.
 
-## Venue cache disabled for recommendations
-
-Do not read or write `places.jsonl` in recommendation sessions. Do not call
-`place-cache-leads`, `place-cache-lookup` or `place-cache-upsert`, even
-after finding an otherwise interesting venue. These old commands are retained
-only for backwards compatibility; normal shortlist saving no longer updates
-the venue cache. Keep the existing private file untouched.
-
-Current-run evidenced addresses can still be supplied as `place` blocks to
-generate navigation links. Saving exact shortlist history, family settings and
-explicit feedback is separate from caching venue candidates.
-
 ## Calculate distance and classify candidates
 
 `distance` returns Haversine distance in kilometres. Coordinates must come from
@@ -166,10 +154,10 @@ python3 <source_dir>/scripts/finalize_briefing.py --print-template --template-mo
 Normal effort allows an initial `explore` menu of at most eight options or a
 selected `verified` result of at most three options, with three search queries
 and twelve external calls total across search, source reading, forecast and
-geocoding. All options originate in fresh discovery; omit the optional
-`discovery_origin` field. A current-run evidenced `place` block is useful
-for generating a map link, not for caching. Honest overages are saved with
-`budget_status: exceeded`; they are never rejected or rewritten.
+geocoding. All options originate in fresh discovery. A current-run evidenced
+`place` block can generate a map link without an additional lookup.
+Honest overages are saved with `budget_status: exceeded`; they are never
+rejected or rewritten.
 
 Call `shortlist-save` before displaying the response. The request stores an
 origin reference and public place label, never private coordinates or an address.
