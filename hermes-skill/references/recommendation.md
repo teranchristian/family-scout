@@ -51,7 +51,7 @@ could fit the requested radius; the named place or station remains the anchor.
 
 Before detailed reading, keep a working ledger of the exact plausible candidates
 you intend to show. Each ledger entry needs its title, primary class,
-`fresh`/`cache` origin and `shown` disposition. Do not stop after finding three
+and `shown` disposition. All recommendations come from fresh discovery. Do not stop after finding three
 acceptable venues. Do not type a candidate count later: the finalizer derives it
 from this ledger.
 
@@ -70,22 +70,15 @@ Do not claim exact-date opening, price, distance, eligibility, activity schedule
 or booking availability unless that fact was actually checked. Put unresolved
 facts in `needs_verification` instead.
 
-After the fresh searches, always query for one recent cached lead:
-
-```sh
-python3 <source_dir>/scripts/family_scout.py --data-dir <data_dir> \
-  place-cache-leads --area "<public area>" --limit 1
-```
-
-Set `cache_lookup_performed: true` after the command succeeds, even when it
-returns no lead. The cache may contribute at most one displayed option and never proves current
-facts. For a fresh candidate, one batch `place-cache-lookup` may supply stable
-verification pointers. Do not open `places.jsonl` directly.
+Every new recommendation must come from fresh research. Do not seed the
+candidate list with a prior shortlist or remembered venue. Saved preferences
+and explicit feedback can adjust ranking only after fresh discovery.
 
 Do not geocode every initial option. When an accountable source provides the
 exact address, include it in the stable `place` block. The helper automatically
-creates the Google Maps search link locally, so this costs no external call and
-does not use Maps as operating-status evidence.
+creates the Google Maps search link locally from this run's evidenced address,
+without caching the place. This costs no external call and does not use Maps
+as operating-status evidence.
 
 Get the initial-menu payload without opening another reference:
 

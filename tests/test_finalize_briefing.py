@@ -285,6 +285,43 @@ class FinalizeBriefingTest(unittest.TestCase):
         self.assertIn("サンプル活動", result["numbered_options_markdown"])
         self.assertIn("Hands-on session", result["numbered_options_markdown"])
 
+    def test_two_children_save_without_manual_constraint_results(self):
+        payload = self.payload()
+        payload["shortlist"]["operation_id"] = "op-two-children-simple"
+        payload["shortlist"]["request"]["attending_member_ids"] = ["ema", "haru"]
+        payload["shortlist"]["options"][0].pop("constraint_results")
+        payload["render"]["cards"][0]["family_fit"] = [
+            {"member_id": child, "label": label, "fit": "good",
+             "activity_names": ["Hands-on session"], "limitations": []}
+            for child, label in [("ema", "Ema"), ("haru", "Haru")]
+        ]
+        result = self.run_finalize(payload)
+        self.assertTrue(result["ok"])
+        self.assertIn("Hands-on session", result["numbered_options_markdown"])
+        saved = json.loads((self.data / "shortlists.jsonl").read_text().splitlines()[0])
+        self.assertNotIn("constraint_results", saved["options"][0])
+
+    def test_without_manual_classifications_still_enforces_hard_cost(self):
+        payload = self.payload()
+        payload["shortlist"]["options"][0].pop("constraint_results")
+        payload["shortlist"]["request"]["free_only"] = True
+        payload["shortlist"]["options"][0]["cost"]["amount"] = 45
+        result = self.run_finalize(payload, expected=2)
+        self.assertIn("free-only", result["error"])
+        self.assert_no_real_write()
+
+    def test_two_children_missing_fit_still_fails_without_saving(self):
+        payload = self.payload()
+        payload["shortlist"]["options"][0].pop("constraint_results")
+        payload["shortlist"]["request"]["attending_member_ids"] = ["ema", "haru"]
+        payload["render"]["cards"][0]["family_fit"] = [
+            {"member_id": "ema", "label": "Ema", "fit": "good",
+             "activity_names": ["Hands-on session"], "limitations": []}
+        ]
+        result = self.run_finalize(payload, expected=2)
+        self.assertIn("family_fit must contain exactly one entry", result["error"])
+        self.assert_no_real_write()
+
     def test_valid_payload_saves_renders_and_reports_research_summary(self):
         payload = self.payload()
         result = self.run_finalize(payload)
@@ -299,7 +336,7 @@ class FinalizeBriefingTest(unittest.TestCase):
         self.assertEqual(coverage["exact_date_event_findings_captured"], 1)
         self.assertEqual(coverage["finalist_date_evidence_sources"], 2)
         self.assertEqual(coverage["finalist_dated_findings"], 2)
-        self.assertIn("6 fresh + 0 cached lead(s) across 4 categories",
+        self.assertIn("6 freshly discovered candidate(s) across 4 categories",
                       result["research_summary_markdown"])
         self.assertIn("1 exact-date event/calendar source(s) checked",
                       result["research_summary_markdown"])
@@ -322,14 +359,37 @@ class FinalizeBriefingTest(unittest.TestCase):
         }
         result = self.run_finalize(payload)
         self.assertTrue(result["ok"])
-        self.assertEqual(result["place_cache"]["upserted"], 1)
-        self.assertEqual(len((self.data / "places.jsonl").read_text().splitlines()), 1)
+        self.assertNotIn("place_cache", result)
+        self.assertFalse((self.data / "places.jsonl").exists())
+        saved = json.loads((self.data / "shortlists.jsonl").read_text().splitlines()[0])
+        self.assertIn("place", saved["options"][0])
+        self.assertIn("Map: https://maps.example.org/?q=example", result["numbered_options_markdown"])
+
+    def test_explore_menu_does_not_require_cached_leads(self):
+        payload = json.loads(subprocess.run(
+            [PYTHON, FINALIZE, "--print-template", "--template-mode", "explore"],
+            text=True, capture_output=True, cwd=REPO, check=True,
+        ).stdout)
+        payload["shortlist"]["operation_id"] = "op-no-cache-menu"
+        self.assertNotIn("cache_lookup_performed", payload["discovery"])
+        self.assertTrue(all(
+            "discovery_origin" not in option for option in payload["shortlist"]["options"]
+        ))
+        self.assertTrue(self.run_finalize(payload)["ok"])
+        self.assertFalse((self.data / "places.jsonl").exists())
+
+    def test_finalizer_rejects_cache_seeded_candidate(self):
+        payload = self.payload()
+        payload["discovery"]["candidate_ledger"][0]["discovery_origin"] = "cache"
+        payload["shortlist"]["options"][0]["discovery_origin"] = "cache"
+        result = self.run_finalize(payload, expected=2)
+        self.assertIn("cannot be seeded from saved venue cache", result["error"])
+        self.assert_no_real_write()
 
     def test_explore_mode_saves_and_renders_a_six_option_menu(self):
         payload = self.payload()
         payload["shortlist"]["operation_id"] = "op-explore-menu"
         payload["shortlist"]["result_mode"] = "explore"
-        payload["discovery"]["cache_lookup_performed"] = True
         payload["shortlist"]["options"] = []
         payload["render"]["cards"] = []
         classes = ["dated_events", "play", "culture", "commercial", "play", "culture"]

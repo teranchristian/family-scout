@@ -57,15 +57,17 @@ class DatedEventsContractTests(unittest.TestCase):
             "up to five", "six searches and twenty-four",
             "shared budget", "at most **ten retained",
             "finalize_briefing.py", "numbered_options_markdown",
-            "one", "delegation", "three serial calls",
+            "one", "delegation", "Do not let coordination overhead prevent delivering the shortlist.",
         ):
             self.assertIn(required, EVENTS)
 
-    def test_weekend_uses_three_parallel_agents_and_booking_is_checked(self):
-        self.assertIn("three parallel subagents by default", EVENTS)
+    def test_weekend_uses_bounded_research_with_optional_delegation(self):
+        self.assertIn("start with bounded direct research", EVENTS)
+        self.assertIn("only use optional delegation", EVENTS.lower())
         self.assertIn("once with three tasks in one batch", EVENTS)
-        self.assertIn("do not add more by", EVENTS)
+        self.assertIn("do not add more by", EVENTS.lower())
         self.assertIn("narrow venue check", EVENTS)
+        self.assertIn("Do not call `evaluate`", EVENTS)
         self.assertIn("Booking matters even when entry is free", EVENTS)
         self.assertIn("fallback_markdown", EVENTS)
 

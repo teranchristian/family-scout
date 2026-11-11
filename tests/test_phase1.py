@@ -194,9 +194,9 @@ class Phase1Test(unittest.TestCase):
         self.assertEqual(stat.S_IMODE(self.data.stat().st_mode), 0o700)
         for name in (
             "profile.yaml", "sources.yaml", "shortlists.jsonl", "feedback.jsonl",
-            "places.jsonl",
         ):
             self.assertEqual(stat.S_IMODE((self.data / name).stat().st_mode), 0o600)
+        self.assertFalse((self.data / "places.jsonl").exists())
 
         opaque = b"synthetic bytes preserved\n"
         (self.data / "shortlists.jsonl").write_bytes(opaque)
@@ -407,14 +407,10 @@ class Phase1Test(unittest.TestCase):
         saved = self.cli("shortlist-save", payload=payload)
         retry = self.cli("shortlist-save", payload=payload)
         self.assertFalse(saved["duplicate"])
-        self.assertEqual(saved["place_cache"]["upserted"], 1)
+        self.assertNotIn("place_cache", saved)
         self.assertTrue(retry["duplicate"])
         self.assertEqual(len((self.data / "shortlists.jsonl").read_text().splitlines()), 1)
-        self.assertEqual(len((self.data / "places.jsonl").read_text().splitlines()), 1)
-        leads = self.cli("place-cache-leads", "--area", "Example City", "--limit", "1")
-        self.assertEqual(leads["cache_role"], "candidate_leads_only")
-        self.assertTrue(leads["requires_current_verification"])
-        self.assertEqual([item["name"] for item in leads["places"]], ["Example Hall"])
+        self.assertFalse((self.data / "places.jsonl").exists())
 
         resolved = self.cli(
             "resolve-option", "--number", "1", "--search-id", saved["search_id"]
@@ -636,16 +632,43 @@ class Phase1Test(unittest.TestCase):
         self.cli("shortlist-save", payload=self.shortlist_payload(), expected=2)
         self.assertEqual((self.data / "shortlists.jsonl").read_bytes(), malformed_history)
 
-    def test_malformed_place_cache_does_not_block_a_valid_shortlist(self):
+    def test_legacy_venue_file_is_untouched_by_shortlist_save(self):
         malformed = b'{"schema_version":1,"place_id":"broken"\n'
         (self.data / "places.jsonl").write_bytes(malformed)
         result = self.cli(
             "shortlist-save", payload=self.shortlist_payload("op-cache-warning")
         )
         self.assertFalse(result["duplicate"])
-        self.assertIn("warning", result["place_cache"])
+        self.assertNotIn("place_cache", result)
         self.assertEqual((self.data / "places.jsonl").read_bytes(), malformed)
         self.assertEqual(len((self.data / "shortlists.jsonl").read_text().splitlines()), 1)
+
+    def test_status_ignores_the_legacy_venue_file(self):
+        malformed = b'{"malformed cache\n'
+        (self.data / "places.jsonl").write_bytes(malformed)
+        status = self.cli("status")
+        self.assertTrue(status["ok"])
+        self.assertNotIn("place_cache", status)
+        self.assertEqual((self.data / "places.jsonl").read_bytes(), malformed)
+
+    def test_removed_cache_commands_are_not_supported(self):
+        for command in ("place-cache-leads", "place-cache-lookup", "place-cache-upsert"):
+            completed = subprocess.run(
+                [PYTHON, HELPER, "--data-dir", str(self.data), command],
+                text=True, capture_output=True, cwd=REPO, check=False,
+            )
+            self.assertEqual(completed.returncode, 2)
+            self.assertIn("invalid choice", completed.stderr)
+        self.assertFalse((self.data / "places.jsonl").exists())
+
+    def test_install_upgrade_preserves_existing_legacy_venue_file(self):
+        legacy = self.data / "places.jsonl"
+        legacy.write_bytes(b"legacy bytes are never modified\\n")
+        self.setup("install")
+        self.assertEqual(legacy.read_bytes(), b"legacy bytes are never modified\\n")
+        saved = self.cli("shortlist-save", payload=self.shortlist_payload())
+        self.assertTrue(saved["ok"])
+        self.assertEqual(legacy.read_bytes(), b"legacy bytes are never modified\\n")
 
     def test_skill_routes_phase_one_behavior_contracts(self):
         skill_path = REPO / "hermes-skill" / "SKILL.md"
@@ -678,8 +701,7 @@ class Phase1Test(unittest.TestCase):
             "at most **three search queries**",
             "twelve external calls total",
             "**6–8 plausible options**",
-            "place-cache-leads",
-            "at most one displayed option",
+            "Every new recommendation must come from fresh research.",
             "`place` block",
             "automatically creates the Google Maps search link",
             "Do not display normal research telemetry",
@@ -691,8 +713,7 @@ class Phase1Test(unittest.TestCase):
             "Unknown price does not pass",
             "straight-line distance",
             "three search queries",
-            "place-cache-lookup",
-            "verification leads only",
+            "Fresh discovery only",
             "adjacent municipalities",
             "separate query allowance",
             "One failed page, PDF or reader path",

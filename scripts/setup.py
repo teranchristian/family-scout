@@ -19,7 +19,6 @@ STATE_FILES = {
     "sources.yaml": "sources.example.yaml",
     "shortlists.jsonl": None,
     "feedback.jsonl": None,
-    "places.jsonl": None,
 }
 
 

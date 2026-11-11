@@ -44,10 +44,8 @@ For broad recommendations, fresh discovery must occur before prior shortlist
 history is exposed to the agent. `scripts/discovery_context.py` exists for this
 purpose and intentionally does not read `shortlists.jsonl` or `feedback.jsonl`.
 History may be consulted only after the fresh candidate pool exists, for explicit
-feedback, deduplication and repetition awareness. After the required fresh
-searches, the stable-place cache may contribute at most one candidate lead to a
-normal shortlist. It never establishes date-sensitive truth, and at least two
-finalists in a three-option answer must originate in fresh discovery.
+feedback, deduplication and repetition awareness. Recommendations use fresh
+sources, never venue-cache leads; current pages establish date-sensitive truth.
 
 ## Privacy and data
 
@@ -59,8 +57,9 @@ finalists in a three-option answer must originate in fresh discovery.
 - Blank templates are intentional. Never seed a real profile from conversation,
   personal context, repository metadata or another project during installation.
 - Keep runtime state outside the checkout. `profile.yaml`, `sources.yaml`,
-  `shortlists.jsonl`, `feedback.jsonl` and `places.jsonl` are private and must
-  remain untracked.
+  `shortlists.jsonl` and `feedback.jsonl` are private and must remain
+  untracked. Any existing legacy `places.jsonl` is also private and must not
+  be touched by installs or recommendation runs.
 - Do not print private state in repository tests or log exact home coordinates.
   The helper `context` output is for local Hermes reasoning, not external tools.
 - Send only request facts needed for public search; never send names, exact home
@@ -127,7 +126,7 @@ Portable verification, including on the Hermes/Rock 4 host, is:
 
 ```sh
 python3 -m unittest discover -s tests -v
-python3 -m py_compile scripts/setup.py scripts/family_scout.py scripts/discovery_context.py scripts/finalize_briefing.py tests/test_phase1.py tests/test_discovery_context.py tests/test_place_cache.py tests/test_finalize_briefing.py
+python3 -m py_compile scripts/setup.py scripts/family_scout.py scripts/discovery_context.py scripts/finalize_briefing.py tests/test_phase1.py tests/test_discovery_context.py tests/test_finalize_briefing.py
 git diff --check
 ```
 

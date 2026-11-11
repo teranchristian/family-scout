@@ -95,6 +95,10 @@ language, select good evidence or produce useful rankings on the live web.
 
 ## Stable-place cache and adjacent-area checks — 2026-09-10 UTC
 
+*Historical record: the venue-cache feature described below was removed from the
+active code and recommendation workflow in PR #9 (November 2026). These older
+cache checks are retained only as a record of past development.*
+
 This narrow follow-up starts from merged `main` commit `8920660`. Fixtures remain
 temporary and synthetic; no installed or private family state was read.
 

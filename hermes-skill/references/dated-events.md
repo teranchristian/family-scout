@@ -14,7 +14,7 @@ or a date from an example. Use `ages-on --date YYYY-MM-DD` for each relevant
 activity date when birthdates are saved. Pass derived age bands to web tools,
 never private birthdates, home coordinates or a full family profile.
 
-## 2. Find useful candidates (three agents for broad weekend searches)
+## 2. Find useful candidates (local-first and bounded)
 
 Search fresh sources, locally first:
 
@@ -45,29 +45,23 @@ community events. Prefer events with **active participation** for each child,
 rather than merely allowing children inside. Everyday venues remain useful
 alternatives when no exceptional dated events are evidenced.
 
-**For broad weekend/event searches, use three parallel subagents by default.**
-Read [parallel-research.md](parallel-research.md) and call `delegate_task`
-**once with three tasks in one batch**. Give each agent a distinct geographic
-scope: local councils/libraries, neighbouring areas, and standout wider-area
-events/indoor backups. Avoid duplicate research; tell agents to return concise
-candidate evidence, direct official URLs and actual call counts. The parent
-deduplicates, independently verifies the finalists and handles saving/rendering.
-Do not launch agents for a narrow venue check or follow-up on an existing
-selection. If delegation is unavailable, use bounded direct research rather
-than abandoning the outing search or launching three serial calls.
-
-Three agents are a deliberate default, not a minimum: **do not add more by
-default**. More agents split the same limited calls, repeat searches and
-increase coordination overhead. The parent and all children share **one shared budget**, not a separate budget per agent. Reserve enough calls for parent-side
-verification, exact booking checks, forecast and finalization; never assume
-subagent findings alone establish a verified recommendation.
+**For broad weekend/event searches, start with bounded direct research.**
+Only use optional delegation when the user explicitly requests thorough
+regional coverage or important nearby sources cannot be covered within a
+normal search. If delegation is warranted, read [parallel-research.md](parallel-research.md)
+and call `delegate_task` **once with three tasks in one batch**.
+Use distinct geographic scopes, share one research budget and reserve calls
+for verification and finalization. **Do not add more by default.**
+Do not launch subagents for a narrow venue check or a selected follow-up.
+If delegation is unavailable, continue with bounded direct research.
+Do not let coordination overhead prevent delivering the shortlist.
 
 For this dated route use the existing `effort_mode: "deep"` ceiling: **six searches and twenty-four external calls total**, including
 searches, page reads, forecast and geocoding (also delegated calls).
 These are ceilings, not targets. Keep at most **ten retained candidates** in the finalizer's ledger, and verify **up to five** best candidates.
 
-**Finish discovery before choosing or saving:** wait for the three agent
-results (or explicit failures), complete any planned parent/local sweep within
+**Finish discovery before choosing or saving:** if delegation was used, wait
+for its results (or explicit failures). Complete planned direct research within
 the remaining budget, merge and deduplicate all discovered leads, and rank the
 **complete fresh pool**. A strong nearby find from the last search must compete
 fairly with earlier candidates. Only then choose finalists, verify and
@@ -113,8 +107,7 @@ takes precedence over past soft preferences.
 **Weather affects ranking and backups, not discovery coverage**, unless the
 user explicitly requested indoor-only or another hard weather constraint.
 Offer a weather-safe alternative where possible, without falsely calling a
-covered outdoor venue fully indoors. Cached place records are leads only and
-never establish an event's current date, cost or availability.
+covered outdoor venue fully indoors. Previously seen places are not discovery leads for a new request.
 
 ## 3. Verify each finalist, including its links
 
@@ -149,7 +142,12 @@ python3 <source_dir>/scripts/finalize_briefing.py --print-template --template-mo
 ```
 
 Fill the example with current facts. Set `shortlist.effort_mode = "deep"`,
-`shortlist.result_mode = "verified"` and add at most five options. The usual
+`shortlist.result_mode = "verified"` and add at most five options.
+**Do not call `evaluate` or manually fill `constraint_results`.** Saving
+already checks hard date, distance, price, indoor and booking requirements;
+rendering checks that each attending child is matched to an available activity.
+Keep current official-page evidence and link checks: simpler input is not a
+license to guess eligibility or availability. The usual
 compact payload does **not** need optional duplicated
 `finalist_date_enrichment` or `dated_findings` structures; the built-in
 per-option checked source and available activity evidence is enough.
@@ -178,7 +176,7 @@ alternative; do not stack outings
 or imply the user selected them unless asked to build a plan.
 
 Keep the research summary brief and evidence-led: **Subagents completed**
-(e.g. "3/3", "2/3", or "not used" if delegation failed), **Distinct candidate events actually discovered** (or
+(e.g. "3/3", "2/3", or "not used" for normal direct research), **Distinct candidate events actually discovered** (or
 "not tracked"), counts in **Priority 1 / 2 / 3** when tracked, calendars
 **actually checked**, and material **verification gaps**. Do not invent
 counts or present the helper's candidates retained for validation as the

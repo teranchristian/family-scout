@@ -1,16 +1,17 @@
 # Parallel research — three-agent batch
 
-Read for **broad weekend/event searches by default** and for explicitly
-requested thorough regional comparisons. Not needed for a single venue,
-a selected event follow-up, or an ordinary undated menu.
+Read only when a broad weekend search genuinely needs independent regional
+coverage or the user explicitly requests a thorough comparison. Not needed
+for routine searches, a single venue, a selected event follow-up or an
+ordinary undated menu.
 
 ## One-call parallel delegation
 
-Broad dated weekend/event discovery uses **three subagents** by default, each
-covering a distinct region. Undated general Family Scout recommendations do
-not need subagents unless the user explicitly requests them or a thorough
-regional comparison warrants them. This changes orchestration, not budgets,
-evidence requirements or finalization rules. More than three agents are not
+If a broad dated weekend search needs delegation, use **three subagents** in
+one batch, each covering a distinct region. Routine weekend discovery starts
+with bounded direct research instead. Undated general Family Scout requests
+do not need subagents unless the user explicitly requests a thorough comparison.
+Delegation changes orchestration, not budgets, evidence or finalization rules. More than three agents are not
 automatically better; each shares the same research-call limit.
 
 When delegation is useful:
