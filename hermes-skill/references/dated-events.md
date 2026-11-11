@@ -107,8 +107,7 @@ takes precedence over past soft preferences.
 **Weather affects ranking and backups, not discovery coverage**, unless the
 user explicitly requested indoor-only or another hard weather constraint.
 Offer a weather-safe alternative where possible, without falsely calling a
-covered outdoor venue fully indoors. Do not read or write the saved venue cache; previously seen places are
-not discovery leads for a new request.
+covered outdoor venue fully indoors. Previously seen places are not discovery leads for a new request.
 
 ## 3. Verify each finalist, including its links
 
