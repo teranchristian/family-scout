@@ -33,9 +33,12 @@ Hermes may record a proposed code/procedure change for review, but must not
 persist that procedure as a conflicting agent-memory instruction. Approved
 family preferences and explicit feedback are stored only in the separate
 private `data_dir` through documented helper commands, not in skill files.
-Locking the installed skill with `hermes curator lock family-scout` (where
-available) is recommended; it supplements but does not replace the installer's
-hash-based drift detection.
+The installer automatically attempts the profile-scoped
+`hermes curator lock family-scout` guard after copying Git-owned skill files.
+If the Hermes CLI is unavailable or too old, installation still succeeds with
+an explicit `LOCK NOT APPLIED` warning. This guard supplements but does not
+replace the installer's hash-based drift detection; never modify `config.yaml`
+or curator ownership/provenance directly.
 
 For broad recommendations, fresh discovery must occur before prior shortlist
 history is exposed to the agent. `scripts/discovery_context.py` exists for this

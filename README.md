@@ -113,23 +113,29 @@ workflow in Hermes memory. Family Scout's private state is authoritative for
 its own saved preferences and feedback; an explicit current user request still
 takes priority. There is no automatic memory-to-skill synchronization.
 
-For an additional preventive guard, recent Hermes versions support locking
-one installed skill so agent tools, subagents and background review cannot
-edit it:
+**`./install.sh` now attempts to lock Family Scout automatically**
+*after* it copies the Git-owned skill. It calls
+`hermes curator lock family-scout` through the installed Hermes CLI with
+`HERMES_HOME` set to the exact profile targeted by the installer (including
+`--hermes-home`). This is repeatable and does not enable autonomous curation
+or hand ownership of the skill to Curator.
+
+On success the installer prints `LOCKED`. If the Hermes CLI is missing or
+too old to support locking, the installation still succeeds but prints
+`LOCK NOT APPLIED` so there is no false claim of protection. Update Hermes
+and rerun `./install.sh` to apply the lock; no separate command is needed.
+To check status manually:
 
 ```sh
-hermes curator lock family-scout
 hermes curator status
 ```
 
-Run this manually on the Hermes host **if your version supports it**. The lock
-is a Hermes agent-policy guard, not an operating-system security sandbox,
-and does not block your own `git pull` + `./install.sh` updates. If your
-installed version lacks `hermes curator lock`, do not change Hermes config
-automatically; the source-owned instructions and installer ownership checks
-still apply, and recent Hermes also offers a global skill-write approval
-setting. Locking is preferable to requiring approval for every unrelated
-skill, since it targets only Family Scout.
+The lock is a **Hermes agent-policy guard**, not an operating-system sandbox,
+and does not block your own `git pull` + `./install.sh` updates. It
+protects only the installed skill, not arbitrary copies of the repository.
+Do not disable all Hermes memory or self-improvement; Family Scout's own
+private state and feedback remain writable through the safe helper commands.
+The installer does not change `config.yaml` or global Hermes settings.
 
 Safe update workflow: make and test a Git change, review/merge the PR,
 `git pull` on the Hermes host, run `./install.sh`, and start a fresh Hermes

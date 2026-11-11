@@ -38,7 +38,7 @@ class SkillOwnershipContractTests(unittest.TestCase):
         for required in (
             "hermes curator lock family-scout",
             "hermes curator status",
-            "if your version supports it",
+            "LOCK NOT APPLIED",
             "agent-policy guard",
             "git pull",
             "./install.sh",
