@@ -17,37 +17,46 @@ birthdates are available. Share only broad age bands, public location, dates and
 search criteria with search tools or subagents; never private names, birthdates,
 home coordinates or full profiles.
 
-### Quick geographic preflight for broad weekend searches
+### Model-first geographic preflight for broad weekend searches
 
-Before the three research agents start, make **one quick web search** (Google
-search if already available, otherwise Hermes's existing search tool) for the
-**public suburb/town and city** from the resolved location and its surrounding
-suburbs and council/municipal areas. Use an appropriate query such as
-`suburbs bordering <public suburb>, <city> and neighbouring councils`. If the
-user supplied a different anchor, use that instead of saved home/travel.
-Never put a street address, precise coordinates, birthdates or the private
-profile in the query. Do not add a new provider or make multiple preliminary
-geography searches.
+Before delegating event research, use **Hermes's existing AI model knowledge**
+to propose nearby suburbs and neighbouring councils from the resolved
+**public suburb/town and city**. This is a short reasoning step in the
+parent agent, **not a new subagent, tool call or mandatory web search**.
+If the user specifies a different geographic anchor or names priority
+areas, use those instructions instead of saved home/travel. Never include
+street addresses, private coordinates, birthdates or the full profile in
+external searches or delegation context.
 
-Turn the results into a short **search-area plan** before delegation:
-- **Anchor/local:** the named suburb/town plus a manageable set of immediate
-  surrounding suburbs, normally about 4–8 if supported by the results.
-- **Adjacent:** nearby other council/municipal areas and their relevant suburbs
-  within the user's requested geographic scope.
-- **Wider:** the broader region for exceptional events and indoor backups only.
+Form a concise **search-area plan**:
+- **Anchor/local:** the named suburb/town and a manageable set of likely
+  immediately surrounding suburbs (roughly 4–8 when plausible).
+- **Adjacent:** likely neighbouring council/municipal areas and their
+  relevant suburbs within the requested geographic scope.
+- **Wider:** only the broader permitted region for exceptional activities
+  and indoor backups.
 
-Prefer official/local-government geography when available. A search-result
-snippet is only a lead: do not invent boundaries, treat Google ranking as proof
-of distance, or claim an entire suburb falls inside a numerical radius. Explicit
-user geographic priorities override any auto-discovered tier. Keep tiers distinct
-so the agents do not repeat the same area. Any hard radius still applies to the
-**exact event venue** during final verification, not to a vague suburb label.
+Treat model-generated suburb and council names as **search leads, not
+verified geographic boundaries**. Do not invent certainty about adjacency,
+jurisdictions or distances. Preserve the user's explicitly specified tiers.
+Avoid duplicate suburbs across tiers; do not silently extend the search to
+distant areas just to fill a list. A hard radius is checked against each
+**exact event venue**, not a suburb label, during final verification.
 
-Pass the resulting **specific area names and assigned tier** to each subagent.
-If the lookup fails or produces weak results, fall back to the public anchor
-and areas explicitly supplied by the user; do not delay the event search or
-pretend the surrounding areas were checked. This preflight is for search
-planning, not evidence of an event's date, price or availability.
+**Conditional lookup:** Only when the area is unfamiliar, nearby councils
+or boundaries are materially uncertain, or a strict radius makes the
+proposed tiers unreliable, use **at most one quick web search** with
+Hermes's already available search tool to clarify the geography. Use
+only the public suburb/town and city in that query. If the lookup fails,
+keep the confidently known areas and any user-specified locations,
+mark unclear areas as tentative and proceed; do not invent neighbours
+or delay event research.
+
+Pass the plan's **specific area names and assigned tier** to each research
+agent. The agents discover their own official council event calendars and
+other organisers as part of event research; there is **no separate council
+website lookup**. Neither model knowledge nor a geographic search result
+establishes an event's date, price, opening status or availability.
 
 ## 2. Find more local events before picking winners
 
