@@ -336,7 +336,7 @@ class FinalizeBriefingTest(unittest.TestCase):
         self.assertEqual(coverage["exact_date_event_findings_captured"], 1)
         self.assertEqual(coverage["finalist_date_evidence_sources"], 2)
         self.assertEqual(coverage["finalist_dated_findings"], 2)
-        self.assertIn("6 fresh + 0 cached lead(s) across 4 categories",
+        self.assertIn("6 freshly discovered candidate(s) across 4 categories",
                       result["research_summary_markdown"])
         self.assertIn("1 exact-date event/calendar source(s) checked",
                       result["research_summary_markdown"])
@@ -359,14 +359,37 @@ class FinalizeBriefingTest(unittest.TestCase):
         }
         result = self.run_finalize(payload)
         self.assertTrue(result["ok"])
-        self.assertEqual(result["place_cache"]["upserted"], 1)
-        self.assertEqual(len((self.data / "places.jsonl").read_text().splitlines()), 1)
+        self.assertNotIn("place_cache", result)
+        self.assertEqual((self.data / "places.jsonl").read_text(), "")
+        saved = json.loads((self.data / "shortlists.jsonl").read_text().splitlines()[0])
+        self.assertIn("place", saved["options"][0])
+        self.assertIn("google.com/maps/search", result["numbered_options_markdown"])
+
+    def test_explore_menu_does_not_require_cached_leads(self):
+        payload = json.loads(subprocess.run(
+            [PYTHON, FINALIZE, "--print-template", "--template-mode", "explore"],
+            text=True, capture_output=True, cwd=REPO, check=True,
+        ).stdout)
+        payload["shortlist"]["operation_id"] = "op-no-cache-menu"
+        self.assertNotIn("cache_lookup_performed", payload["discovery"])
+        self.assertTrue(all(
+            "discovery_origin" not in option for option in payload["shortlist"]["options"]
+        ))
+        self.assertTrue(self.run_finalize(payload)["ok"])
+        self.assertEqual((self.data / "places.jsonl").read_text(), "")
+
+    def test_finalizer_rejects_cache_seeded_candidate(self):
+        payload = self.payload()
+        payload["discovery"]["candidate_ledger"][0]["discovery_origin"] = "cache"
+        payload["shortlist"]["options"][0]["discovery_origin"] = "cache"
+        result = self.run_finalize(payload, expected=2)
+        self.assertIn("cannot be seeded from saved venue cache", result["error"])
+        self.assert_no_real_write()
 
     def test_explore_mode_saves_and_renders_a_six_option_menu(self):
         payload = self.payload()
         payload["shortlist"]["operation_id"] = "op-explore-menu"
         payload["shortlist"]["result_mode"] = "explore"
-        payload["discovery"]["cache_lookup_performed"] = True
         payload["shortlist"]["options"] = []
         payload["render"]["cards"] = []
         classes = ["dated_events", "play", "culture", "commercial", "play", "culture"]
