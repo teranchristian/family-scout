@@ -23,7 +23,7 @@ class SimpleResearchContractTests(unittest.TestCase):
         for term in ("council", "library", "community", "free", "paid",
                      "one-off", "date/time", "age", "booking", "URL"):
             self.assertIn(term.casefold(), RESEARCH.casefold())
-        self.assertIn("10–15 distinct useful leads", RESEARCH)
+        self.assertIn("up to five worthwhile options per requested day", RESEARCH)
         self.assertIn("not a hard minimum", RESEARCH)
 
     def test_safety_privacy_and_optional_persistence(self):

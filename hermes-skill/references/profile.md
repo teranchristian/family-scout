@@ -21,7 +21,7 @@ python3 <source_dir>/scripts/family_scout.py --data-dir <data_dir> ages-on --dat
 ```
 
   Repeat for a separate date only when necessary, including birthdays within the window. Birthdate-derived ages override saved numeric ages. Only send age bands to agents.
-- **Preferences:** favour explicit interests, free/affordable options, travel convenience and the current instruction. A preference is not a hard exclusion unless saved as a constraint. Enabled custom sources are leads, not substitutes for discovery; skip disabled ones.
+- **Preferences:** favour explicit interests, travel convenience and the current instruction. Consider free and paid activities fairly. Do not turn stored price, budget, free-only or booking preferences into automatic exclusions; enforce these only if explicitly requested for the current search. Enabled custom sources are leads, not substitutes for discovery; skip disabled ones.
 - **Dates:** resolve "today", "tomorrow" and weekday/weekend references in the activity location's timezone; use absolute dates for every agent.
 
 ## Safe memory actions — only when asked

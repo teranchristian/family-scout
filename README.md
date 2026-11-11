@@ -6,11 +6,11 @@ A small Git-managed Hermes skill for discovering **fresh, age-appropriate activi
 
 1. Read the existing private profile using `scripts/discovery_context.py`: saved location, group members, age context, preferences, constraints and enabled sources. Explicit user instructions override defaults. "My kids" targets the children's ages on the activity dates.
 2. Determine the anchor suburb and nearby allowed suburbs. No city or family members are hardcoded into the skill.
-3. For a broad search, launch **three tasks in one parallel `delegate_task` batch** when supported: **local events**, **nearby events**, and **weather for each requested day**. The first two agents use the same research rules; only their assigned public search areas differ. If delegation is unavailable, search directly. A single named-venue check does not need subagents.
+3. For a broad search, launch **three tasks in one parallel `delegate_task` batch** when supported: **local events**, **nearby events**, and **weather for each requested day**, plus a fourth when saved suburb URLs are available. The first two agents use the same research rules; only their assigned public search areas differ. All relevant requested dates receive coverage. If delegation is unavailable, search directly. A single named-venue check does not need subagents.
 4. Combine discoveries, deduplicate, confirm the best matches against current official/organiser pages, and rank by child-by-child fit, local convenience, cost, specialness and weather.
 5. Reply in a scannable Telegram format: date/time, venue/suburb, brief description, who can participate, family price (or unknown), direct event link, map when the address is evidenced, booking/caveats, daily weather and useful daily picks/backup.
 
-A broad search aims for 10–15 **actual leads when available**, not a mandatory quota. Return a top five if there are five good options and optional extras. Fresh discovery precedes any previous recommendations; no venue cache is used.
+A broad search looks across **every requested date equally**, whether weekday or weekend. It aims to show **up to five worthwhile options per day** if available (not a combined top-five cap), plus clearly labelled **Needs checking** leads with missing facts. Free, paid and booking-required events are considered equally; price and booking are displayed, not default exclusions. Explicit user requirements still apply. Fresh discovery precedes any previous recommendations; no venue cache is used.
 
 **Optional suburb sources:** Edit the private `sources.yml` (not the older structured `sources.yaml`) to point Family Scout at locally curated public event calendars:
 

@@ -10,7 +10,7 @@ Find useful outings for the people and dates the user requests. Keep the process
 ## Start every request
 
 1. Read `installation.json` beside this skill. Follow [references/profile.md](references/profile.md) to load the private profile and location-matched source URLs via `discovery_context.py`; do not inspect helper source.
-2. Resolve the user's requested dates in the activity location's timezone. Explicit location, dates, attendees, radius and budget override saved defaults. For "my kids", use the children in the profile and their ages **on each activity date**; do not silently target adults or generic "all ages" events. If the date is unspecified, use the next seven days for an event search and say so; a request for timeless ideas can remain undated.
+2. Resolve the user's requested dates in the activity location's timezone. Explicit location, dates, attendees, radius and other user-stated hard constraints override saved defaults. **Price, free-only, budget and booking are information, not default exclusion filters**; enforce a price cap, free-only requirement or booking preference only when the user explicitly requests it. For "my kids", use the children in the profile and their ages **on each activity date**; do not silently target adults or generic "all ages" events. If the date is unspecified, use the next seven days for an event search and say so; a request for timeless ideas can remain undated.
 3. Identify the anchor suburb and **nearby suburbs within the user's geographic preferences/radius**. Prefer local gems over equally good farther attractions. Do not hardcode a city, children or sample ages.
 
 ## Research
@@ -24,15 +24,15 @@ For a **broad activity search**, read [references/research.md](references/resear
 
 Pass only public areas, absolute dates, derived age bands, requested budget, activity criteria and public saved-source URLs to their assigned agent. Never send the private profile, home coordinates, names or birthdates. If a batch fails, retry once with a shorter valid payload; if delegation is unavailable, cover the three scopes directly rather than running serial subagents. A named-venue check or follow-up needs direct verification, not three agents.
 
-Combine and deduplicate leads, confirm important facts against current official/organiser pages, then rank for actual participation by the requested children, novelty, convenience, cost and weather. **Fresh discovery comes before old shortlists or feedback**. No numeric match scores.
+Combine and deduplicate leads, confirm important facts against current official/organiser pages, then rank for actual participation by the requested children, novelty, convenience and weather. Include free and paid options; do not discard an interesting lead for its price, booking requirement or an unverified detail. **Fresh discovery comes before old shortlists or feedback**. No numeric match scores.
 
 ## Telegram-friendly answer
 
-Start with a short weather summary for each day. Show a ranked **top five when there are five good options**, plus up to 3–5 additional worthwhile choices if found; never pad the list. Each entry includes:
+Start with a short weather summary for each day. **Group options by requested day** and aim for **up to five worthwhile activities per day**, for any weekday or weekend day, when available. Do not apply one overall top-five cap across multiple dates or pad with invented events. Put promising leads with unverified details under **Needs checking** rather than silently dropping them. Each entry includes:
 
-**Title · day/date and time · suburb/venue · free or group price (if known) · child-by-child fit for the actual attending children from the profile · a one-sentence description · direct official/event link · Google Maps link when an exact address is evidenced.** Mention booking and meaningful uncertainties. State which child can actually participate, not just a vague age range.
+**Title · day/date and time (or unverified) · suburb/venue · FREE / group price / price unknown · child-by-child fit for the actual attending children from the profile · a one-sentence description · direct official/event link · Google Maps link when an exact address is evidenced.** Label booking required / not required / unknown; flag missing details without pretending confirmation. State which child can actually participate, not just a vague age range.
 
-For multi-day requests, suggest one best option per day and a realistic wet-weather alternative, without assuming a booking. Keep it readable and skip internal research telemetry unless asked.
+For multi-day requests, still highlight one best pick per day and a realistic wet-weather alternative when available, **without hiding the other worthwhile options** or assuming a booking. Keep it readable and skip internal research telemetry unless asked.
 
 ## Boundaries
 

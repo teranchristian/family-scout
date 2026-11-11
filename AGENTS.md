@@ -16,11 +16,11 @@ The real user's home address, exact private coordinates, names, birthdates and p
 
 - An explicit date, location, group, radius or budget overrides saved defaults. "My kids" focuses on the profile's children's age and *what each can actually do*.
 - Two identical local-event discovery roles work on different public geographic areas. A third role researches weather by day **only**. When private `sources.yml` has URLs for the requested suburb, an optional fourth role researches those public calendars. Launch all applicable roles in one delegation batch; otherwise perform direct searches, not serial subagents.
-- Start with current general council event calendars, library programs and community events; also consider non-"kids" events that are age-appropriate. Prioritise local free/affordable one-offs without automatically excluding worthwhile paid activities.
+- Search general council calendars, library programs, community events and interesting paid activities without a default free-only, budget or booking exclusion. Only enforce price/booking constraints explicitly requested by the user. Check every requested date equally, not just weekends.
 - Verify current official sources for date/time, venue, actual activity, child fit, price, mandatory booking and closure. Snippets and navigation maps are not proof. Link targets must be relevant and working. Don't invent dates, prices, map coordinates, forecast, availability or numerical scores.
 - Preserve a useful venue when a promoted feature is unavailable but another worthwhile activity is confirmed. Unknown hard constraints are **Needs checking**, not confirmed matches.
 - Fresh discovery comes before history. Optional location sources are extra leads, not a substitute for discovery. Saving, finalizers, renderers and source files from the old ten-file workflow are not prerequisites for a good recommendation.
-- Rank local-first and output a concise Telegram-friendly top five when possible, optional extras, an activity per requested day and an indoor weather backup.
+- Rank local-first and output up to five worthwhile activities **per requested day** (no global top-five cap), plus a clearly marked **Needs checking** group for promising unverified leads. Highlight a best pick and indoor weather backup per day when useful; never fabricate options to fill a day.
 
 ## Verification
 
