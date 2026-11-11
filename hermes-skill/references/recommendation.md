@@ -1,10 +1,11 @@
 # Fast two-stage recommendation workflow
 
-This is the complete runtime contract for normal Family Scout use. Do not open
-any other reference, helper source, validator source or unowned file in the
-installed skill directory—even after a tool failure or validation error. A
-normal broad request starts with choices; it does not prematurely build a day
-plan.
+This is the complete runtime contract for **undated/general** Family Scout
+recommendations. Do not open any other reference, helper source, validator
+source or unowned file—even after tool failure—except that a **dated
+event/weekend search** also reads `dated-events.md` and follows its explicit
+one-pass verified-shortlist route. General broad requests start with choices,
+not a premature day plan.
 
 ## 1. Interpret once and start the run
 
@@ -134,12 +135,12 @@ an itinerary only when the user asks for one or after their choices are known.
 
 ## 4. Optional one-call parallel delegation
 
-Normal Family Scout recommendations **do not need subagents**. This section applies
-only when the user explicitly requests multiple research agents or an explicitly
-thorough, independent regional comparison warrants them. It changes the
-orchestration of existing research, **not** the normal three-query/twelve-call
-budget, the deep-effort ceilings, or the two-stage shortlist contract. Do not
-delegate a trivial question or a single page read.
+Undated, general Family Scout recommendations **do not need subagents**.
+Use this optional pattern when the user explicitly requests multiple research
+agents, when a thorough regional comparison warrants them, **or for a broad
+dated event/weekend search as described in `dated-events.md`**. This changes
+orchestration, not the budgets or finalization rules for the selected route.
+Do not delegate a trivial question or a single page read.
 
 When delegation is useful:
 
@@ -170,9 +171,9 @@ When delegation is useful:
    the parent still checks current source pages and the saved-link contract
    before displaying any claims or URLs.
 
-One valid **illustrative JSON payload** (fictional place and dates; replace all
-values to match the real request). The examples allocate three searches and six
-page reads across all agents, leaving capacity for parent work:
+One valid **illustrative JSON payload** (placeholders must be replaced by
+resolved request/profile values before dispatch). The examples allocate three
+searches and six page reads across all agents, leaving capacity for parent work:
 
 <!-- begin single-batch-example -->
 ```json
@@ -180,15 +181,15 @@ page reads across all agents, leaving capacity for parent work:
   "tasks": [
     {
       "goal": "Find dated family activities in the named local area",
-      "context": "Public anchor: Sample Bay; dates: 2030-04-06 to 2030-04-07; ages: 6 and 9; priority: local council and library calendars; budget: 1 search and up to 2 page reads; return short JSON candidates with source URLs, verification status and actual tool counts."
+      "context": "Resolved public anchor: <area from request or profile>; dates: <resolved date window and timezone>; ages: <resolved age bands>; priority: local councils and libraries; budget: 1 search and up to 2 page reads; return compact JSON candidates with official URLs, verification and actual tool counts."
     },
     {
       "goal": "Find dated family activities in nearby areas",
-      "context": "Public anchor: Sample Bay; nearby: Example Coast; dates: 2030-04-06 to 2030-04-07; ages: 6 and 9; priority: neighbouring councils and community venues; budget: 1 search and up to 2 page reads; return short JSON candidates with source URLs, verification status and actual tool counts."
+      "context": "Resolved public anchor: <area from request or profile>; adjacent areas: <nearby places inside scope>; dates: <resolved date window and timezone>; ages: <resolved age bands>; priority: neighbouring councils and community venues; budget: 1 search and up to 2 page reads; return compact JSON candidates with official URLs, verification and actual tool counts."
     },
     {
       "goal": "Find unusual wider-area options and weather-safe backups",
-      "context": "Public anchor: Sample Bay; dates: 2030-04-06 to 2030-04-07; ages: 6 and 9; priority: standout activities rather than familiar venues; budget: 1 search and up to 2 page reads; return short JSON candidates with source URLs, verification status and actual tool counts."
+      "context": "Resolved public anchor: <area from request or profile>; dates: <resolved date window and timezone>; ages: <resolved age bands>; priority: exceptional wider events and weather backups; budget: 1 search and up to 2 page reads; return compact JSON candidates with official URLs, verification and actual tool counts."
     }
   ]
 }
@@ -203,8 +204,9 @@ subagents separately.** Do not claim that the agents ran in parallel without
 evidence from the actual invocation. For gateway delivery, do not repeatedly
 poll the background handle.
 
-Use the existing evidence, cache, finalization and selection rules unchanged.
-Do not modify Hermes configuration or installed files to enable this pattern.
+Use the evidence, cache and finalization rules for the **selected** workflow:
+the undated two-stage flow or the dated-events one-pass flow. Do not modify
+Hermes configuration or installed files to enable this pattern.
 
 ## 5. Honest budgets and failures
 
