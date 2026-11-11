@@ -5,6 +5,18 @@ check, a selected option follow-up or a routine undated menu.
 
 ## One parallel call
 
+Build the model-first geographic preflight in [dated-events.md](dated-events.md)
+**before** calling `delegate_task` (one web lookup only when needed). Give all three agents the same concise
+public search-area plan (anchor, specific local suburbs, adjacent councils/
+suburbs and permitted wider region) plus a clearly **assigned scope**. The
+local specialist searches the local tier, the adjacent specialist searches
+the adjacent tier, and the wider specialist searches only exceptional options
+in the wider tier. Do not ask each agent to rediscover neighbouring suburbs
+or delegate using only vague labels such as "nearby". User-specified tiers
+take precedence over the model's suggestions; do not extend a hard radius.
+Each agent finds its own official council calendars and other event sources;
+do not add a separate pre-delegation council-site search.
+
 Call `delegate_task` **once with three tasks in one batch**, not as three
 serial calls. Give **every agent** the public geographic anchor and scope,
 absolute dates/timezone, attending age bands, free/paid preferences and the
@@ -37,15 +49,15 @@ ranking. Do not invent a lead to reach the target.
   "tasks": [
     {
       "goal": "Find small local family events for the requested dates",
-      "context": "Anchor: <public area>; dates/timezone: <resolved dates>; ages: <age bands>; priorities: official local council events calendar AND library programs, community venues, parks, swaps, workshops; find several distinct leads; return concise dated sources and unknowns."
+      "context": "Area plan: anchor=<public suburb/city>; local=<specific local suburbs>; adjacent=<specific nearby councils/suburbs>; wider=<allowed wider region>. Assigned scope: local only. Dates/timezone=<dates>; ages=<bands>. Check local council general calendar AND library programs, community venues, parks, swaps, workshops; return distinct leads with source URLs and unknowns."
     },
     {
       "goal": "Find nearby council and community events",
-      "context": "Anchor: <public area>; scope: <neighbouring areas>; dates/timezone: <resolved dates>; ages: <age bands>; priorities: neighbouring council calendars, libraries, galleries and community events; avoid duplicating local leads; return concise dated sources and unknowns."
+      "context": "Area plan: anchor=<public suburb/city>; local=<specific local suburbs>; adjacent=<specific nearby councils/suburbs>; wider=<allowed wider region>. Assigned scope: adjacent only. Dates/timezone=<dates>; ages=<bands>. Check neighbouring council calendars, libraries, galleries and community events; avoid local duplicates; return distinct leads with source URLs and unknowns."
     },
     {
       "goal": "Find exceptional wider events and weather alternatives",
-      "context": "Anchor: <public area>; scope: <wider area allowed by request>; dates/timezone: <resolved dates>; ages: <age bands>; priorities: special city-wide events, paid experiences worth the travel, weekend forecast and indoor backups; return concise dated sources and unknowns."
+      "context": "Area plan: anchor=<public suburb/city>; local=<specific local suburbs>; adjacent=<specific nearby councils/suburbs>; wider=<allowed wider region>. Assigned scope: wider exceptional options and weather only. Dates/timezone=<dates>; ages=<bands>. Search standout events, paid experiences worth travelling for, forecast and indoor backups; avoid local and adjacent duplicates; return source URLs and unknowns."
     }
   ]
 }

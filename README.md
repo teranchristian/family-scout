@@ -68,7 +68,8 @@ actual dates and the activity area from the request or private home/travel
 context **at runtime**; no dates, cities or family details are built into
 the shipped skill. It prioritises the named locality, then neighbouring areas,
 then exceptionally worthwhile wider events. Broad weekend searches use
-three parallel research agents in **one batch**: local, neighbouring and
+the existing AI model to suggest nearby suburbs and councils, with at most
+one clarifying web lookup when geography is uncertain, then three parallel research agents in **one batch**: local, neighbouring and
 wider-area/indoor options. A narrow venue check needs no subagents; if
 delegation fails, Nico uses bounded direct research instead.
 
