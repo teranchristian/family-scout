@@ -73,7 +73,11 @@ missing birthdates from ages.
       "label": "Example City",
       "latitude": 0,
       "longitude": 0,
-      "timezone": "Etc/UTC"
+      "timezone": "Etc/UTC",
+      "preferred_event_urls": [
+        "https://events.example.org/city-calendar",
+        "https://events.example.org/library-calendar"
+      ]
     },
     "travel": {
       "label": "Sample Town",
@@ -90,6 +94,16 @@ missing birthdates from ages.
 python3 <source_dir>/scripts/family_scout.py --data-dir <data_dir> \
   profile-update --input update.json
 ```
+
+The optional `home.preferred_event_urls` is an array of plain http(s) URL
+strings, stored **inside the existing private profile**, not a new file. These
+are **preferred starting points, not a restriction**: the event agent still
+searches independently. The array applies only when the active search uses
+the saved `home` origin, not an active travel location or an explicit location
+override. Leave it absent or `[]` to use the usual open discovery. `home.label`
+is the public suburb/town name; latitude/longitude are the private distance
+reference, not proof of municipal boundaries. Updating the URL list replaces
+that list without changing other home fields.
 
 Only persist facts the user explicitly asks to remember. To clear travel, set it
 to `null`. The `.yaml` state documents are written as indented JSON, which is
