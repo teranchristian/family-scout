@@ -60,6 +60,19 @@ chance. The sourced Telegram shortlist is shown directly; optional saving must
 not block delivery. Undated menus and narrow venue follow-ups remain direct.
 See `hermes-skill/references/dated-events.md` for the concise recipe.
 
+## Home preferred event URLs
+
+The private `profile.yaml` may include an optional
+`home.preferred_event_urls` array of URL strings. This list is used **only**
+for searches based on the saved home location without an explicit location
+override; travel searches ignore it. The home `label` is the suburb/town
+search anchor, while latitude/longitude give the private reference point for
+venue distance. Preferred pages are **not a whitelist**; the independent
+research agent still searches the web. Add or replace the array using the
+existing `profile-update` command. The older separate `sources.yaml`
+workflow remains supported for backward compatibility; a new source file
+is not required.
+
 ## Dated weekend/event discovery
 
 For requests such as "find events this weekend" or "what's on Saturday?",
@@ -69,8 +82,8 @@ context **at runtime**; no dates, cities or family details are built into
 the shipped skill. It prioritises the named locality, then neighbouring areas,
 then exceptionally worthwhile wider events. Broad weekend searches use
 the existing AI model to suggest nearby suburbs and councils, with at most
-one clarifying web lookup when geography is uncertain, then three parallel research agents in **one batch**: local, neighbouring and
-wider-area/indoor options. A narrow venue check needs no subagents; if
+one clarifying web lookup when geography is uncertain, then three parallel research agents in **one batch**: optional home preferred URL checks, independent local-to-wider
+discovery and weather/indoor alternatives. A narrow venue check needs no subagents; if
 delegation fails, Nico uses bounded direct research instead.
 
 This date-specific route may use the existing deep-effort helper allowance
