@@ -29,7 +29,7 @@ not by rewriting procedural instructions.
 
 ## Route first
 
-- **Find dated events/activities (including this/next weekend or a named day):** read [references/dated-events.md](references/dated-events.md). For broad weekend/event discovery, start with bounded local-first research. Read [references/parallel-research.md](references/parallel-research.md) only if extra regional coverage genuinely warrants delegation. This is the one-pass verified shortlist route. Do not inspect helper or validator source code.
+- **Find dated events/activities (including this/next weekend or a named day):** read [references/dated-events.md](references/dated-events.md). Broad weekend searches use three local-to-wide research subagents via [references/parallel-research.md](references/parallel-research.md). Present the sourced shortlist even if optional saving fails; never spend the research budget debugging a finalizer. Do not inspect helper or validator source code.
 - **Find undated general outings, compare choices or follow up on a shortlist:** read only [references/recommendation.md](references/recommendation.md). Do not inspect helper or validator source code. Do not inspect any other reference or unowned installed file.
 - **Feedback, history correction, profile/travel, sources, or “more like this”:** read [references/memory.md](references/memory.md) and the applicable part of [references/cli.md](references/cli.md).
 - **Setup/status:** use the redacted `status` command and README.
