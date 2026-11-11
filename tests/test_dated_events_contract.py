@@ -125,7 +125,7 @@ class DatedEventsContractTests(unittest.TestCase):
             "exact ticket slot",
             "Rain changes", "outdoor",
             "free council/community",
-            "Local events",
+            "local one-off value",
         ):
             self.assertIn(phrase, EVENTS)
 
