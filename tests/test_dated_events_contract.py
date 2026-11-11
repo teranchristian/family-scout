@@ -41,12 +41,24 @@ class FamilyScoutWorkflowTest(unittest.TestCase):
             self.assertNotIn(personal_example, SKILL + PROFILE + RESEARCH)
 
     def test_direct_telegram_response_with_live_evidence(self):
-        for phrase in ("top five", "direct official", "Google Maps",
+        for phrase in ("five", "direct official", "Google Maps",
                        "child-by-child", "weather", "Never invent",
                        "Fresh discovery", "No mandatory saving"):
             self.assertIn(phrase.casefold(), (SKILL + RESEARCH).casefold())
         self.assertIn("official/organiser page", RESEARCH)
         self.assertIn("Needs checking", RESEARCH)
+
+    def test_per_day_discovery_is_inclusive_and_not_weekend_specific(self):
+        self.assertIn("Search every requested day equally", RESEARCH)
+        self.assertIn("whether weekday or weekend", RESEARCH)
+        self.assertIn("up to five worthwhile options per day", RESEARCH)
+        self.assertIn("not a combined top-five", RESEARCH)
+        self.assertIn("Needs checking", SKILL)
+        self.assertIn("free and paid", RESEARCH)
+        self.assertIn("Do not exclude activities because of price or booking", RESEARCH)
+        self.assertIn("No default `free_only`, budget or booking hard filter", RESEARCH)
+        self.assertNotIn("free council/community events first", RESEARCH)
+        self.assertIn("only if explicitly requested", PROFILE)
 
 
 if __name__ == "__main__":
