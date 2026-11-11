@@ -5,15 +5,17 @@ check, a selected option follow-up or a routine undated menu.
 
 ## One parallel call
 
-Run the single geographic preflight in [dated-events.md](dated-events.md)
-**before** calling `delegate_task`. Give all three agents the same concise
+Build the model-first geographic preflight in [dated-events.md](dated-events.md)
+**before** calling `delegate_task` (one web lookup only when needed). Give all three agents the same concise
 public search-area plan (anchor, specific local suburbs, adjacent councils/
 suburbs and permitted wider region) plus a clearly **assigned scope**. The
 local specialist searches the local tier, the adjacent specialist searches
 the adjacent tier, and the wider specialist searches only exceptional options
 in the wider tier. Do not ask each agent to rediscover neighbouring suburbs
 or delegate using only vague labels such as "nearby". User-specified tiers
-take precedence over the lookup; do not extend a hard radius.
+take precedence over the model's suggestions; do not extend a hard radius.
+Each agent finds its own official council calendars and other event sources;
+do not add a separate pre-delegation council-site search.
 
 Call `delegate_task` **once with three tasks in one batch**, not as three
 serial calls. Give **every agent** the public geographic anchor and scope,
