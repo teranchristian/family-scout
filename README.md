@@ -202,6 +202,7 @@ seeded in example files or committed to Git.
 | `~/.local/share/family-scout/sources.yaml` | Private custom source list |
 | `~/.local/share/family-scout/shortlists.jsonl` | Append-only exact shortlist history |
 | `~/.local/share/family-scout/feedback.jsonl` | Append-only explicit feedback and corrections |
+
 Older installations may also have a `places.jsonl` file. Installation and
 recommendations leave it untouched; the new skill does not require or recreate it.
 You may archive it manually after upgrading if you no longer need it.
