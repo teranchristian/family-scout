@@ -216,6 +216,51 @@ def valid_location(value, label, require_expiry=False):
                 f"{label} must include a label or coordinates")
 
 
+def validate_birth_date(value, label):
+    """Validate an exact calendar birthdate; optional in existing profiles."""
+    require(isinstance(value, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", value),
+            f"{label} must be an ISO YYYY-MM-DD date")
+    try:
+        parsed = date.fromisoformat(value)
+    except ValueError as exc:
+        raise ScoutError(f"{label} must be a valid calendar date") from exc
+    return parsed
+
+
+def member_ages_on(profile, activity_date):
+    """Return read-only effective ages on a local activity date.
+
+    An explicit date_of_birth overrides a legacy static age; raw birthdates
+    are never included in the derived output.
+    """
+    require(isinstance(activity_date, date) and not isinstance(activity_date, datetime),
+            "activity date must be a calendar date")
+    ages = []
+    for member in profile["group_members"]:
+        birth_text = member.get("date_of_birth")
+        if birth_text:
+            birth = validate_birth_date(birth_text, "date_of_birth")
+            if activity_date < birth:
+                age, basis = None, "not_born_yet"
+            else:
+                age = (activity_date.year - birth.year
+                       - ((activity_date.month, activity_date.day)
+                          < (birth.month, birth.day)))
+                basis = "date_of_birth"
+        else:
+            age = member.get("age")
+            basis = "saved_age" if age is not None else "unknown"
+        ages.append({"id": member["id"], "age": age, "age_basis": basis})
+    return ages
+
+
+def age_reference_date(at, resolved_location):
+    """Use the activity location's timezone for local 'today'."""
+    location = resolved_location.get("location") or {}
+    timezone_name = location.get("timezone")
+    return at.astimezone(ZoneInfo(timezone_name)).date() if timezone_name else at.date()
+
+
 def validate_profile(profile):
     require(isinstance(profile, dict), "profile.yaml must contain an object")
     require(profile.get("schema_version") == SCHEMA_VERSION,
@@ -235,6 +280,9 @@ def validate_profile(profile):
         if "age_band" in member and member["age_band"] is not None:
             require(isinstance(member["age_band"], str) and member["age_band"].strip(),
                     f"group_members[{index}].age_band must be non-empty text")
+        if "date_of_birth" in member and member["date_of_birth"] is not None:
+            validate_birth_date(member["date_of_birth"],
+                                f"group_members[{index}].date_of_birth")
     for key in ("preferences", "constraints", "provenance"):
         require(isinstance(profile.get(key), list), f"{key} must be a list")
     if profile.get("travel") is not None:
@@ -796,15 +844,27 @@ def command_context(data_dir, args):
         sources = load_document(data_dir / "sources.yaml", "sources")
         shortlists = load_records(data_dir / "shortlists.jsonl", "shortlist")
         feedback = load_records(data_dir / "feedback.jsonl", "feedback")
+    resolved_location = active_location(profile, at, args.location == "home")
+    local_date = age_reference_date(at, resolved_location)
     emit({
         "ok": True,
         "at": at.isoformat(),
-        "resolved_location": active_location(profile, at, args.location == "home"),
+        "resolved_location": resolved_location,
+        "age_as_of": local_date.isoformat(),
+        "effective_member_ages": member_ages_on(profile, local_date),
         "profile": profile,
         "enabled_sources": [item for item in sources["sources"] if item["enabled"]],
         "recent_shortlists": shortlists[-args.history_limit:],
         "effective_feedback": effective_feedback(feedback)[-args.history_limit:],
     })
+
+
+def command_member_ages_on(data_dir, args):
+    activity_date = validate_birth_date(args.date, "--date")
+    with state_lock(data_dir):
+        profile = load_document(data_dir / "profile.yaml", "profile")
+    emit({"ok": True, "age_as_of": activity_date.isoformat(),
+          "effective_member_ages": member_ages_on(profile, activity_date)})
 
 
 def command_profile_update(data_dir, args):
@@ -1661,6 +1721,11 @@ def build_parser():
     context_parser.add_argument("--location", choices=("auto", "home"), default="auto")
     context_parser.add_argument("--history-limit", type=int, default=10)
 
+    ages_parser = commands.add_parser(
+        "ages-on", help="Compute effective member ages for an activity's local date"
+    )
+    ages_parser.add_argument("--date", required=True, help="Local activity date YYYY-MM-DD")
+
     profile_parser = commands.add_parser("profile-update", help="Atomically merge an explicit profile update")
     profile_parser.add_argument("--input", default="-", help="JSON file or - for stdin")
 
@@ -1721,6 +1786,8 @@ def main():
         elif args.command == "context":
             require(1 <= args.history_limit <= 100, "history-limit must be between 1 and 100")
             command_context(data_dir, args)
+        elif args.command == "ages-on":
+            command_member_ages_on(data_dir, args)
         elif args.command == "profile-update":
             command_profile_update(data_dir, args)
         elif args.command == "source-add":

@@ -53,6 +53,38 @@ Phase 1 deliberately excludes databases, background scraping, provider
 frameworks, routing, booking integrations, web UI, accounts, machine learning
 and numerical match scores.
 
+For explicitly delegated regional research, Family Scout documents one batched
+`delegate_task(tasks=[...])` call so independent regions can be researched in
+parallel. This is an optional orchestration path, not the default for ordinary
+recommendations. It preserves the shared discovery budget, verification and
+privacy requirements, and does not change Hermes configuration. See
+`hermes-skill/references/recommendation.md` for the dispatch recipe and fallback.
+
+## Dated weekend/event discovery
+
+For requests such as "find events this weekend" or "what's on Saturday?",
+Family Scout now has a separate **one-pass verified events** route. It resolves
+actual dates and the activity area from the request or private home/travel
+context **at runtime**; no dates, cities or family details are built into
+the shipped skill. It prioritises the named locality, then neighbouring areas,
+then exceptionally worthwhile wider events. Where useful, the three independent
+regional searches use **one batched Hermes delegation call**, not three serial
+calls.
+
+This date-specific route may use the existing deep-effort helper allowance
+(six search queries, 24 external calls **total** across all agents and parent)
+to return up to five evidence-verified picks, suggested activities for the
+requested days, an indoor backup, and a concise research summary: completed
+agents, actually recorded discoveries and geographic breakdown, calendars
+checked and verification gaps. Missing metrics remain "not tracked"; the
+helper's retained candidate count is not the number of all events discovered.
+It still saves and renders through the existing deterministic validator.
+
+Open-ended **undated** outing discovery retains its fast two-stage menu:
+6–8 plausible choices, followed by verification of the user's selections.
+The date-specific route does not change normal Hermes behavior or global
+configuration and does not read or commit private runtime profiles.
+
 The installed skill uses progressive disclosure so its entry point stays small.
 Normal recommendations load one self-contained fast workflow. Detailed discovery,
 briefing and evidence references are reserved for an explicit thorough search;
@@ -92,6 +124,17 @@ Running `install.sh` over a Phase 0 installation safely upgrades the ownership
 record and copies the Phase 1 reference files. Existing private files are never
 overwritten, parsed or repaired by the installer. New data directories use mode
 `0700`, and new state files use `0600`; existing permissions are unchanged.
+
+## Age accuracy and privacy
+
+An individual `group_members` entry in the private profile may include
+`date_of_birth: "YYYY-MM-DD"`. At runtime, the deterministic helper derives
+the child's age **on the activity date**, including birthdays between now
+and the planned outing. A saved static age remains a backward-compatible
+fallback until a birthdate is explicitly supplied and approved. The
+`ages-on --date YYYY-MM-DD` command returns only derived ages and member IDs,
+not birthdates; the profile itself stays private. No personal birthdates are
+seeded in example files or committed to Git.
 
 ## Private state
 

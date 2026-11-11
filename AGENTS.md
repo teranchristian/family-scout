@@ -36,7 +36,10 @@ finalists in a three-option answer must originate in fresh discovery.
 
 ## Privacy and data
 
-- Every example, fixture and screenshot must use invented details. Never use the
+- Every example, fixture and screenshot must use invented details.
+  `date_of_birth` belongs only in private runtime state; never commit a
+  real birthdate or send it to web/delegation agents. Derive ages for the
+  activity date with the local helper, not from a stale numeric age. Never use the
   user, their family, home, workplace, identifiers or credentials as examples.
 - Blank templates are intentional. Never seed a real profile from conversation,
   personal context, repository metadata or another project during installation.
@@ -77,12 +80,16 @@ finalists in a three-option answer must originate in fresh discovery.
 - Learn only from explicit feedback. Append corrections/retractions that
   supersede prior events; never rewrite JSONL. Current instructions override
   saved preferences, and contextual complaints must not become global bans.
-- Keep normal search within three queries and twelve total external calls across
-  search, page reading, forecast and geocoding. A broad first response is a
-  lightweight menu aiming for 6–8 varied candidates; after the user selects,
-  deeply verify at most three choices and only then build a plan. Deep effort is
-  allowed only for an explicit thorough/comprehensive request. Preserve actual
-  usage and mark an over-budget run instead of rejecting or rewriting telemetry.
+- Keep undated general search within three queries and twelve total external
+  calls across search, page reading, forecast and geocoding. For an undated
+  broad first response, show a lightweight menu of 6–8 varied candidates;
+  verify at most three selected choices after the user chooses.
+  **Date-specific family event/weekend requests** may use the separate
+  `dated-events.md` one-pass verified route: existing `deep` helper mode,
+  up to five verified picks, six searches and twenty-four total external calls
+  shared across parent and all subagents. Deep effort is otherwise only for
+  an explicit thorough/comprehensive request. Preserve actual usage and mark
+  any over-budget run rather than rejecting or rewriting telemetry.
 - Cover adjacent areas inside the requested radius through the same bounded
   discovery budget; do not add a town-by-category phase or approximate radius.
 
