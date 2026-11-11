@@ -85,26 +85,13 @@ helper's inclusive Haversine radius check. If exact venue coordinates cannot be
 established, keep radius unverified rather than substituting a station,
 neighbourhood or municipality centroid.
 
-### Let the cache contribute one lead after fresh searches
+### Do not seed discovery from past venues
 
-Do not read the private `places.jsonl` cache before the required fresh searches.
-After those searches create the fresh pool, query `place-cache-leads` once; it
-may add at most one stable venue lead for the exact public area. At least two finalists in a
-three-option normal answer must come from fresh discovery. For a venue already
-in the fresh pool, `place-cache-lookup` may supply official/calendar URLs,
-address or evidenced coordinates as **verification leads only**.
-
-Open and read current official pages and perform the same exact-date checks as
-for an uncached candidate. A cached URL may be stale; a cached address or
-coordinate does not establish opening, current price, events, sessions,
-sub-facility status, booking, route time or rank. Never promote a cached hit that
-has not passed current verification. The only direct-lookup exception is when
-the user explicitly asks about a known/repeated venue or prior recommendation.
-
-After current evidence has been read, include the evidenced stable `place` block
-in the shortlist option. `shortlist-save` automatically upserts it. Cache failure
-must not block an otherwise valid recommendation. Never store date-sensitive
-claims.
+Use fresh live sources for every new recommendation. Do not read
+`places.jsonl`, call venue-cache commands, or insert a candidate merely
+because it was previously saved. Keep the saved file intact for legacy
+compatibility. Once a fresh venue's address is confirmed, the current-run
+`place` block can still generate a Google Maps link without caching it.
 
 ### Cost and stopping rules
 
