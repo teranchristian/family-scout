@@ -54,7 +54,7 @@ class DatedEventsContractTests(unittest.TestCase):
             "up to five", "six searches and twenty-four",
             "shared budget", "at most **ten retained",
             "finalize_briefing.py", "numbered_options_markdown",
-            "one", "delegation", "never serialize",
+            "one", "delegation", "three serial calls",
         ):
             self.assertIn(required, EVENTS)
 
