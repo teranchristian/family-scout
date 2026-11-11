@@ -3,14 +3,14 @@
 Family Scout is a Hermes skill for finding practical family outings from current
 sources and remembering only explicit feedback.
 
-**Current status: Phase 1 is built; real-use trial pending.** The deterministic
-helper, persistence flow and skill contract are implemented and tested. The
-project is not yet validated: that requires 3–5 real searches in Hermes,
-including later feedback use and a side-by-side comparison with ordinary Hermes.
+**Current workflow:** Dated weekend searches deliver a source-linked shortlist
+directly. Undated outing searches use a two-stage menu and selected-option
+verification. Both use live sources; previously saved results are not a
+substitute for fresh research.
 
 Repository: <https://github.com/teranchristian/family-scout>
 
-## What Phase 1 does
+## What Family Scout does
 
 - Interprets today, tomorrow, weekend and named-date requests in the activity
   location's timezone.
@@ -48,17 +48,9 @@ evidence selection and qualitative ranking. A standard-library Python helper
 owns validation, straight-line distance, stable references and safe persistence.
 It is not a separate search application.
 
-Phase 1 deliberately excludes databases, background scraping, provider
+The project deliberately excludes databases, background scraping, provider
 frameworks, routing, booking integrations, web UI, accounts, machine learning
 and numerical match scores.
-
-For broad weekend/event discovery, Family Scout uses three research specialists
-(local council and community calendars, neighbouring councils, and standout
-wider events/weather) in one parallel batch when available. Aim to discover
-10–15 distinct leads before ranking, and give smaller free local events a fair
-chance. The sourced Telegram shortlist is shown directly; optional saving must
-not block delivery. Undated menus and narrow venue follow-ups remain direct.
-See `hermes-skill/references/dated-events.md` for the concise recipe.
 
 ## Dated weekend/event discovery
 
@@ -68,27 +60,24 @@ actual dates and the activity area from the request or private home/travel
 context **at runtime**; no dates, cities or family details are built into
 the shipped skill. It prioritises the named locality, then neighbouring areas,
 then exceptionally worthwhile wider events. Broad weekend searches use
-the existing AI model to suggest nearby suburbs and councils, with at most
-one clarifying web lookup when geography is uncertain, then three parallel research agents in **one batch**: local, neighbouring and
-wider-area/indoor options. A narrow venue check needs no subagents; if
-delegation fails, Nico uses bounded direct research instead.
+the existing model to suggest nearby suburbs and councils, with at most one
+clarifying web lookup if geography is uncertain. Three specialists research
+local, neighbouring and exceptional wider events/weather **in one parallel
+batch** when available. Narrow venue checks do not require subagents;
+if delegation fails, Hermes researches directly.
 
-This date-specific route may use the existing deep-effort helper allowance
-(six search queries, 24 external calls **total** across all agents and parent)
-to return up to five evidence-verified picks, suggested activities for the
-requested days, an indoor backup, and a concise research summary: completed
-agents, actually recorded discoveries and geographic breakdown, calendars
-checked and verification gaps. Missing metrics remain "not tracked"; the
-helper's retained candidate count is not the number of all events discovered.
-It still saves and renders through the existing deterministic validator. If
-validation fails, its read-only `fallback_markdown` can preserve checked
-source links with an explicit **not saved / not validated** warning; it never
-pretends that incomplete data was persisted.
+The specialists aim to discover **10–15 distinct leads** before ranking.
+Hermes presents roughly **5–8 worthwhile choices**, when available, with
+checked source links, actual dates, prices, age suitability and practical
+weather warnings. **Do not require a JSON finalizer, a saved shortlist or
+the undated workflow's research budget before replying.** Saving is optional
+unless explicitly requested. See `hermes-skill/references/dated-events.md`
+for the complete current weekend workflow.
 
 Open-ended **undated** outing discovery retains its fast two-stage menu:
 6–8 plausible choices, followed by verification of the user's selections.
-The date-specific route does not change normal Hermes behavior or global
-configuration and does not read or commit private runtime profiles.
+The date-specific route does not change global Hermes configuration or
+commit private runtime profiles.
 
 The installed skill uses progressive disclosure so its entry point stays small.
 Normal recommendations load one self-contained fast workflow. Detailed discovery,
@@ -175,10 +164,8 @@ While installed, a repeat install without `--data-dir` reuses the recorded data
 directory. Profiles share the default state directory; choose separate data
 directories when they must not share context.
 
-Running `install.sh` over a Phase 0 installation safely upgrades the ownership
-record and copies the Phase 1 reference files. Existing private files are never
-overwritten, parsed or repaired by the installer. New data directories use mode
-`0700`, and new state files use `0600`; existing permissions are unchanged.
+Installation leaves existing private data untouched. New data directories use
+mode `0700`, and new state files use `0600`; existing permissions are unchanged.
 
 ## Age accuracy and privacy
 
@@ -205,66 +192,32 @@ seeded in example files or committed to Git.
 | `~/.local/share/family-scout/shortlists.jsonl` | Append-only exact shortlist history |
 | `~/.local/share/family-scout/feedback.jsonl` | Append-only explicit feedback and corrections |
 
-Older installations may also have a `places.jsonl` file. Installation and
-recommendations leave it untouched; the new skill does not require or recreate it.
-You may archive it manually after upgrading if you no longer need it.
-
-The `.yaml` documents use indented JSON, which is valid YAML and can be handled
-without an added YAML package. Exact blank files created by Phase 0 are accepted
-and migrated on their first helper write. A nonblank file manually converted to
-another YAML style is preserved but rejected with an explanatory error; convert
-it to JSON-compatible YAML deliberately rather than allowing an automatic rewrite.
+The `.yaml` documents use indented JSON, which is valid YAML. Use the
+documented helper commands for updates; avoid hand-editing a different YAML
+style. Private data stays outside the repository.
 
 The templates contain no people, precise locations or credentials. Never commit
 private runtime state. The helper's `status` command is redacted; its `context`
 command intentionally returns private context to Hermes and must not be copied
 into web queries, logs or public reports.
 
-## Try Phase 1 in Hermes
+## Smoke test after an update
 
-After updating the installed copy, start a fresh Hermes conversation. For a
-privacy-safe smoke cycle, choose an arbitrary public test origin and replace the
-bracketed values below:
+After `git pull` and `./install.sh`, start a fresh Hermes conversation
+and check both active workflows:
 
-> Load Family Scout. Using [public test location] as an explicit origin, find
-> free activities on [absolute future date] within [radius] km. Do not use or
-> save any private profile details. Show your interpreted place, date, attending
-> group and cost basis before searching.
+- **Dated weekend:** Ask for free or low-cost activities this weekend.
+  Expect nearby suburbs, fresh small council/community events, checked links,
+  practical weather advice and age-specific suitability. A useful sourced
+  answer must not depend on saving or running the old finalizer.
+- **Undated outings:** Ask for general activities nearby. Expect a varied
+  initial menu and deeper checks for selected options, with honest uncertainty.
 
-Check that Hermes:
-
-1. Reads live pages rather than relying only on snippets.
-2. Searches multiple relevant source classes in the local language when useful.
-3. Uses the right dated forecast or explicitly reports it unavailable.
-4. Initially presents a varied menu—normally 6–8 options across at least four
-   experience classes—without pretending it is already a verified itinerary.
-5. Saves the exact menu and asks the user to select one or more numbers.
-6. After selection, rejects or labels unknown hard facts instead of assuming they pass.
-7. Gives selected options decision-ready details and generates a Google Maps
-   search link locally when an exact accountable address is available.
-8. Preserves actual usage counts and labels an over-budget run instead of
-   lowering the numbers to pass validation.
-
-Then refer to an option by number and give explicit feedback. In a new
-conversation, ask for another search and confirm Hermes loads that feedback only
-as a preference signal—not as permission to weaken current constraints. Also run
-one search at a second explicit public location.
-
-For at least two searches, ask ordinary Hermes the same question without Family
-Scout. Compare evidence correctness, practical usefulness, latency and whether
-the persistent context materially improves the later result. Record failures as
-well as wins in `VERIFICATION.md` or the project plan.
-
-Phase 1 becomes **validated** only after:
-
-- 3–5 real Family Scout searches;
-- explicit feedback followed by a later fresh-conversation recommendation;
-- one second-location practical search; and
-- at least two side-by-side comparisons with ordinary Hermes.
-
-Until all four are observed, keep the label **built; trial pending**. The reader
-path used during Phase 0 (`curl` through `r.jina.ai`) is an explicit reliability
-risk to observe during this trial, not a reason to pre-build a provider system.
+Test at a second public location and check that user-provided radius and
+location constraints override the saved home location. Report failures with
+source evidence and reproduce them before changing the workflow. The
+historical verification log is retained in Git history, not required at
+runtime.
 
 ## Helper and development checks
 
@@ -280,10 +233,9 @@ Run the deterministic repository checks with:
 ```sh
 python3 -m unittest discover -s tests -v
 python3 -m py_compile scripts/setup.py scripts/family_scout.py scripts/discovery_context.py scripts/finalize_briefing.py scripts/render_briefing.py tests/*.py
-python3 /root/.codex/skills/.system/skill-creator/scripts/quick_validate.py hermes-skill
 ```
 
-See `VERIFICATION.md` for recorded outcomes and the remaining live trial.
+The GitHub Actions workflow runs the Python tests and compilation checks.
 
 ## Updates and removal
 
@@ -300,8 +252,7 @@ To remove the integration while preserving the checkout and all private state:
 ```
 
 Pass the same `--hermes-home` option for a named or custom profile. Repeated
-uninstall is harmless. There is intentionally no purge command; reconsider that
-only in Phase 1.5 if the trial reveals real setup or removal friction.
+uninstall is harmless. There is intentionally no purge command.
 
 Hermes references: [skill discovery and management](https://hermes-agent.nousresearch.com/docs/user-guide/features/skills)
 and [profiles and configuration](https://hermes-agent.nousresearch.com/docs/reference/faq).
