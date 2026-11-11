@@ -39,8 +39,7 @@ than abandoning the outing search or launching three serial calls.
 
 Three agents are a deliberate default, not a minimum: **do not add more by
 default**. More agents split the same limited calls, repeat searches and
-increase coordination overhead. The parent and all children share **one shared
-budget**, not a separate budget per agent. Reserve enough calls for parent-side
+increase coordination overhead. The parent and all children share **one shared budget**, not a separate budget per agent. Reserve enough calls for parent-side
 verification, exact booking checks, forecast and finalization; never assume
 subagent findings alone establish a verified recommendation.
 
