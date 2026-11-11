@@ -264,6 +264,13 @@ def validate_profile(profile):
     require(profile.get("schema_version") == SCHEMA_VERSION,
             "profile.yaml has an unsupported schema_version")
     valid_location(profile.get("home"), "home")
+    preferred_urls = profile["home"].get("preferred_event_urls", [])
+    require(isinstance(preferred_urls, list),
+            "home.preferred_event_urls must be an array of URLs")
+    for index, url in enumerate(preferred_urls):
+        valid_url(url, f"home.preferred_event_urls[{index}]")
+    require(len(preferred_urls) == len(set(preferred_urls)),
+            "home.preferred_event_urls must not contain duplicates")
     valid_number(profile.get("default_radius_km"), "default_radius_km", 0.01)
     members = profile.get("group_members")
     require(isinstance(members, list), "group_members must be a list")
@@ -562,6 +569,13 @@ def active_location(profile, at, force_home=False):
     return {"origin_ref": "unknown", "location": None}
 
 
+def preferred_event_urls_for(profile, resolved_location):
+    """Home-only event source hints; travel and unknown origins get none."""
+    if resolved_location.get("origin_ref") != "home":
+        return []
+    return list(profile["home"].get("preferred_event_urls", []))
+
+
 def effective_feedback(records):
     superseded = {record.get("supersedes_event_id") for record in records
                   if record.get("supersedes_event_id")}
@@ -609,6 +623,7 @@ def command_context(data_dir, args):
         "ok": True,
         "at": at.isoformat(),
         "resolved_location": resolved_location,
+        "preferred_event_urls": preferred_event_urls_for(profile, resolved_location),
         "age_as_of": local_date.isoformat(),
         "effective_member_ages": member_ages_on(profile, local_date),
         "profile": profile,

@@ -21,7 +21,7 @@ class DatedEventsContractTests(unittest.TestCase):
     def test_routes_stay_distinct(self):
         self.assertIn("references/dated-events.md", SKILL)
         self.assertIn("this/next weekend", SKILL)
-        self.assertIn("three local-to-wide research subagents", SKILL)
+        self.assertIn("three source/discovery/weather research subagents", SKILL)
         self.assertIn("references/recommendation.md", SKILL)
         self.assertIn("two-stage", RECOMMENDATION)
         self.assertIn("dated-events.md", RECOMMENDATION)
@@ -65,7 +65,7 @@ class DatedEventsContractTests(unittest.TestCase):
             "exact event venue",
             "at most one quick web search",
             "If the lookup fails",
-            "specific area names and assigned tier",
+            "specific area names and tiers",
             "no separate council",
         ):
             self.assertIn(phrase, EVENTS)
@@ -75,12 +75,10 @@ class DatedEventsContractTests(unittest.TestCase):
             "before** calling `delegate_task`",
             "one web lookup only when needed",
             "specific local suburbs",
-            "assigned scope",
-            "nearby",
-            "local only",
-            "adjacent only",
-            "wider exceptional options and weather only",
-            "Each agent finds its own official council calendars",
+            "preferred_event_urls",
+            "fresh web",
+            "neighbouring council",
+            "forecast",
         ):
             self.assertIn(phrase, PARALLEL)
         for example in ("Randwick", "Sydney", "Ema", "Haru"):
@@ -99,9 +97,32 @@ class DatedEventsContractTests(unittest.TestCase):
             "If delegation is unavailable",
         ):
             self.assertIn(phrase, compact)
-        self.assertIn("Agent 1 — local specialist", PARALLEL)
-        self.assertIn("Agent 2 — adjacent-area specialist", PARALLEL)
-        self.assertIn("Agent 3 — wider-area and weather specialist", PARALLEL)
+        self.assertIn("Agent 1 — preferred-source specialist", PARALLEL)
+        self.assertIn("Agent 2 — independent discovery specialist", PARALLEL)
+        self.assertIn("Agent 3 — weather and indoor-backup specialist", PARALLEL)
+
+    def test_home_preferred_sources_do_not_replace_discovery(self):
+        for phrase in (
+            "home.preferred_event_urls",
+            "preferred starting",
+            "resolved origin is `home`",
+            "explicit",
+            "not a whitelist",
+            "independent discovery agent must still search",
+            "label",
+            "latitude/longitude",
+        ):
+            self.assertIn(phrase, EVENTS)
+        for phrase in (
+            "preferred_event_urls",
+            "only if",
+            "no explicit location override",
+            "preference, not an exclusive allowlist",
+            "fresh web",
+            "weather",
+            "Do not limit exploration",
+        ):
+            self.assertIn(phrase, PARALLEL)
 
     def test_official_source_once_and_honest_uncertainty(self):
         for phrase in (

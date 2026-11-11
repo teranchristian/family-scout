@@ -34,6 +34,10 @@ class ParallelDelegationContractTests(unittest.TestCase):
         self.assertIn("local council", payload["tasks"][0]["context"])
         self.assertIn("neighbouring council", payload["tasks"][1]["context"])
         self.assertIn("forecast", payload["tasks"][2]["context"])
+        self.assertIn("Preferred URLs=", payload["tasks"][0]["context"])
+        self.assertIn("Fresh independent search", payload["tasks"][1]["context"])
+        self.assertNotIn("Preferred URLs=", payload["tasks"][1]["context"])
+        self.assertIn("indoor/undercover backups", payload["tasks"][2]["context"])
 
     def test_weekend_delegates_but_undated_menu_is_direct(self):
         self.assertIn("Do not delegate routine requests", RECOMMENDATION)

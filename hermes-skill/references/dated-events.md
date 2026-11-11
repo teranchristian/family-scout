@@ -8,7 +8,8 @@ multi-stage JSON/save operation. Undated general outings use
 ## 1. Resolve the request
 
 Read `installation.json` and run `discovery_context.py` once to use saved
-home/travel location, family ages, hard constraints and enabled sources. User
+home/travel location, family ages, hard constraints, enabled sources and optional
+home `preferred_event_urls`. User
 instructions override defaults. Resolve the **date window** using the
 **activity location's IANA timezone**. Honour the user's **explicit location
 and radius** before the saved **home/travel** profile; **never assume a particular
@@ -52,9 +53,15 @@ keep the confidently known areas and any user-specified locations,
 mark unclear areas as tentative and proceed; do not invent neighbours
 or delay event research.
 
-Pass the plan's **specific area names and assigned tier** to each research
-agent. The agents discover their own official council event calendars and
-other organisers as part of event research; there is **no separate council
+Pass the **specific area names and tiers** to the discovery agents.
+The optional `home.preferred_event_urls` list provides **preferred starting
+pages, not a whitelist**. Use it only when the resolved origin is `home` and
+the user did **not** override the search location. On travel or an explicit
+different-location request, ignore the home list. The home location's public
+`label` supplies the suburb/town search anchor; its latitude/longitude are
+only the distance reference. Do not infer a suburb from private coordinates or
+pass those coordinates to agents. Agents discover other council event calendars
+and organisers during event research; there is **no separate council
 website lookup**. Neither model knowledge nor a geographic search result
 establishes an event's date, price, opening status or availability.
 
@@ -76,14 +83,16 @@ they offer something substantially better than local choices. A major attraction
 does not win merely because it is famous.
 
 For a **broad weekend/event search, use three parallel research specialists**
-(local, adjacent and wider/weather) as described in
+(preferred sources, independent discovery and weather/backups) as described in
 [parallel-research.md](parallel-research.md), with `delegate_task` **once as
 one three-task batch**. If delegation is unavailable or fails, search directly
 rather than losing the entire answer. Narrow venue or single-event follow-ups
 do not need agents.
 
 Aim to **discover about 10–15 distinct relevant candidates** across the
-specialists, if available, **before final ranking**. This is a discovery goal,
+specialists, if available, **before final ranking**. Even if preferred sources
+produce good options, the independent discovery agent must still search
+all geographic tiers for new events; it must not repeat only those URLs. This is a discovery goal,
 not a required minimum and not a reason to invent events. Do not invent
 events, prices, schedules, availability or URLs. Do not stop when
 you have found five attractive options. Search **Saturday and Sunday separately**
