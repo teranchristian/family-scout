@@ -285,6 +285,43 @@ class FinalizeBriefingTest(unittest.TestCase):
         self.assertIn("サンプル活動", result["numbered_options_markdown"])
         self.assertIn("Hands-on session", result["numbered_options_markdown"])
 
+    def test_two_children_save_without_manual_constraint_results(self):
+        payload = self.payload()
+        payload["shortlist"]["operation_id"] = "op-two-children-simple"
+        payload["shortlist"]["request"]["attending_member_ids"] = ["ema", "haru"]
+        payload["shortlist"]["options"][0].pop("constraint_results")
+        payload["render"]["cards"][0]["family_fit"] = [
+            {"member_id": child, "label": label, "fit": "good",
+             "activity_names": ["Hands-on session"], "limitations": []}
+            for child, label in [("ema", "Ema"), ("haru", "Haru")]
+        ]
+        result = self.run_finalize(payload)
+        self.assertTrue(result["ok"])
+        self.assertIn("Hands-on session", result["numbered_options_markdown"])
+        saved = json.loads((self.data / "shortlists.jsonl").read_text().splitlines()[0])
+        self.assertNotIn("constraint_results", saved["options"][0])
+
+    def test_without_manual_classifications_still_enforces_hard_cost(self):
+        payload = self.payload()
+        payload["shortlist"]["options"][0].pop("constraint_results")
+        payload["shortlist"]["request"]["free_only"] = True
+        payload["shortlist"]["options"][0]["cost"]["amount"] = 45
+        result = self.run_finalize(payload, expected=2)
+        self.assertIn("free-only", result["error"])
+        self.assert_no_real_write()
+
+    def test_two_children_missing_fit_still_fails_without_saving(self):
+        payload = self.payload()
+        payload["shortlist"]["options"][0].pop("constraint_results")
+        payload["shortlist"]["request"]["attending_member_ids"] = ["ema", "haru"]
+        payload["render"]["cards"][0]["family_fit"] = [
+            {"member_id": "ema", "label": "Ema", "fit": "good",
+             "activity_names": ["Hands-on session"], "limitations": []}
+        ]
+        result = self.run_finalize(payload, expected=2)
+        self.assertIn("family_fit must contain exactly one entry", result["error"])
+        self.assert_no_real_write()
+
     def test_valid_payload_saves_renders_and_reports_research_summary(self):
         payload = self.payload()
         result = self.run_finalize(payload)
