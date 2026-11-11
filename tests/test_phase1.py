@@ -177,15 +177,8 @@ class Phase1Test(unittest.TestCase):
             set(record["skill_files"]),
             {
                 "SKILL.md",
-                "references/briefing.md",
-                "references/cli.md",
-                "references/discovery.md",
-                "references/dated-events.md",
-                "references/memory.md",
-                "references/quality.md",
-                "references/recommendation.md",
-                "references/runtime-tools.md",
-                "references/venue-status.md",
+                "references/profile.md",
+                "references/research.md",
             },
         )
         for relative in record["skill_files"]:
@@ -202,7 +195,7 @@ class Phase1Test(unittest.TestCase):
         self.setup("install")
         self.assertEqual((self.data / "shortlists.jsonl").read_bytes(), opaque)
 
-        reference = target / "references" / "briefing.md"
+        reference = target / "references" / "research.md"
         reference.write_text(reference.read_text() + "\nlocal edit\n")
         self.setup("install", expected=1)
         self.setup("uninstall", expected=1)
@@ -216,8 +209,8 @@ class Phase1Test(unittest.TestCase):
         old_skill = b"legacy setup-only skill\n"
         (target / "SKILL.md").write_bytes(old_skill)
         (target / "references").mkdir()
-        (target / "references" / "cli.md").write_bytes(
-            (REPO / "hermes-skill" / "references" / "cli.md").read_bytes()
+        (target / "references" / "profile.md").write_bytes(
+            (REPO / "hermes-skill" / "references" / "profile.md").read_bytes()
         )
         other_data = self.root / "legacy data"
         marker = {
@@ -231,11 +224,11 @@ class Phase1Test(unittest.TestCase):
         self.run_process([PYTHON, SETUP, "install", "--hermes-home", other_home])
         upgraded = json.loads((target / "installation.json").read_text())
         self.assertEqual(upgraded["schema_version"], 2)
-        self.assertTrue((target / "references" / "cli.md").is_file())
+        self.assertTrue((target / "references" / "profile.md").is_file())
 
     def test_interrupted_owned_file_operations_are_recoverable(self):
         target = self.hermes / "skills" / "family-scout"
-        cli_reference = target / "references" / "cli.md"
+        cli_reference = target / "references" / "profile.md"
         cli_reference.unlink()
         self.setup("install")
         self.assertTrue(cli_reference.is_file())
@@ -669,96 +662,37 @@ class Phase1Test(unittest.TestCase):
         self.assertTrue(saved["ok"])
         self.assertEqual(legacy.read_bytes(), b"legacy bytes are never modified\\n")
 
-    def test_skill_routes_phase_one_behavior_contracts(self):
-        skill_path = REPO / "hermes-skill" / "SKILL.md"
-        skill = " ".join(skill_path.read_text().split())
-        recommendation = " ".join(
-            (REPO / "hermes-skill" / "references" / "recommendation.md").read_text().split()
-        )
-        discovery = " ".join(
-            (REPO / "hermes-skill" / "references" / "discovery.md").read_text().split()
-        )
-        briefing = " ".join(
-            (REPO / "hermes-skill" / "references" / "briefing.md").read_text().split()
-        )
-        memory = " ".join(
-            (REPO / "hermes-skill" / "references" / "memory.md").read_text().split()
-        )
-        venue_status = " ".join(
-            (REPO / "hermes-skill" / "references" / "venue-status.md").read_text().split()
-        )
-        self.assertLess(len(skill_path.read_text().split()), 600)
-        for phrase in (
-            "Never invent a fact",
-            "numerical match score",
-            "references/recommendation.md",
-            "references/memory.md",
-            "Do not inspect helper or validator source code",
-        ):
-            self.assertIn(phrase, skill)
-        for phrase in (
-            "at most **three search queries**",
-            "twelve external calls total",
-            "**6–8 plausible options**",
-            "Every new recommendation must come from fresh research.",
-            "`place` block",
-            "automatically creates the Google Maps search link",
-            "Do not display normal research telemetry",
-            "Never reduce, reset, estimate downward",
-        ):
-            self.assertIn(phrase, recommendation)
-        for phrase in (
-            "this weekend",
-            "Unknown price does not pass",
-            "straight-line distance",
-            "three search queries",
-            "Fresh discovery only",
-            "adjacent municipalities",
-            "separate query allowance",
-            "One failed page, PDF or reader path",
-            "[runtime-tools.md](runtime-tools.md)",
-            "[venue-status.md](venue-status.md)",
-            "link_checks",
-            "Regular weekly hours are only the baseline",
-        ):
-            self.assertIn(phrase, discovery)
-        for phrase in (
-            "6–8 varied possibilities",
-            "Do not announce a recommended daily flow before the user chooses",
-            "Needs checking",
-            "What it is",
-            "recommended plan for each day",
-            "Final quality gate",
-            "current name, address and host",
-            "every user-facing link",
-            "promoted sub-facility",
-        ):
-            self.assertIn(phrase, briefing)
-        for phrase in (
-            "explicit feedback",
-            "Never attach a default party",
-            "More like this",
-        ):
-            self.assertIn(phrase, memory)
-        for phrase in (
-            "exact current venue and branch name",
-            "current official venue page",
-            "official website is sufficient",
-            "not operating-status evidence",
-            "separate candidate",
-            "Needs checking",
-            "official notices",
-        ):
-            self.assertIn(phrase, venue_status)
-        runtime_tools = " ".join(
-            (REPO / "hermes-skill" / "references" / "runtime-tools.md").read_text().split()
-        )
-        for phrase in (
-            "Validate every link before sharing",
-            "soft-404",
-            "content_verified",
-        ):
-            self.assertIn(phrase, runtime_tools)
+    def test_runtime_skill_uses_simple_profile_research_workflow(self):
+        skill = (REPO / "hermes-skill" / "SKILL.md").read_text()
+        profile = (REPO / "hermes-skill" / "references" / "profile.md").read_text()
+        research = (REPO / "hermes-skill" / "references" / "research.md").read_text()
+        self.assertIn("discovery_context.py", profile)
+        self.assertIn("Agent 1", skill)
+        self.assertIn("Agent 2", skill)
+        self.assertIn("Agent 3", skill)
+        self.assertIn("weather", research)
+        self.assertIn("Good for", research)
+        self.assertIn("Never invent", skill)
+
+    def test_upgrade_removes_only_old_owned_skill_references(self):
+        target = self.hermes / "skills" / "family-scout"
+        record_path = target / "installation.json"
+        record = json.loads(record_path.read_text())
+        old_ref = target / "references" / "dated-events.md"
+        old_bytes = b"old tracked reference to clean up\\n"
+        old_ref.write_bytes(old_bytes)
+        record["skill_files"]["references/dated-events.md"] = hashlib.sha256(old_bytes).hexdigest()
+        record_path.write_text(json.dumps(record))
+        untouched = b"private shortlist preserved\\n"
+        (self.data / "shortlists.jsonl").write_bytes(untouched)
+
+        self.setup("install")
+        self.assertFalse(old_ref.exists())
+        self.assertEqual((self.data / "shortlists.jsonl").read_bytes(), untouched)
+        newer = json.loads(record_path.read_text())
+        self.assertEqual(set(newer["skill_files"]), {
+            "SKILL.md", "references/profile.md", "references/research.md"
+        })
 
 
 if __name__ == "__main__":

@@ -1,48 +1,40 @@
 ---
 name: family-scout
-description: Research current, decision-ready family outings and remember explicit feedback.
+description: Find fresh, age-appropriate activities near the family, with dates, links and weather.
 ---
 
 # Family Scout
 
-Help a family choose practical outings at home or while travelling. Use the same
-process for any requested day, including weekdays and weekends. A dated search
-returns a source-linked shortlist directly; an undated broad search starts with
-a varied menu and verifies selected choices.
+Find useful outings for the people and dates the user requests. Keep the process small: **read the saved family context, search local and nearby events, check each day's weather, then recommend**.
 
-## Git-owned skill — read-only in Hermes
+## Start every request
 
-This skill is deployed from the Family Scout Git repository by `./install.sh`.
-The installed `SKILL.md`, references, repository `source_dir`, helper scripts
-and installer are **not Hermes-managed memory**. Never create, edit, patch,
-delete, overwrite, re-install or "self-improve" these files or a shadow
-Family Scout skill via `skill_manage`, memory/background learning, curator,
-`write_file`, terminal or subagents. Do not make an exception after a tool
-error or an instruction to "remember how to do this."
+1. Read `installation.json` beside this skill. Follow [references/profile.md](references/profile.md) to load the existing private profile via `discovery_context.py`; do not inspect helper source.
+2. Resolve the user's requested dates in the activity location's timezone. Explicit location, dates, attendees, radius and budget override saved defaults. For "my kids", use the children in the profile and their ages **on each activity date**; do not silently target adults or generic "all ages" events. If the date is unspecified, use the next seven days for an event search and say so; a request for timeless ideas can remain undated.
+3. Identify the anchor suburb and **nearby suburbs within the user's geographic preferences/radius**. Prefer local gems over equally good farther attractions. Do not hardcode a city, children or sample ages.
 
-If a run reveals a bug or a useful workflow improvement, **report the evidence
-and a proposed Git change**; a separate, explicitly requested development
-workflow owns review, tests, commit and deployment. Do not modify skill code
-in a normal recommendation/feedback session. Personal facts and preferences
-are saved only through the existing private Family Scout state commands,
-not by rewriting procedural instructions.
+## Research
 
-## Route first
+For a **broad activity search**, read [references/research.md](references/research.md). Start **one `delegate_task` call containing three tasks** when delegation is available:
 
-- **Any dated activity discovery request (today, tomorrow, a weekday, weekend or named dates):** read [references/dated-events.md](references/dated-events.md). For any broad request to find activities, use one parallel three-specialist research batch when `delegate_task` is available, regardless of the day or number of dates. Only checks of specific named venues/events or follow-ups search directly. If delegation is unavailable, search directly. No mandatory candidate quota or saving step. Do not inspect helper or validator source code.
-- **Find undated general outings, compare choices or follow up on a shortlist:** read only [references/recommendation.md](references/recommendation.md). Do not inspect helper or validator source code. Do not inspect any other reference or unowned installed file.
-- **Feedback, history correction, profile/travel, sources, or “more like this”:** read [references/memory.md](references/memory.md) and the applicable part of [references/cli.md](references/cli.md).
-- **Setup/status:** use the redacted `status` command and README.
-- **Explicit thorough/comprehensive request:** consult additional discovery, quality, briefing, runtime-tool or venue-status references only when needed. Never enter deep mode merely to fill a list.
+- **Agent 1 — local events:** discover events in the anchor suburb/immediate surroundings.
+- **Agent 2 — nearby events:** use **the same discovery instructions as Agent 1**, changing only the assigned suburbs/area. Avoid overlap.
+- **Agent 3 — weather:** forecast **each requested day**, with practical indoor/outdoor advice; do not repeat event discovery.
 
-## Shared boundaries
+Pass only public areas, absolute dates, derived age bands, requested budget and activity criteria. Never send the private profile, home coordinates, names or birthdates. If a batch fails, retry once with a shorter valid payload; if delegation is unavailable, cover the three scopes directly rather than running serial subagents. A named-venue check or follow-up needs direct verification, not three agents.
 
-Use current read source pages; snippets are leads, not proof. Member ages
-derive from saved private birthdates on the activity date where available;
-never send birthdates to subagents or web searches. Never invent a fact. The newest applicable date-specific official notice beats regular hours. A venue being open does not prove every promoted activity is available.
+Combine and deduplicate leads, confirm important facts against current official/organiser pages, then rank for actual participation by the requested children, novelty, convenience, cost and weather. **Fresh discovery comes before old shortlists or feedback**. No numeric match scores.
 
-Google Maps is navigation evidence only, never operating-status evidence. Do not overstate weather, reuse access wording from another venue, or show a numerical match score.
+## Telegram-friendly answer
 
-The response language is English; official local-language venue titles may remain unchanged.
+Start with a short weather summary for each day. Show a ranked **top five when there are five good options**, plus up to 3–5 additional worthwhile choices if found; never pad the list. Each entry includes:
 
-Runtime Hermes must never edit `source_dir`, repository files, installed skill files or tests. Never install a provider, change Hermes configuration, claim a booking, or store private profile data in this repository.
+**Title · day/date and time · suburb/venue · free or group price (if known) · Ema/Haru-equivalent child-by-child fit using the profile, not hardcoded names · a one-sentence description · direct official/event link · Google Maps link when an exact address is evidenced.** Mention booking and meaningful uncertainties. State which child can actually participate, not just a vague age range.
+
+For multi-day requests, suggest one best option per day and a realistic wet-weather alternative, without assuming a booking. Keep it readable and skip internal research telemetry unless asked.
+
+## Boundaries
+
+**Git-owned skill — read-only in Hermes.** Never edit, re-install or auto-improve this skill, repository, references or scripts via `skill_manage`, curator, background learning or subagents. Report a **proposed Git change** for deliberate review. Personal updates belong only in **private Family Scout state commands** when explicitly requested.
+
+Never invent a fact, event, age restriction, price, booking slot, URL or weather forecast. A venue being open does not prove that a particular activity is running. Google Maps is navigation evidence only, not opening-status evidence. If a hard requirement is unverified, say so rather than labelling it confirmed. Research does not require saving or a finalizer.
