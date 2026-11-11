@@ -36,7 +36,10 @@ finalists in a three-option answer must originate in fresh discovery.
 
 ## Privacy and data
 
-- Every example, fixture and screenshot must use invented details. Never use the
+- Every example, fixture and screenshot must use invented details.
+  `date_of_birth` belongs only in private runtime state; never commit a
+  real birthdate or send it to web/delegation agents. Derive ages for the
+  activity date with the local helper, not from a stale numeric age. Never use the
   user, their family, home, workplace, identifiers or credentials as examples.
 - Blank templates are intentional. Never seed a real profile from conversation,
   personal context, repository metadata or another project during installation.
