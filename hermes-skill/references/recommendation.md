@@ -70,12 +70,9 @@ Do not claim exact-date opening, price, distance, eligibility, activity schedule
 or booking availability unless that fact was actually checked. Put unresolved
 facts in `needs_verification` instead.
 
-**Do not read or write the saved venue cache during recommendations.**
-Never call `place-cache-leads`, `place-cache-lookup` or `place-cache-upsert`
-to find, enrich or save options. A previously suggested activity must compete
-based on current fresh discovery, not saved pointers. The existing
-`places.jsonl` file is retained untouched for backwards compatibility;
-saved profile preferences and explicit feedback remain available after discovery.
+Every new recommendation must come from fresh research. Do not seed the
+candidate list with a prior shortlist or remembered venue. Saved preferences
+and explicit feedback can adjust ranking only after fresh discovery.
 
 Do not geocode every initial option. When an accountable source provides the
 exact address, include it in the stable `place` block. The helper automatically
