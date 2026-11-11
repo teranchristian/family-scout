@@ -363,7 +363,7 @@ class FinalizeBriefingTest(unittest.TestCase):
         self.assertEqual((self.data / "places.jsonl").read_text(), "")
         saved = json.loads((self.data / "shortlists.jsonl").read_text().splitlines()[0])
         self.assertIn("place", saved["options"][0])
-        self.assertIn("google.com/maps/search", result["numbered_options_markdown"])
+        self.assertIn("Map: https://maps.example.org/?q=example", result["numbered_options_markdown"])
 
     def test_explore_menu_does_not_require_cached_leads(self):
         payload = json.loads(subprocess.run(
