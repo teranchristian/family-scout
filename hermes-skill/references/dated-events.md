@@ -177,7 +177,7 @@ alternative; do not stack outings
 or imply the user selected them unless asked to build a plan.
 
 Keep the research summary brief and evidence-led: **Subagents completed**
-(e.g. "3/3", "2/3", or "not used" if delegation failed), **Distinct candidate events actually discovered** (or
+(e.g. "3/3", "2/3", or "not used" for normal direct research), **Distinct candidate events actually discovered** (or
 "not tracked"), counts in **Priority 1 / 2 / 3** when tracked, calendars
 **actually checked**, and material **verification gaps**. Do not invent
 counts or present the helper's candidates retained for validation as the
