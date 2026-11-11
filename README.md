@@ -125,6 +125,17 @@ record and copies the Phase 1 reference files. Existing private files are never
 overwritten, parsed or repaired by the installer. New data directories use mode
 `0700`, and new state files use `0600`; existing permissions are unchanged.
 
+## Age accuracy and privacy
+
+An individual `group_members` entry in the private profile may include
+`date_of_birth: "YYYY-MM-DD"`. At runtime, the deterministic helper derives
+the child's age **on the activity date**, including birthdays between now
+and the planned outing. A saved static age remains a backward-compatible
+fallback until a birthdate is explicitly supplied and approved. The
+`ages-on --date YYYY-MM-DD` command returns only derived ages and member IDs,
+not birthdates; the profile itself stays private. No personal birthdates are
+seeded in example files or committed to Git.
+
 ## Private state
 
 | Location | Purpose |
