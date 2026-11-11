@@ -1,155 +1,84 @@
-# Dated activities — discover first, recommend directly
+# Dated activities — any day, direct answer
 
-Use this route for a named date, date range or this/next weekend. A normal
-weekend request is **one research-and-recommendation turn**, not a mandatory
-multi-stage JSON/save operation. Undated general outings use
-`recommendation.md`.
+Use this workflow whenever the user gives a date or date range: **today,
+tomorrow, a named weekday, Saturday, Sunday, this weekend, next weekend or
+specific dates**. Weekends are only a way to resolve dates, **not a separate
+research workflow**. A narrow request about one venue needs a narrow check,
+not a broad search. Undated general outings use `recommendation.md`.
 
 ## 1. Resolve the request
 
-Read `installation.json` and run `discovery_context.py` once to use saved
-home/travel location, family ages, hard constraints and enabled sources. User
-instructions override defaults. Resolve the **date window** using the
-**activity location's IANA timezone**. Honour the user's **explicit location
-and radius** before the saved **home/travel** profile; **never assume a particular
-country, city, suburb** or example date. Derive ages on the activity date when
-birthdates are available. Share only broad age bands, public location, dates and
-search criteria with search tools or subagents; never private names, birthdates,
-home coordinates or full profiles.
+Read `installation.json` and run `discovery_context.py` once. Resolve the
+requested **date window** in the **activity location's IANA timezone**.
+Honour the user's **explicit location and radius** before the saved
+**home/travel** context; never assume a particular country, city or suburb.
+Use saved birthdates to derive children's ages on each activity date where
+available, without sharing private names, birthdates, home coordinates or
+the full profile with search tools.
 
-### Model-first geographic preflight for broad weekend searches
+Apply explicit hard constraints (for example, free-only, radius or indoor-only).
+Use the family's stated priorities for location and activities. Do not ask for
+details already in the request or saved context.
 
-Before delegating event research, use **Hermes's existing AI model knowledge**
-to propose nearby suburbs and neighbouring councils from the resolved
-**public suburb/town and city**. This is a short reasoning step in the
-parent agent, **not a new subagent, tool call or mandatory web search**.
-If the user specifies a different geographic anchor or names priority
-areas, use those instructions instead of saved home/travel. Never include
-street addresses, private coordinates, birthdates or the full profile in
-external searches or delegation context.
+## 2. Discover useful options, local first
 
-Form a concise **search-area plan**:
-- **Anchor/local:** the named suburb/town and a manageable set of likely
-  immediately surrounding suburbs (roughly 4–8 when plausible).
-- **Adjacent:** likely neighbouring council/municipal areas and their
-  relevant suburbs within the requested geographic scope.
-- **Wider:** only the broader permitted region for exceptional activities
-  and indoor backups.
+For a broad request, start with **current** local council general event calendars
+and **library/event-program calendars**; also look at community centres,
+parks, neighbourhood groups, workshops, swaps and other small events.
+Then consider adjacent areas within the requested radius and exceptional
+wider choices only if permitted. Include interesting general attractions,
+not just searches labelled "kids". Check both one-off events and suitable
+everyday activities.
 
-Treat model-generated suburb and council names as **search leads, not
-verified geographic boundaries**. Do not invent certainty about adjacency,
-jurisdictions or distances. Preserve the user's explicitly specified tiers.
-Avoid duplicate suburbs across tiers; do not silently extend the search to
-distant areas just to fill a list. A hard radius is checked against each
-**exact event venue**, not a suburb label, during final verification.
+Search the actual requested dates, not automatically Saturday and Sunday.
+For short ranges, inspect each requested day; for longer ranges, search
+calendars across the interval and confirm the dates of promising events.
+Find enough varied, genuinely useful options for the request. There is
+**no fixed candidate minimum, mandatory geographic preflight or required
+three-agent delegation**. Search directly with existing Hermes tools; never
+launch subagents just to satisfy a workflow.
 
-**Conditional lookup:** Only when the area is unfamiliar, nearby councils
-or boundaries are materially uncertain, or a strict radius makes the
-proposed tiers unreliable, use **at most one quick web search** with
-Hermes's already available search tool to clarify the geography. Use
-only the public suburb/town and city in that query. If the lookup fails,
-keep the confidently known areas and any user-specified locations,
-mark unclear areas as tentative and proceed; do not invent neighbours
-or delay event research.
+**Fresh discovery comes before history or feedback.** Saved preferences are
+gentle ranking signals afterwards, not a substitute for searching. Never
+invent a candidate or claim that an incomplete search found everything.
 
-Pass the plan's **specific area names and assigned tier** to each research
-agent. The agents discover their own official council event calendars and
-other organisers as part of event research; there is **no separate council
-website lookup**. Neither model knowledge nor a geographic search result
-establishes an event's date, price, opening status or availability.
+## 3. Verify the important facts
 
-## 2. Find more local events before picking winners
+Read an accountable current source, preferably the official council,
+organiser, venue or booking page. **Search snippets alone are not proof.**
+One trustworthy source is sufficient for a fact it actually establishes.
 
-**Priority 1 — local:** the anchor and immediate suburbs identified in the geographic plan. Inspect
-official council **general event calendars**, separately inspect council
-**library/event-program calendars**, and look at community centres, parks,
-sustainability/environment hubs, neighbourhood groups and organisers. Look for
-small one-off community events, swaps, workshops, animal events and seasonal
-programs that generic family-attractions searches often miss.
+For each recommended option, check what matters to the decision:
+- **Date and hours:** the specific event/session or venue, including current
+  closures or cancellations; an open venue does not prove every activity runs.
+- **Both children:** what each attending child can actually do, and any
+  age, height or supervision restriction.
+- **Cost and booking:** total family price and mandatory fees; required booking
+  and a specific slot only if claiming live availability.
+- **Place:** exact venue/branch and address; Google Maps link from an evidenced
+  address. Keep the user's radius as a hard limit where specified.
+- **Weather:** forecast for those dates when available, practical rain/heat
+  cautions and an indoor alternative when useful.
 
-**Priority 2 — adjacent:** neighbouring suburbs and councils inside the
-requested geographic scope, including local libraries, galleries and community
-organisations.
+If a hard requirement cannot be verified, mark the option **Needs checking**;
+unknown price does not satisfy free-only. Keep a good venue when a promoted
+sub-activity is unavailable but another worthwhile activity is confirmed;
+mention the limitation. Never invent prices, times, bookings or URLs.
 
-**Priority 3 — wider:** standout city-wide events or indoor backups only when
-they offer something substantially better than local choices. A major attraction
-does not win merely because it is famous.
+## 4. Reply directly
 
-For a **broad weekend/event search, use three parallel research specialists**
-(local, adjacent and wider/weather) as described in
-[parallel-research.md](parallel-research.md), with `delegate_task` **once as
-one three-task batch**. If delegation is unavailable or fails, search directly
-rather than losing the entire answer. Narrow venue or single-event follow-ups
-do not need agents.
+Return a short, practical shortlist: roughly **5–8 choices if enough good
+ones exist**, otherwise fewer. For each give the date/time, location,
+family price (or unknown), which children it suits, booking status,
+official source and Google Maps link when supported. Explain why it is
+worth considering and any important weather or availability warning.
+Briefly note meaningful gaps in what was checked. Do not assume an itinerary;
+let the family choose.
 
-Aim to **discover about 10–15 distinct relevant candidates** across the
-specialists, if available, **before final ranking**. This is a discovery goal,
-not a required minimum and not a reason to invent events. Do not invent
-events, prices, schedules, availability or URLs. Do not stop when
-you have found five attractive options. Search **Saturday and Sunday separately**
-(or each requested date), including event calendars and organiser listings.
-Include unusual, educational, interactive, seasonal and free council/community
-events alongside genuinely worthwhile paid options. Explore beyond events
-labelled explicitly "for kids", then assess fit. An ordinary playground or
-everyday attraction is a backup, not the automatic top pick.
-
-Merge the findings and remove duplicates. If sources or an area were not
-searched, say so briefly; do not claim complete coverage. **Fresh discovery
-comes before history or feedback**. Saved preferences are gentle ranking signals
-applied afterwards, never a reason to hide genuinely new candidates. A clear
-current or saved hard constraint still applies.
-
-## 3. Check important facts, not paperwork
-
-Prefer the **current official council, organiser, venue or booking page** for
-the particular event. One trustworthy source is sufficient for each fact it
-actually establishes; do not repeatedly cross-check clear date, time or price
-details just to satisfy a procedural step. An official council listing of a
-third-party event is a useful lead; when it disclaims verification, check the
-organiser or ticketing source for critical details. Search snippets alone are
-not confirmation.
-
-For the recommendations, check the actual event date and time, location,
-age/height restrictions and **what each child can actively do**, total family
-cost (including mandatory fees), closures and whether booking is required.
-Check an exact ticket slot only if asserting live availability. If a significant
-fact cannot be confirmed, label it **Needs checking** rather than inventing
-it. A venue being open does not prove every separate program is operating;
-keep a good venue if other age-appropriate activities there are confirmed.
-
-Check the forecast for the requested dates when available. Rain changes
-practicality, not whether an outdoor event is discovered: retain distinctive
-outdoor options with a clear wet-weather warning and an indoor alternative.
-Consider nap times, travel, accessibility and cost. If weather is not available,
-say so.
-
-## 4. Rank and present the Telegram shortlist
-
-Rank **the full discovered pool** by active fun for the children, nearby
-convenience, unusual/one-off value, cost and weather practicality. Local events
-get a fair chance against polished CBD attractions. Include exceptional
-age-specific activities when worthwhile; state which child benefits.
-
-Show roughly **5–8 distinct worthwhile choices**, if they exist. For each:
-event and venue, exact day/time, family cost or **price unknown**, whether
-booking is required or **not confirmed**, **per-child age-specific
-suitability**, area,
-official source link, and a Google Maps link when an evidenced address exists.
-Use short reasons and any weather warning. Clearly mark uncertain events.
-Finish with a brief list of the calendars/areas checked and important gaps;
-avoid long audit logs, internal schema details and false research counts.
-Present choices, not an assumed fixed itinerary.
-
-**Never discard a researched answer over a schema, fit label or save error.**
-For a normal dated-event request, **do not call `evaluate`,
-`finalize_briefing.py`, `shortlist-save` or the renderer as a prerequisite
-to responding**. Do not build a large payload in a scratch file or patch it
-repeatedly. Respond directly from the source evidence. A source check is a
-claim about the page read, not a guarantee of live booking.
-
-If the user explicitly requests **saving**, attempt the existing persistence
-helper separately, but show the useful shortlist regardless and say clearly
-whether saving succeeded. If they choose option numbers in the same conversation,
-use the already shown options for follow-up planning; do not demand a saved
-search ID. Keep family profile, feedback, and shortlist-history workflows for
-their explicit purposes. Normal outing searches must not alter skill files.
+**Respond directly from the source evidence.** Do not call `evaluate`,
+`finalize_briefing.py`, `shortlist-save` or a renderer as a prerequisite to
+answering. Do not let a formatting, saving or tool error suppress useful
+verified findings. Saving is optional unless expressly requested, and a
+saving failure must not block the answer. When the user selects options,
+use the options already shown in the same conversation; verify any remaining
+details without repeating broad discovery or demanding a saved search ID.

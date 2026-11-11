@@ -3,7 +3,7 @@
 ## Current scope
 
 This is a personal, Git-managed Hermes skill. Maintain **two distinct working
-routes**: dated weekend/event discovery returns a sourced shortlist directly;
+routes**: activity discovery for any specified date returns a sourced shortlist directly;
 undated general outings use a two-stage menu. Read `README.md`,
 `hermes-skill/SKILL.md` and the relevant references before changing a route.
 Do not add migrations, backward-compatibility layers or new infrastructure
@@ -86,7 +86,7 @@ sources, never venue-cache leads; current pages establish date-sensitive truth.
   radius comparison. Label displayed results as straight-line distance.
 - Apply hard requirements before qualitative ordering. Never calculate or show
   a numerical match score, and never invent candidates to fill a list.
-- For **dated/weekend discovery**, deliver the researched, source-linked answer
+- For **any dated discovery**, deliver the researched, source-linked answer
   directly; saving is optional unless the user explicitly requests it. A
   formatting, persistence or tool-limit error must not suppress the shortlist.
   For undated two-stage menus, use the usual saved-number workflow. Combine
@@ -98,12 +98,11 @@ sources, never venue-cache leads; current pages establish date-sensitive truth.
   calls across search, page reading, forecast and geocoding. For an undated
   broad first response, show a lightweight menu of 6–8 varied candidates;
   verify at most three selected choices after the user chooses.
-  **Date-specific family weekend searches** use the simpler
-  `dated-events.md` route: three geographic research specialists when
-  available, approximately 10–15 leads before ranking and roughly 5–8
-  sourced choices. Prioritise small local official/community calendars.
-  Do not impose the undated menu's search quota or mandatory finalizer on
-  this route. Avoid excessive calls and report incomplete coverage honestly.
+  **All date-specific searches**, weekdays and weekends alike, use
+  `dated-events.md`: search directly, prioritise fresh local official/community
+  calendars, verify only the useful options and reply with sources. Do not
+  impose the undated menu's search quota, mandatory finalizer, three-agent
+  delegation or a fixed candidate minimum. Report incomplete coverage honestly.
   Deep effort is otherwise only for an explicit thorough/comprehensive
   request. Preserve actual usage where tracked; never fabricate telemetry.
 - Cover adjacent areas inside the requested radius through the same bounded
