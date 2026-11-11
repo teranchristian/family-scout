@@ -9,19 +9,20 @@ Find useful outings for the people and dates the user requests. Keep the process
 
 ## Start every request
 
-1. Read `installation.json` beside this skill. Follow [references/profile.md](references/profile.md) to load the existing private profile via `discovery_context.py`; do not inspect helper source.
+1. Read `installation.json` beside this skill. Follow [references/profile.md](references/profile.md) to load the private profile and location-matched source URLs via `discovery_context.py`; do not inspect helper source.
 2. Resolve the user's requested dates in the activity location's timezone. Explicit location, dates, attendees, radius and budget override saved defaults. For "my kids", use the children in the profile and their ages **on each activity date**; do not silently target adults or generic "all ages" events. If the date is unspecified, use the next seven days for an event search and say so; a request for timeless ideas can remain undated.
 3. Identify the anchor suburb and **nearby suburbs within the user's geographic preferences/radius**. Prefer local gems over equally good farther attractions. Do not hardcode a city, children or sample ages.
 
 ## Research
 
-For a **broad activity search**, read [references/research.md](references/research.md). Start **one `delegate_task` call containing three tasks** when delegation is available:
+For a **broad activity search**, read [references/research.md](references/research.md). Start **one `delegate_task` call containing three tasks** when delegation is available (four only when `location_sources.urls` is non-empty):
 
 - **Agent 1 — local events:** discover events in the anchor suburb/immediate surroundings.
 - **Agent 2 — nearby events:** use **the same discovery instructions as Agent 1**, changing only the assigned suburbs/area. Avoid overlap.
 - **Agent 3 — weather:** forecast **each requested day**, with practical indoor/outdoor advice; do not repeat event discovery.
+- **Agent 4 — saved sources (conditional):** check only the URLs in `location_sources.urls` for activities on the requested dates. Do not launch if empty; see the shared verification rules in the research reference.
 
-Pass only public areas, absolute dates, derived age bands, requested budget and activity criteria. Never send the private profile, home coordinates, names or birthdates. If a batch fails, retry once with a shorter valid payload; if delegation is unavailable, cover the three scopes directly rather than running serial subagents. A named-venue check or follow-up needs direct verification, not three agents.
+Pass only public areas, absolute dates, derived age bands, requested budget, activity criteria and public saved-source URLs to their assigned agent. Never send the private profile, home coordinates, names or birthdates. If a batch fails, retry once with a shorter valid payload; if delegation is unavailable, cover the three scopes directly rather than running serial subagents. A named-venue check or follow-up needs direct verification, not three agents.
 
 Combine and deduplicate leads, confirm important facts against current official/organiser pages, then rank for actual participation by the requested children, novelty, convenience, cost and weather. **Fresh discovery comes before old shortlists or feedback**. No numeric match scores.
 

@@ -17,6 +17,7 @@ SKILL_SOURCE = REPO / "hermes-skill"
 STATE_FILES = {
     "profile.yaml": "profile.example.yaml",
     "sources.yaml": "sources.example.yaml",
+    "sources.yml": "sources.example.yml",
     "shortlists.jsonl": None,
     "feedback.jsonl": None,
 }

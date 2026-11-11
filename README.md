@@ -12,6 +12,18 @@ A small Git-managed Hermes skill for discovering **fresh, age-appropriate activi
 
 A broad search aims for 10–15 **actual leads when available**, not a mandatory quota. Return a top five if there are five good options and optional extras. Fresh discovery precedes any previous recommendations; no venue cache is used.
 
+**Optional suburb sources:** Edit the private `sources.yml` (not the older structured `sources.yaml`) to point Family Scout at locally curated public event calendars:
+
+```yaml
+exampletown:
+  - https://events.example.org/calendar
+
+other-suburb:
+  - https://events.example.org/another-calendar
+```
+
+The key is the suburb name, matched case-insensitively to the first comma-separated part of the saved home/travel location or to an explicit requested suburb. Matching is exact: a city key is not automatically applied to neighbouring suburbs. If the requested suburb has URLs, an **optional fourth agent** checks them alongside the two discovery agents and weather. Without matching URLs, the usual three-agent workflow remains. The installer creates `sources.yml` if missing but never replaces existing content; legacy `sources.yaml` and its source commands are preserved, not silently migrated. This limited YAML syntax supports top-level suburb keys and indented HTTP(S) URL lists only.
+
 The **three installed Markdown files** are:
 - `hermes-skill/SKILL.md` — task routing and final response
 - `hermes-skill/references/profile.md` — load saved context and age calculations
@@ -25,7 +37,7 @@ The Python helpers remain intact. Older optional validators/finalizers and saved
 | --- | --- |
 | `hermes-skill/` and `scripts/` in this repository | Reviewed instructions and Python code |
 | `~/.hermes/skills/family-scout/` | Installer-owned read-only copy plus `installation.json` |
-| `~/.local/share/family-scout/` (or configured `data_dir`) | Private profile, enabled sources, shortlists and feedback |
+| `~/.local/share/family-scout/` (or configured `data_dir`) | Private profile, suburb URLs, legacy sources, shortlists and feedback |
 
 Hermes must never edit the checkout or installed skill during an activity search. General memory/autonomous skill management must not overwrite the reviewed workflow; use a **proposed Git change** instead. Private data changes use only explicit user-approved helper commands. Never commit personal profile data or send a full profile, birthdate or private home coordinates to search agents.
 
