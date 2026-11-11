@@ -24,7 +24,7 @@ class SimpleResearchContractTests(unittest.TestCase):
                      "one-off", "date/time", "age", "booking", "URL"):
             self.assertIn(term.casefold(), RESEARCH.casefold())
         self.assertIn("up to five worthwhile options per day", RESEARCH)
-        self.assertIn("not a hard minimum", RESEARCH)
+        self.assertIn("not a discovery quota", RESEARCH)
 
     def test_safety_privacy_and_optional_persistence(self):
         for phrase in ("read-only", "source_dir", "data_dir", "shortlists.jsonl",
