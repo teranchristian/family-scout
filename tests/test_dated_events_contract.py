@@ -23,9 +23,12 @@ class FamilyScoutWorkflowTest(unittest.TestCase):
             self.assertIn(phrase.casefold(), SKILL.casefold())
         self.assertIn("Shared instructions for Agent 1 and Agent 2", RESEARCH)
         self.assertIn("Agent 3: weather only", RESEARCH)
-        self.assertIn("Agent 4", SKILL)
+        self.assertNotIn("Agent 4 —", SKILL)
         self.assertIn("location_sources.urls", SKILL)
-        self.assertIn("same** delegation batch", RESEARCH)
+        self.assertIn("Agent 1: optional saved suburb sources", RESEARCH)
+        self.assertIn("must still perform its ordinary fresh local search", RESEARCH)
+        self.assertIn("No separate Agent 4", RESEARCH)
+        self.assertIn("never split into sequential single-agent calls", SKILL)
         self.assertIn("each requested date", RESEARCH)
         self.assertIn("do **not** research events", RESEARCH.casefold())
 
@@ -59,6 +62,15 @@ class FamilyScoutWorkflowTest(unittest.TestCase):
         self.assertIn("No default `free_only`, budget or booking hard filter", RESEARCH)
         self.assertNotIn("free council/community events first", RESEARCH)
         self.assertIn("only if explicitly requested", PROFILE)
+
+    def test_performance_guard_preserves_discovery_and_stopping(self):
+        self.assertIn("one broad search round", RESEARCH)
+        self.assertIn("at most one targeted gap-filling round", RESEARCH)
+        self.assertIn("not a discovery quota", RESEARCH)
+        self.assertIn("fetch each saved page once", RESEARCH)
+        self.assertIn("DonSeTch `web_fetch`", RESEARCH)
+        self.assertIn("retry once using shorter, schema-valid arguments", SKILL)
+        self.assertNotIn("a fourth when saved", SKILL)
 
 
 if __name__ == "__main__":

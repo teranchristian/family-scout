@@ -15,14 +15,13 @@ Find age-appropriate outings: **read family context, search local and nearby eve
 
 ## Research
 
-For broad searches read [references/research.md](references/research.md). Make **one `delegate_task` call containing three tasks**, or four when `location_sources.urls` is non-empty:
+For broad searches read [references/research.md](references/research.md). Make **one `delegate_task` call containing three tasks** (including when `location_sources.urls` is non-empty):
 
-- **Agent 1 — local events:** anchor suburb and immediate surroundings.
+- **Agent 1 — local events:** independent fresh discovery in anchor suburb/surroundings, plus matched `location_sources.urls` as **additional leads**, never exclusive or preferred sources.
 - **Agent 2 — nearby events:** same discovery instructions, different nearby suburbs; avoid overlap.
 - **Agent 3 — weather:** forecast each requested day; no event research.
-- **Agent 4 — saved sources (optional):** check matched URLs on every requested date; skip if empty.
 
-Send only public areas, absolute dates, derived age bands, criteria and public URLs. Never send a private profile, home coordinates, names or birthdates. If delegation fails, retry once briefly; if unavailable, search directly. Named-venue checks need direct verification, not agents.
+Use three concise task strings in **one valid delegation payload**; send matched source URLs **only to Agent 1**. Pass public areas, absolute dates, derived age bands and criteria, never private profile, coordinates, names or birthdates. If delegation JSON fails, retry once using shorter, schema-valid arguments; **never split into sequential single-agent calls**. If delegation remains unavailable, search directly. Named-venue checks need direct verification.
 
 Merge and deduplicate, verify official pages, then rank by child participation, novelty, convenience and weather, not source. Include free and paid options; unknowns go under Needs checking. **Fresh discovery comes before old shortlists or feedback**. No numeric match scores.
 
