@@ -103,6 +103,18 @@ class DatedEventsContractTests(unittest.TestCase):
         self.assertIn("Agent 2 — adjacent-area specialist", PARALLEL)
         self.assertIn("Agent 3 — wider-area and weather specialist", PARALLEL)
 
+    def test_child_engagement_and_local_event_verification_beat_duration(self):
+        # Guard the decision principle, not a particular location or example.
+        compact = " ".join(EVENTS.lower().split())
+        for idea in (
+            "duration is not a proxy for child engagement",
+            "before replacing a promising",
+            "specific session and booking details",
+            "needs checking",
+            "rain changes practicality, not discovery",
+        ):
+            self.assertIn(idea, compact)
+
     def test_official_source_once_and_honest_uncertainty(self):
         for phrase in (
             "One trustworthy source is sufficient",
