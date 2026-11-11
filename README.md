@@ -3,17 +3,16 @@
 Family Scout is a Hermes skill for finding practical family outings from current
 sources and remembering only explicit feedback.
 
-**Current workflow:** Dated weekend searches deliver a source-linked shortlist
-directly. Undated outing searches use a two-stage menu and selected-option
-verification. Both use live sources; previously saved results are not a
-substitute for fresh research.
+**Current workflow:** Requests for any specific day or date range return a
+source-linked shortlist directly. General undated searches use a two-stage
+menu and verify selected choices. Both use fresh sources, not cached venues.
 
 Repository: <https://github.com/teranchristian/family-scout>
 
 ## What Family Scout does
 
-- Interprets today, tomorrow, weekend and named-date requests in the activity
-  location's timezone.
+- Interprets today, tomorrow, weekdays, weekends and named dates in the
+  activity location's timezone.
 - Searches the live web, reads current source pages and obtains a dated forecast
   using the tools already available to Hermes.
 - Uses fresh discovery for every new recommendation, without a venue cache.
@@ -52,37 +51,44 @@ The project deliberately excludes databases, background scraping, provider
 frameworks, routing, booking integrations, web UI, accounts, machine learning
 and numerical match scores.
 
-## Dated weekend/event discovery
+## Dated activities: one workflow for every day
 
-For requests such as "find events this weekend" or "what's on Saturday?",
-Family Scout now has a separate **one-pass verified events** route. It resolves
-actual dates and the activity area from the request or private home/travel
-context **at runtime**; no dates, cities or family details are built into
-the shipped skill. It prioritises the named locality, then neighbouring areas,
-then exceptionally worthwhile wider events. Broad weekend searches use
-the existing model to suggest nearby suburbs and councils, with at most one
-clarifying web lookup if geography is uncertain. Three specialists research
-local, neighbouring and exceptional wider events/weather **in one parallel
-batch** when available. Narrow venue checks do not require subagents;
-if delegation fails, Hermes researches directly.
+"What's on Tuesday?", "activities tomorrow", "this weekend" and "14–15 November"
+all use the same straightforward path:
 
-The specialists aim to discover **10–15 distinct leads** before ranking.
-Hermes presents roughly **5–8 worthwhile choices**, when available, with
-checked source links, actual dates, prices, age suitability and practical
-weather warnings. **Do not require a JSON finalizer, a saved shortlist or
-the undated workflow's research budget before replying.** Saving is optional
-unless explicitly requested. See `hermes-skill/references/dated-events.md`
-for the complete current weekend workflow.
+1. Resolve the requested date(s), location, family ages and hard constraints.
+2. Discover fresh local council, library and community events, plus worthwhile
+   nearby activities. Look in adjacent areas within the requested scope.
+3. Check current official dates/hours, child-by-child fit, costs, booking,
+   closures and the weather where available.
+4. Return a practical source-linked shortlist with Google Maps links for
+   evidenced addresses. Let the family choose what to do.
 
-Open-ended **undated** outing discovery retains its fast two-stage menu:
-6–8 plausible choices, followed by verification of the user's selections.
-The date-specific route does not change global Hermes configuration or
-commit private runtime profiles.
+Every broad **dated activity discovery** uses **three parallel specialists**
+(local, adjacent, wider/weather) in one batch when Hermes supports delegation,
+with a direct-search fallback. "Find activities tomorrow", "What's on Wednesday?"
+and "Find the best activities this weekend" trigger the **same research depth**,
+whether one day or several. A request to check one specific event or venue is
+not discovery and runs directly. The geographic scopes respect the user's
+location and radius, without expanding them.
 
-The installed skill uses progressive disclosure so its entry point stays small.
-Normal recommendations load one self-contained fast workflow. Detailed discovery,
-briefing and evidence references are reserved for an explicit thorough search;
-feedback/profile work uses the memory and CLI references.
+Broad searches aim for 10–15 real leads if available before ranking a
+local-first top five, additional options and an indoor backup. Multi-day
+requests also receive suggestions for each requested day. Neither the lead
+target nor the number of recommendations is a hard minimum.
+
+There is no weekend-only logic, mandatory JSON finalizer or required save step.
+Do not invent candidates to meet a quota. Saving is optional unless requested.
+A dated search for one specific venue needs only that venue checked.
+
+For open-ended **undated** discovery, keep the existing two-stage menu:
+show 6–8 varied possibilities when available; verify the selected options.
+This preserves saved menu numbers and explicit feedback without making every
+dated request perform those extra steps.
+
+The skill's `SKILL.md` entry point is intentionally small. Other detailed
+reference files remain available for explicit deeper investigation, profile
+work and the undated menu's validation.
 
 ## One source of truth: Git code, private state, locked skill
 
@@ -206,7 +212,7 @@ into web queries, logs or public reports.
 After `git pull` and `./install.sh`, start a fresh Hermes conversation
 and check both active workflows:
 
-- **Dated weekend:** Ask for free or low-cost activities this weekend.
+- **Dated activities:** Ask for free or low-cost activities on a weekday, then repeat for a weekend.
   Expect nearby suburbs, fresh small council/community events, checked links,
   practical weather advice and age-specific suitability. A useful sourced
   answer must not depend on saving or running the old finalizer.

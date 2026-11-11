@@ -1,148 +1,72 @@
-"""Contract tests for the simple dated-weekend Family Scout workflow."""
+"""Contract tests for day-independent dated Family Scout discovery."""
 
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 SKILL = (ROOT / "hermes-skill" / "SKILL.md").read_text(encoding="utf-8")
-EVENTS = (ROOT / "hermes-skill" / "references" / "dated-events.md").read_text(
-    encoding="utf-8"
-)
-RECOMMENDATION = (
-    ROOT / "hermes-skill" / "references" / "recommendation.md"
-).read_text(encoding="utf-8")
-PARALLEL = (
-    ROOT / "hermes-skill" / "references" / "parallel-research.md"
-).read_text(encoding="utf-8")
+EVENTS = (ROOT / "hermes-skill" / "references" / "dated-events.md").read_text(encoding="utf-8")
+RECOMMENDATION = (ROOT / "hermes-skill" / "references" / "recommendation.md").read_text(encoding="utf-8")
+README = (ROOT / "README.md").read_text(encoding="utf-8")
 
 
 class DatedEventsContractTests(unittest.TestCase):
-    def test_routes_stay_distinct(self):
+    def test_every_named_day_uses_same_route(self):
         self.assertIn("references/dated-events.md", SKILL)
-        self.assertIn("this/next weekend", SKILL)
-        self.assertIn("three local-to-wide research subagents", SKILL)
         self.assertIn("references/recommendation.md", SKILL)
+        for phrase in ("today", "tomorrow", "a named weekday", "Saturday",
+                       "Sunday", "this weekend", "next weekend", "specific dates"):
+            self.assertIn(phrase, EVENTS)
+        self.assertIn("not a separate", EVENTS)
         self.assertIn("two-stage", RECOMMENDATION)
-        self.assertIn("dated-events.md", RECOMMENDATION)
 
-    def test_request_not_hardcoded_to_example_family(self):
-        compact = " ".join(EVENTS.split())
-        for phrase in (
-            "activity location's IANA timezone",
-            "explicit location and radius",
-            "saved **home/travel**",
-            "never assume a particular country, city, suburb",
-            "date window",
-            "age bands",
-        ):
-            self.assertIn(phrase, compact)
-        for example in ("Randwick", "Sydney", "Ema", "Haru",
-                        "November 2026", "2026-11-14"):
-            self.assertNotIn(example, SKILL)
-            self.assertNotIn(example, EVENTS)
-
-    def test_local_council_events_before_big_venues(self):
-        compact = " ".join(EVENTS.split())
-        for phrase in (
-            "Priority 1", "Priority 2", "Priority 3",
-            "general event calendars", "library/event-program calendars",
-            "community centres", "sustainability/environment hubs",
-            "small one-off community events", "swaps",
-            "Search **Saturday and Sunday separately**",
-            "wider", "famous",
-        ):
-            self.assertIn(phrase, compact)
-
-    def test_geographic_preflight_is_model_first_with_conditional_lookup(self):
-        for phrase in (
-            "Hermes's existing AI model knowledge",
-            "public suburb/town and city",
-            "not a new subagent, tool call or mandatory web search",
-            "search-area plan",
-            "search leads, not",
-            "user's explicitly specified tiers",
-            "exact event venue",
-            "at most one quick web search",
-            "If the lookup fails",
-            "specific area names and assigned tier",
-            "no separate council",
-        ):
+    def test_parallel_for_all_broad_dated_discovery(self):
+        for phrase in ("no fixed candidate minimum", "Focused verification",
+                       "Broad discovery", "one batch", "three parallel specialists",
+                       "delegate_task", "single weekday", "10–15 distinct leads",
+                       "If delegation fails", "Search the actual requested dates",
+                       "find activities tomorrow", "what's on Wednesday",
+                       "Neither the word \"best\""):
             self.assertIn(phrase, EVENTS)
-        self.assertNotIn("Before the three research agents start, make **one quick web search**", EVENTS)
-        for phrase in (
-            "model-first geographic preflight",
-            "before** calling `delegate_task`",
-            "one web lookup only when needed",
-            "specific local suburbs",
-            "assigned scope",
-            "nearby",
-            "local only",
-            "adjacent only",
-            "wider exceptional options and weather only",
-            "Each agent finds its own official council calendars",
-        ):
-            self.assertIn(phrase, PARALLEL)
-        for example in ("Randwick", "Sydney", "Ema", "Haru"):
-            self.assertNotIn(example, EVENTS)
-            self.assertNotIn(example, PARALLEL)
+        for phrase in ("Local specialist", "Adjacent specialist",
+                       "Wider/weather specialist", "council general event calendars",
+                       "library calendars", "private names", "deduplicate"):
+            self.assertIn(phrase, EVENTS)
+        self.assertIn("one parallel three-specialist research batch", SKILL)
+        self.assertIn("same research depth", README.lower())
+        self.assertIn("Find activities tomorrow", README)
+        self.assertIn("What's on Wednesday?", README)
+        self.assertIn("no weekend-only logic", README.lower())
+        self.assertNotIn("parallel-research.md", SKILL + EVENTS + RECOMMENDATION)
 
-    def test_three_parallel_specialists_and_broader_discovery(self):
-        compact = " ".join(EVENTS.split())
-        for phrase in (
-            "three parallel research specialists",
-            "once as one three-task batch",
-            "discover about 10–15 distinct relevant candidates",
-            "before final ranking",
-            "Do not stop when you have found five",
-            "5–8 distinct worthwhile choices",
-            "If delegation is unavailable",
-        ):
-            self.assertIn(phrase, compact)
-        self.assertIn("Agent 1 — local specialist", PARALLEL)
-        self.assertIn("Agent 2 — adjacent-area specialist", PARALLEL)
-        self.assertIn("Agent 3 — wider-area and weather specialist", PARALLEL)
-
-    def test_official_source_once_and_honest_uncertainty(self):
-        for phrase in (
-            "One trustworthy source is sufficient",
-            "current official council, organiser, venue or booking page",
-            "Search snippets alone",
-            "what each child can actively do",
-            "total family", "Needs checking",
-            "exact ticket slot",
-            "Rain changes", "outdoor",
-            "free council/community",
-            "Local events",
-        ):
+    def test_broad_discovery_output_is_consistent_every_day(self):
+        for phrase in ("top five", "3–5 additional interesting choices",
+                       "suggested", "indoor backup", "same answer depth",
+                       "Focused venue checks"):
             self.assertIn(phrase, EVENTS)
 
-    def test_save_not_required_for_dated_event_delivery(self):
-        for phrase in (
-            "Never discard a researched answer",
-            "do not call `evaluate`",
-            "`finalize_briefing.py`",
-            "`shortlist-save`",
-            "as a prerequisite",
-            "Respond directly from the source evidence",
-            "explicitly requests **saving**",
-            "show the useful shortlist regardless",
-            "same conversation",
-            "do not demand a saved",
-        ):
-            self.assertIn(phrase, EVENTS)
-        self.assertNotIn("Run `finalize_briefing.py` with the JSON input, once", EVENTS)
-        self.assertNotIn("paste `numbered_options_markdown` verbatim", EVENTS)
+    def test_location_privacy_and_age(self):
+        compact = " ".join(EVENTS.split())
+        for phrase in ("activity location's IANA timezone", "explicit location and radius",
+                       "home/travel", "birthdates", "age", "private"):
+            self.assertIn(phrase, compact)
+        for example in ("Randwick", "Sydney", "Ema", "Haru", "2026-11-14"):
+            self.assertNotIn(example, SKILL + EVENTS)
 
-    def test_preserve_profile_and_new_discovery(self):
-        compact = " ".join(EVENTS.split()).casefold()
-        for phrase in (
-            "Fresh discovery comes before history or feedback",
-            "Saved preferences are gentle ranking signals",
-            "hard constraint",
-            "Do not invent",
-        ):
-            self.assertIn(phrase.casefold(), compact)
+    def test_local_discovery_with_current_evidence(self):
+        for phrase in ("general event calendars", "library/event-program calendars",
+                       "adjacent", "small events", "Fresh discovery comes before",
+                       "Search snippets alone", "One trustworthy source",
+                       "Search the actual requested dates"):
+            self.assertIn(phrase, EVENTS)
+
+    def test_decision_ready_answer_and_optional_saving(self):
+        for phrase in ("Both children", "total family price",
+                       "Needs checking", "closures", "Weather",
+                       "Google Maps", "official source", "Saving is optional",
+                       "Respond directly from the source evidence",
+                       "shortlist-save", "saved search ID"):
+            self.assertIn(phrase, EVENTS)
 
 
 if __name__ == "__main__":

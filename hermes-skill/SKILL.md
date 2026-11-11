@@ -5,10 +5,10 @@ description: Research current, decision-ready family outings and remember explic
 
 # Family Scout
 
-Help a family choose practical outings at home or while travelling. For dated
-weekend/event searches, give a local-first shortlist of verified activities
-and a brief research summary. For undated broad requests, show a varied
-initial menu first and verify deeply after selection. Keep both paths bounded.
+Help a family choose practical outings at home or while travelling. Use the same
+process for any requested day, including weekdays and weekends. A dated search
+returns a source-linked shortlist directly; an undated broad search starts with
+a varied menu and verifies selected choices.
 
 ## Git-owned skill — read-only in Hermes
 
@@ -29,11 +29,11 @@ not by rewriting procedural instructions.
 
 ## Route first
 
-- **Find dated events/activities (including this/next weekend or a named day):** read [references/dated-events.md](references/dated-events.md). Broad weekend searches use three local-to-wide research subagents via [references/parallel-research.md](references/parallel-research.md). Present the sourced shortlist even if optional saving fails; never spend the research budget debugging a finalizer. Do not inspect helper or validator source code.
+- **Any dated activity discovery request (today, tomorrow, a weekday, weekend or named dates):** read [references/dated-events.md](references/dated-events.md). For any broad request to find activities, use one parallel three-specialist research batch when `delegate_task` is available, regardless of the day or number of dates. Only checks of specific named venues/events or follow-ups search directly. If delegation is unavailable, search directly. No mandatory candidate quota or saving step. Do not inspect helper or validator source code.
 - **Find undated general outings, compare choices or follow up on a shortlist:** read only [references/recommendation.md](references/recommendation.md). Do not inspect helper or validator source code. Do not inspect any other reference or unowned installed file.
 - **Feedback, history correction, profile/travel, sources, or “more like this”:** read [references/memory.md](references/memory.md) and the applicable part of [references/cli.md](references/cli.md).
 - **Setup/status:** use the redacted `status` command and README.
-- **Explicit thorough/comprehensive request:** read additional detailed discovery, quality, briefing, runtime-tool and venue-status references when relevant. Read `parallel-research.md` only if independent subagents would genuinely help. Never enter deep mode merely to fill a list.
+- **Explicit thorough/comprehensive request:** consult additional discovery, quality, briefing, runtime-tool or venue-status references only when needed. Never enter deep mode merely to fill a list.
 
 ## Shared boundaries
 

@@ -2,9 +2,8 @@
 
 This is the complete runtime contract for **undated/general** Family Scout
 recommendations. Do not open any other reference, helper source, validator
-source or unowned file—even after tool failure—except that a **dated
-event/weekend search** follows the simpler `dated-events.md` direct-response
-route instead. General broad requests start with choices,
+source or unowned file—even after tool failure—except that **any dated activity search** follows the simpler
+`dated-events.md` direct-response route instead. General broad requests start with choices,
 not a premature day plan.
 
 ## 1. Interpret once and start the run
@@ -135,12 +134,11 @@ python3 <source_dir>/scripts/finalize_briefing.py \
 Use `result_mode: "verified"`. Return at most the selected three options. Build
 an itinerary only when the user asks for one or after their choices are known.
 
-## 4. Optional delegation (advanced only)
+## 4. Keep research proportional
 
-Do not delegate routine requests. Search directly within the normal shared budget.
-If the user explicitly requests a thorough regional comparison that merits
-independent agents, read [parallel-research.md](parallel-research.md) and follow
-its one-batch recipe. Do not spend extra calls merely to launch subagents.
+Search directly for routine requests. An explicit thorough regional comparison
+may justify more investigation, but never launch subagents, add steps or
+use extra calls just to satisfy a procedure.
 
 ## 5. Honest budgets and failures
 
