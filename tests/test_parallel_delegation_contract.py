@@ -37,6 +37,9 @@ class ParallelDelegationContractTests(unittest.TestCase):
         self.assertIn("library", contexts[0])
         self.assertIn("adjacent", contexts[1])
         self.assertIn("council", contexts[1])
+        self.assertIn("library programs", contexts[1])
+        self.assertIn("for each date", contexts[1])
+        self.assertIn("recurring weekend sessions", contexts[1])
         self.assertIn("forecast", contexts[2])
         self.assertIn("indoor", contexts[2])
 
