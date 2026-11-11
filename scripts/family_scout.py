@@ -1308,9 +1308,12 @@ def normalize_option(option, number, timezone_name, request):
     validate_link_checks(link_checks, "option.link_checks", urls, booking["required"])
     require(isinstance(result.get("why"), str) and result["why"].strip(),
             "option.why is required")
-    constraint_results = result.get("constraint_results")
+    # Optional for backwards compatibility. The option's date, distance, cost,
+    # indoor status and booking are checked against the request below, so agents
+    # do not need a separate evaluate call or copied classifications.
+    constraint_results = result.get("constraint_results", [])
     require(isinstance(constraint_results, list),
-            "option.constraint_results must be copied from evaluate")
+            "option.constraint_results must be a list when supplied")
     classified = {}
     for item in constraint_results:
         require(isinstance(item, dict)
@@ -1342,8 +1345,9 @@ def normalize_option(option, number, timezone_name, request):
         expected.add("eligibility")
     if booking["required"]:
         expected.add("booking")
-    require(expected <= set(classified),
-            "option.constraint_results is missing an applicable hard requirement")
+    if "constraint_results" in result:
+        require(expected <= set(classified),
+                "option.constraint_results is missing an applicable hard requirement")
     if request.get("radius_km") is not None:
         require(result.get("distance_km") is not None
                 and result["distance_km"] <= request["radius_km"],
