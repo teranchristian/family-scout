@@ -218,7 +218,7 @@ def valid_location(value, label, require_expiry=False):
 
 def validate_birth_date(value, label):
     """Validate an exact calendar birthdate; optional in existing profiles."""
-    require(isinstance(value, str) and re.fullmatch(r"\\d{4}-\\d{2}-\\d{2}", value),
+    require(isinstance(value, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", value),
             f"{label} must be an ISO YYYY-MM-DD date")
     try:
         parsed = date.fromisoformat(value)
