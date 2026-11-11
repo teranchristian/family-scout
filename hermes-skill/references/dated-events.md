@@ -34,9 +34,41 @@ Search the actual requested dates, not automatically Saturday and Sunday.
 For short ranges, inspect each requested day; for longer ranges, search
 calendars across the interval and confirm the dates of promising events.
 Find enough varied, genuinely useful options for the request. There is
-**no fixed candidate minimum, mandatory geographic preflight or required
-three-agent delegation**. Search directly with existing Hermes tools; never
-launch subagents just to satisfy a workflow.
+**no fixed candidate minimum or mandatory geographic preflight**.
+
+### Scale up discovery when useful
+
+- **Focused search** (one venue, a narrow area or a quick simple outing):
+  search directly with Hermes's tools; no subagents.
+- **Broad research** (for example, "find the best activities" across local,
+  adjacent and wider areas, an explicit thorough comparison, or a request for
+  parallel research): when `delegate_task` is available, launch **one batch
+  of three parallel specialists**, each assigned an independent geographic
+  scope. This works for **any requested day or range**, not just weekends.
+  If delegation fails, research directly and report the gap briefly.
+
+Assign the three roles from the request's explicit geographic priority tiers
+or the resolved public locality. Do not hardcode example suburbs or councils:
+
+1. **Local specialist:** anchor suburb and immediate surroundings. Inspect
+   actual council general event calendars and library calendars, local hubs,
+   community groups and small events that a general search might overlook.
+2. **Adjacent specialist:** neighbouring suburbs/councils permitted by the
+   user's radius or area priorities. Search their councils, libraries,
+   community organisations, markets, galleries and workshops.
+3. **Wider/weather specialist:** exceptional wider events worth the extra
+   travel, forecasts and indoor backups. Do not overpromote famous everyday
+   attractions.
+
+Pass all three the **absolute dates, public search areas, age bands, budget and
+activity criteria**, but not private names, birthdates, home coordinates or a
+full profile. Request event names, exact session date/time when known, source
+URLs and uncertainties. Each specialist checks **every requested date** in
+its own scope. Combine the results, deduplicate and verify promising choices
+against official sources. For a broad search, **aim for 10–15 distinct leads
+if they exist before ranking**; this is a research goal, never a required
+minimum or permission to invent entries. Don't stop after the first five
+attractive results. Rank local gems fairly against wider attractions.
 
 **Fresh discovery comes before history or feedback.** Saved preferences are
 gentle ranking signals afterwards, not a substitute for searching. Never
@@ -73,7 +105,11 @@ family price (or unknown), which children it suits, booking status,
 official source and Google Maps link when supported. Explain why it is
 worth considering and any important weather or availability warning.
 Briefly note meaningful gaps in what was checked. Do not assume an itinerary;
-let the family choose.
+let the family choose. For a **broad multi-day** request, present a ranked
+**top five**, up to **3–5 additional interesting choices** when available, and
+a suggested activity for each requested day plus one indoor backup. Suggestions
+are options, not booked slots or a fixed itinerary. For simple, single-date
+requests keep the answer shorter.
 
 **Respond directly from the source evidence.** Do not call `evaluate`,
 `finalize_briefing.py`, `shortlist-save` or a renderer as a prerequisite to

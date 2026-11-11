@@ -20,13 +20,25 @@ class DatedEventsContractTests(unittest.TestCase):
         self.assertIn("not a separate", EVENTS)
         self.assertIn("two-stage", RECOMMENDATION)
 
-    def test_no_weekend_only_or_mandatory_agent_workflow(self):
-        for phrase in ("no fixed candidate minimum", "required\nthree-agent delegation",
-                       "Search directly", "date range"):
+    def test_parallel_for_broad_searches_but_not_quick_requests(self):
+        for phrase in ("no fixed candidate minimum", "Focused search",
+                       "Broad research", "one batch", "three parallel specialists",
+                       "delegate_task", "any requested day or range", "10–15 distinct leads",
+                       "If delegation fails", "Search the actual requested dates"):
             self.assertIn(phrase, EVENTS)
-        self.assertNotIn("parallel-research.md", SKILL + EVENTS + RECOMMENDATION)
-        self.assertNotIn("delegate_task", SKILL + EVENTS)
+        for phrase in ("Local specialist", "Adjacent specialist",
+                       "Wider/weather specialist", "council general event calendars",
+                       "library calendars", "private names", "deduplicate"):
+            self.assertIn(phrase, EVENTS)
+        self.assertIn("one parallel three-specialist discovery batch", SKILL)
         self.assertIn("no weekend-only logic", README.lower())
+        self.assertNotIn("parallel-research.md", SKILL + EVENTS + RECOMMENDATION)
+
+    def test_broad_multi_day_output_and_simple_mode(self):
+        for phrase in ("top five", "3–5 additional interesting choices",
+                       "suggested activity for each requested day", "indoor backup",
+                       "simple, single-date"):
+            self.assertIn(phrase, EVENTS)
 
     def test_location_privacy_and_age(self):
         compact = " ".join(EVENTS.split())

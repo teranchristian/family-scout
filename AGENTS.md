@@ -99,10 +99,14 @@ sources, never venue-cache leads; current pages establish date-sensitive truth.
   broad first response, show a lightweight menu of 6–8 varied candidates;
   verify at most three selected choices after the user chooses.
   **All date-specific searches**, weekdays and weekends alike, use
-  `dated-events.md`: search directly, prioritise fresh local official/community
-  calendars, verify only the useful options and reply with sources. Do not
-  impose the undated menu's search quota, mandatory finalizer, three-agent
-  delegation or a fixed candidate minimum. Report incomplete coverage honestly.
+  `dated-events.md`: search directly for focused requests, but use a single
+  three-specialist parallel batch for broad multi-area research when supported
+  (local, adjacent, wider/weather). This is valid on any day, not weekends
+  only; failed delegation falls back to direct research. Prioritise fresh
+  local official/community calendars, verify useful options and reply with
+  sources. Aim for 10–15 leads for broad discovery when they genuinely exist,
+  not as a hard minimum. Do not impose the undated menu's search quota or
+  mandatory finalizer. Report incomplete coverage honestly.
   Deep effort is otherwise only for an explicit thorough/comprehensive
   request. Preserve actual usage where tracked; never fabricate telemetry.
 - Cover adjacent areas inside the requested radius through the same bounded

@@ -64,10 +64,18 @@ all use the same straightforward path:
 4. Return a practical source-linked shortlist with Google Maps links for
    evidenced addresses. Let the family choose what to do.
 
-There is **no weekend-only logic, mandatory three-subagent batch, fixed
-10–15-lead target, JSON finalizer or required save step**. Do not invent
-candidates to reach a quota. Saving is optional unless requested. A dated
-search for one specific venue needs only that venue checked.
+The research effort scales with the request. A quick or narrow search runs
+directly. A broad search for the best activities across multiple areas uses
+**three parallel specialists** (local, adjacent, wider/weather) in one batch
+when Hermes supports delegation, with a direct-search fallback. This applies
+on **weekdays and weekends alike**. Such searches aim for 10–15 discovery
+leads if available before selecting a local-first top five, additional options
+and practical day-by-day suggestions. Neither the lead target nor number of
+recommendations is a hard minimum.
+
+There is no weekend-only logic, mandatory JSON finalizer or required save step.
+Do not invent candidates to meet a quota. Saving is optional unless requested.
+A dated search for one specific venue needs only that venue checked.
 
 For open-ended **undated** discovery, keep the existing two-stage menu:
 show 6–8 varied possibilities when available; verify the selected options.
