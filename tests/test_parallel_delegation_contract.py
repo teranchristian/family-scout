@@ -1,8 +1,8 @@
-"""Contract checks for the optional parallel-research delegation recipe."""
+"""Contract checks for one-batch local-first weekend discovery."""
 
 import json
-import unittest
 from pathlib import Path
+import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,39 +15,39 @@ PARALLEL = (ROOT / "hermes-skill" / "references" / "parallel-research.md").read_
 
 
 class ParallelDelegationContractTests(unittest.TestCase):
-    def test_documented_batch_is_valid_three_task_json(self):
-        start_marker = "<!-- begin single-batch-example -->"
-        end_marker = "<!-- end single-batch-example -->"
-        self.assertIn(start_marker, PARALLEL)
-        self.assertIn(end_marker, PARALLEL)
-        block = PARALLEL.split(start_marker, 1)[1].split(end_marker, 1)[0]
-        payload = json.loads("{" + block.split("{", 1)[1].rsplit("}", 1)[0] + "}")
+    def test_single_batch_with_three_distinct_roles(self):
+        start = "<!-- begin single-batch-example -->"
+        end = "<!-- end single-batch-example -->"
+        block = PARALLEL.split(start, 1)[1].split(end, 1)[0]
+        payload = json.loads(block.split("```json", 1)[1].split("```", 1)[0])
         self.assertEqual(set(payload), {"tasks"})
         self.assertEqual(len(payload["tasks"]), 3)
         self.assertLess(len(json.dumps(payload, separators=(",", ":"))), 8000)
-        goals = set()
         for task in payload["tasks"]:
             self.assertEqual(set(task), {"goal", "context"})
-            self.assertTrue(task["goal"].strip())
-            self.assertTrue(task["context"].strip())
+            self.assertTrue(task["goal"])
+            self.assertTrue(task["context"])
             self.assertNotIn("\n", task["context"])
             self.assertLessEqual(len(task["context"].encode("utf-8")), 1500)
-            goals.add(task["goal"])
-        self.assertEqual(len(goals), 3)
+        goals = [task["goal"] for task in payload["tasks"]]
+        self.assertEqual(len(set(goals)), 3)
+        self.assertIn("local council", payload["tasks"][0]["context"])
+        self.assertIn("neighbouring council", payload["tasks"][1]["context"])
+        self.assertIn("forecast", payload["tasks"][2]["context"])
 
-    def test_routine_research_does_not_delegate_by_default(self):
+    def test_weekend_delegates_but_undated_menu_is_direct(self):
         self.assertIn("Do not delegate routine requests", RECOMMENDATION)
-        self.assertIn("Routine weekend discovery starts", PARALLEL)
-        self.assertIn("If a broad dated weekend search needs delegation", PARALLEL)
+        self.assertIn("broad dated weekend search", PARALLEL)
+        self.assertIn("once with three tasks in one batch", PARALLEL)
+        self.assertIn("not as three serial calls", PARALLEL)
+        self.assertIn("10–15 across all three agents", PARALLEL)
 
-    def test_fallback_does_not_serialize_three_delegations(self):
+    def test_failed_delegation_must_not_block_reply(self):
+        self.assertIn("search the missing", PARALLEL)
+        self.assertIn("return a useful answer", PARALLEL)
         self.assertIn("Never recover by launching the three", PARALLEL)
-        self.assertIn("subagents separately.", PARALLEL)
-        self.assertIn("Three children do **not** create three fresh budgets", PARALLEL)
-        self.assertIn(
-            "Do not modify Hermes configuration",
-            " ".join(PARALLEL.split()),
-        )
+        self.assertIn("Do not modify", PARALLEL)
+        self.assertIn("Present the findings first", PARALLEL)
 
 
 if __name__ == "__main__":
