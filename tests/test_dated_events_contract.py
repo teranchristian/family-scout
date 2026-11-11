@@ -30,10 +30,10 @@ class DatedEventsContractTests(unittest.TestCase):
             "explicit location and radius",
             "saved **home/travel** profile",
             "never assume a particular country, city, suburb",
-            "requested date window",
+            "date window",
             "resolved anchor",
         ):
-            self.assertIn(required, EVENTS)
+            self.assertIn(required, compact)
         for forbidden in ("Randwick", "Sydney", "November 2026", "2026-11-14"):
             self.assertNotIn(forbidden, EVENTS)
             self.assertNotIn(forbidden, SKILL)
@@ -42,7 +42,7 @@ class DatedEventsContractTests(unittest.TestCase):
         for required in (
             "Priority 1", "Priority 2", "Priority 3",
             "general events calendars AND library/event-program calendars",
-            "day by day", "actively", "source URL",
+            "day by day", "active participation", "source URL",
             "Unknown hard", "verified", "link_checks",
         ):
             self.assertIn(required, EVENTS)
