@@ -125,10 +125,16 @@ say so.
 
 ## 4. Rank and present the Telegram shortlist
 
-Rank **the full discovered pool** by active fun for the children, nearby
-convenience, unusual/one-off value, cost and weather practicality. Local events
-get a fair chance against polished CBD attractions. Include exceptional
-age-specific activities when worthwhile; state which child benefits.
+Rank **the full discovered pool** by what each attending child can actively
+enjoy, local one-off value, convenience, cost and weather practicality. A short
+hands-on event can beat a longer museum visit or adult-oriented market:
+**duration is not a proxy for child engagement**. Before replacing a promising
+nearby child-focused event with a similar farther one, check the local event's
+specific session and booking details; if still uncertain, label **Needs checking**
+rather than silently burying it. Rain changes practicality, not discovery
+eligibility: explain real weather risks and offer a backup instead of
+automatically filling the top spots with generic indoor attractions.
+Include exceptional age-specific activities when worthwhile; state which child benefits.
 
 Show roughly **5–8 distinct worthwhile choices**, if they exist. For each:
 event and venue, exact day/time, family cost or **price unknown**, whether
