@@ -22,9 +22,24 @@ Search fresh sources, locally first:
 - **Priority 2:** neighbouring suburbs/councils inside the requested scope.
 - **Priority 3:** unusual wider experiences only when genuinely worthwhile.
 
-Cover the requested dates **day by day**. Look at official **general events calendars AND library/event-program calendars**, as well as relevant booking
-and organiser listings. Prefer events with **active participation** for each
-child, rather than merely allowing children inside.
+A broad request for activities on a date is **not events-only** unless the user
+explicitly says so. Discover both exact-date sessions and dependable everyday
+experiences. Aim for **6–8 plausible distinct leads across at least four useful
+experience classes when available** before ranking: local one-off events,
+library/community play, hands-on classes, museums/culture, nature/animals,
+and a general attractions/experiences sweep **not framed only around children**.
+These are coverage goals, not result quotas: search relevant alternatives when
+a class is unsuitable; never invent leads or extend the user's hard radius.
+Count a class as searched only when a relevant query or source was actually
+inspected, not because a snippet mentioned it.
+
+Cover the requested dates **day by day**. Inspect the official
+**general events calendars AND library/event-program calendars** as separate
+discovery sources where available, alongside current organiser/booking pages. Do not
+assume a council's general calendar includes its library sessions or small
+community events. Prefer events with **active participation** for each child,
+rather than merely allowing children inside. Everyday venues remain useful
+alternatives when no exceptional dated events are evidenced.
 
 **For broad weekend/event searches, use three parallel subagents by default.**
 Read [parallel-research.md](parallel-research.md) and call `delegate_task`
@@ -46,11 +61,28 @@ subagent findings alone establish a verified recommendation.
 For this dated route use the existing `effort_mode: "deep"` ceiling: **six searches and twenty-four external calls total**, including
 searches, page reads, forecast and geocoding (also delegated calls).
 These are ceilings, not targets. Keep at most **ten retained candidates** in the finalizer's ledger, and verify **up to five** best candidates.
-Stop early if the shortlist is useful. Distinguish total discovered leads from
-those retained for validation.
+Complete planned local-calendar coverage and the broad-experience sweep before
+picking finalists. **Do not stop after three good leads** or treat three verified
+options as proof that discovery was complete. Stop when meaningful coverage is
+achieved or the shared budget is exhausted, not to fill a quota. If coverage
+was cut short, state which calendars/classes were missed; return fewer results
+rather than inventing them. Distinguish total discovered leads from those
+retained for validation.
 
-Fresh discovery comes before past shortlist/feedback. Cached place records are
-leads only and never establish an event's current date, cost or availability.
+Fresh discovery comes before past shortlist/feedback. Rank the **fresh pool
+before loading history or feedback**: meaningful age-appropriate activity for
+each child first, then practical proximity, one-off value, total cost, time and
+booking friction. Prefer a worthwhile local hands-on activity to a farther,
+mostly passive outing when the evidence and other constraints are comparable.
+Keep useful variety: don't let passive shopping, markets or one venue class
+crowd out verified interactive alternatives. Apply prior feedback only as a
+final ordering adjustment; it must not suppress fresh discovery.
+
+**Weather affects ranking and backups, not discovery coverage**, unless the
+user explicitly requested indoor-only or another hard weather constraint.
+Offer a weather-safe alternative where possible, without falsely calling a
+covered outdoor venue fully indoors. Cached place records are leads only and
+never establish an event's current date, cost or availability.
 
 ## 3. Verify each finalist, including its links
 
@@ -108,8 +140,10 @@ debug schemas until the tool-call budget is exhausted.
 
 Show **up to five** verified picks, each with: actual date/time, activity,
 cost, registration status, individual child fit, address and direct checked
-event/booking/map links. Suggest one activity per requested day, plus a
-weather-safe alternative when useful.
+event/booking/map links. Present **choices, not a fixed itinerary**.
+Optionally highlight one strong choice per requested day and a weather-safe
+alternative; do not stack outings
+or imply the user selected them unless asked to build a plan.
 
 Keep the research summary brief and evidence-led: **Subagents completed**
 (e.g. "3/3", "2/3", or "not used" if delegation failed), **Distinct candidate events actually discovered** (or

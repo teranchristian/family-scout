@@ -13,6 +13,9 @@ EVENTS = (ROOT / "hermes-skill" / "references" / "dated-events.md").read_text(
 RECOMMENDATION = (
     ROOT / "hermes-skill" / "references" / "recommendation.md"
 ).read_text(encoding="utf-8")
+PARALLEL = (
+    ROOT / "hermes-skill" / "references" / "parallel-research.md"
+).read_text(encoding="utf-8")
 
 
 class DatedEventsContractTests(unittest.TestCase):
@@ -65,6 +68,43 @@ class DatedEventsContractTests(unittest.TestCase):
         self.assertIn("narrow venue check", EVENTS)
         self.assertIn("Booking matters even when entry is free", EVENTS)
         self.assertIn("fallback_markdown", EVENTS)
+
+    def test_weekend_discovery_rejects_three_and_done_regression(self):
+        compact = " ".join(EVENTS.split())
+        for required in (
+            "not events-only",
+            "6–8 plausible distinct leads",
+            "at least four useful experience classes",
+            "general attractions/experiences sweep",
+            "not framed only around children",
+            "separate discovery sources",
+            "Do not stop after three good leads",
+            "fresh pool before loading history or feedback",
+            "meaningful age-appropriate activity for each child",
+            "Weather affects ranking and backups, not discovery coverage",
+            "choices, not a fixed itinerary",
+            "state which calendars/classes were missed",
+        ):
+            self.assertIn(required, compact)
+        self.assertNotIn("Stop early if the shortlist is useful", EVENTS)
+
+    def test_parallel_example_keeps_budget_for_parent_discovery(self):
+        markers = ("<!-- begin single-batch-example -->", "<!-- end single-batch-example -->")
+        block = PARALLEL.split(markers[0], 1)[1].split(markers[1], 1)[0]
+        payload = json.loads(block.split("```json", 1)[1].split("```", 1)[0])
+        contexts = [task["context"] for task in payload["tasks"]]
+        self.assertEqual(len(contexts), 3)
+        self.assertIn("budget: 2 searches", contexts[0])
+        self.assertIn("budget: 1 search", contexts[1])
+        self.assertIn("budget: 1 search", contexts[2])
+        compact = " ".join(PARALLEL.split())
+        for required in (
+            "two local searches, one neighbouring, one wider, and up to two parent searches",
+            "twenty-four total external calls",
+            "calendars actually inspected",
+            "rather than selecting the final top three",
+        ):
+            self.assertIn(required, compact)
 
     def test_summary_requires_evidence_not_made_up_counts(self):
         for required in (
