@@ -41,9 +41,9 @@ When delegation is useful:
    The parent can leave unused searches unspent. Reserve page reads within the
    same **twenty-four total external calls**; never interpret these as 24
    additional page reads after searches. Aggregate **actual** usage, including
-   failures and retries, across children and parent. Three children do **not**
-   create three fresh budgets. If usage is missing, report that gap; never
-   assume the run was under budget.
+   failures and retries, across children and parent.
+   Three children do **not** create three fresh budgets. If usage is missing,
+   report that gap; never assume the run was under budget.
 5. Ask children to return one compact JSON result: a small set of **distinct**
    candidate titles, exact dates/areas, experience classes, direct source URLs,
    what is known vs unverified, concise reasons, calendars actually inspected
@@ -53,8 +53,9 @@ When delegation is useful:
    and the saved-link contract before displaying any claims or URLs.
 
 One valid **illustrative JSON payload** (placeholders must be replaced by
-resolved request/profile values before dispatch). The example allocates four search calls and six page reads across the three
-agents, reserving up to two searches and remaining external calls for the
+resolved request/profile values before dispatch). The example allocates four
+search calls and six page reads across the three agents, reserving up to two
+searches and remaining external calls for the
 parent's general-attractions sweep, coverage gaps, verification and weather:
 
 <!-- begin single-batch-example -->
