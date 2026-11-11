@@ -37,6 +37,7 @@ def main():
             "run_started_at": run_started_at,
             "at": at.isoformat(),
             "resolved_location": resolved_location,
+            "preferred_event_urls": scout.preferred_event_urls_for(profile, resolved_location),
             "age_as_of": local_date.isoformat(),
             "effective_member_ages": scout.member_ages_on(profile, local_date),
             "profile": profile,
