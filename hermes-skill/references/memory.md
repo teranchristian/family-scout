@@ -4,6 +4,22 @@ Read this file for explicit feedback, corrections, profile/travel changes,
 custom-source changes and “more like this” requests. The CLI reference owns the
 exact commands and payloads.
 
+## Separate memory from skill code
+
+Family Scout's procedures come from its Git repository and installed read-only
+skill. **Do not use Hermes's general memory, procedural learning, `skill_manage`
+or a shadow skill to patch Family Scout's `SKILL.md`, references, helper code
+or rules.** If feedback reveals a software defect or improved procedure,
+report it for a separate reviewed Git change; never silently adopt a new
+procedure in agent memory.
+
+Store user-approved Family Scout preferences in the **private** `profile.yaml`
+using `profile-update`; add explicit likes/dislikes with `feedback-add` and
+approved custom sources through source commands. Keep these outside Git. Hermes
+may keep general factual memory separately, but it must not be treated as an
+automatic sync mechanism for Family Scout preferences, nor override the skill's
+procedures or the user's current request.
+
 ## Persistent context
 
 Persist only lasting facts the user explicitly asks Family Scout to remember.

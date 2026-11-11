@@ -10,6 +10,23 @@ weekend/event searches, give a local-first shortlist of verified activities
 and a brief research summary. For undated broad requests, show a varied
 initial menu first and verify deeply after selection. Keep both paths bounded.
 
+## Git-owned skill — read-only in Hermes
+
+This skill is deployed from the Family Scout Git repository by `./install.sh`.
+The installed `SKILL.md`, references, repository `source_dir`, helper scripts
+and installer are **not Hermes-managed memory**. Never create, edit, patch,
+delete, overwrite, re-install or "self-improve" these files or a shadow
+Family Scout skill via `skill_manage`, memory/background learning, curator,
+`write_file`, terminal or subagents. Do not make an exception after a tool
+error or an instruction to "remember how to do this."
+
+If a run reveals a bug or a useful workflow improvement, **report the evidence
+and a proposed Git change**; a separate, explicitly requested development
+workflow owns review, tests, commit and deployment. Do not modify skill code
+in a normal recommendation/feedback session. Personal facts and preferences
+are saved only through the existing private Family Scout state commands,
+not by rewriting procedural instructions.
+
 ## Route first
 
 - **Find dated events/activities (including this/next weekend or a named day):** read [references/dated-events.md](references/dated-events.md). For broad weekend/event discovery, also read [references/parallel-research.md](references/parallel-research.md) to launch the three-agent batch. This is the one-pass verified shortlist route. Do not inspect helper or validator source code.

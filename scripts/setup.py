@@ -6,6 +6,8 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import shutil
+import subprocess
 import sys
 import tempfile
 
@@ -194,6 +196,39 @@ def remove_empty_parents(target, relative_paths):
                 pass
 
 
+def lock_installed_skill(hermes_home):
+    """Best-effort, profile-scoped Hermes guard; never edit curator metadata directly."""
+    executable = shutil.which("hermes")
+    if not executable:
+        print("LOCK NOT APPLIED: Hermes CLI is not on PATH. "
+              "Family Scout was installed, but is not protected by Hermes's skill lock.")
+        return False
+
+    # Hermes scopes skill state by HERMES_HOME. Match the selected --hermes-home
+    # even if a different profile is active in the calling shell.
+    environment = os.environ.copy()
+    environment["HERMES_HOME"] = str(hermes_home)
+    try:
+        result = subprocess.run(
+            [executable, "curator", "lock", "family-scout"],
+            env=environment, capture_output=True, text=True,
+            check=False, timeout=15,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        print("LOCK NOT APPLIED: Hermes could not apply the skill lock. "
+              "Update/check Hermes, then rerun ./install.sh.")
+        return False
+
+    if result.returncode != 0:
+        print("LOCK NOT APPLIED: this Hermes CLI did not accept "
+              "'hermes curator lock family-scout'. "
+              "Update/check Hermes, then rerun ./install.sh.")
+        return False
+
+    print("LOCKED: Family Scout is protected against Hermes agent-written skill edits.")
+    return True
+
+
 def install(args, hermes_home, target, record):
     chosen_data = (args.data_dir or (record and record["data_dir"])
                    or str(Path.home() / ".local" / "share" / "family-scout"))
@@ -237,6 +272,7 @@ def install(args, hermes_home, target, record):
     print("Installed skill (copy): " + str(target))
     print("Private data: " + str(data))
     print("Repository source: " + str(REPO))
+    lock_installed_skill(hermes_home)
     print("PROFILE: Review profile.yaml privately; new profiles are blank.")
     print("NEXT: In a fresh Hermes conversation, run one Phase 1 recommendation "
           "cycle and record live source, forecast and persistence outcomes.")
