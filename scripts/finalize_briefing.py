@@ -191,13 +191,6 @@ VERIFIED_FINALIZE_TEMPLATE = {
             "indoor_status": "indoor",
             "booking": {"required": False, "availability": "not_applicable"},
             "why": "Concise evidence-based reason.",
-            "constraint_results": [{
-                "requirement": "radius", "status": "confirmed_match",
-                "reason": "inside inclusive boundary",
-            }, {
-                "requirement": "date", "status": "confirmed_match",
-                "reason": "usable interval overlaps",
-            }],
             "features": ["hands-on"],
             "place": {
                 "name": "Example Venue", "area": "Example City",
