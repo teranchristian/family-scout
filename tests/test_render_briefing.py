@@ -116,6 +116,12 @@ class RenderBriefingTest(unittest.TestCase):
             self.assertLess(rendered.index(heading), rendered.index(url))
         self.assertEqual(result["option_count"], 3)
 
+    def test_fair_family_fit_is_accepted_as_limited(self):
+        payload = self.valid_payload()
+        payload["cards"][0]["family_fit"][0]["fit"] = "fair"
+        result = self.run_renderer(payload)
+        self.assertIn("limited fit", result["numbered_options_markdown"])
+
     def test_missing_option_card_is_rejected(self):
         payload = self.valid_payload()
         payload["cards"].pop()
