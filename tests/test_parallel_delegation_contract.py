@@ -36,7 +36,10 @@ class ParallelDelegationContractTests(unittest.TestCase):
         self.assertIn("Never recover by launching the three", RECOMMENDATION)
         self.assertIn("subagents separately.", RECOMMENDATION)
         self.assertIn("Three children do **not** create three fresh budgets", RECOMMENDATION)
-        self.assertIn("Do not modify Hermes configuration", RECOMMENDATION)
+        self.assertIn(
+            "Do not modify Hermes configuration",
+            " ".join(RECOMMENDATION.split()),
+        )
 
 
 if __name__ == "__main__":
