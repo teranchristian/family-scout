@@ -20,7 +20,9 @@ initial menu first and verify deeply after selection. Keep both paths bounded.
 
 ## Shared boundaries
 
-Use current read source pages; snippets are leads, not proof. Never invent a fact. The newest applicable date-specific official notice beats regular hours. A venue being open does not prove every promoted activity is available.
+Use current read source pages; snippets are leads, not proof. Member ages
+derive from saved private birthdates on the activity date where available;
+never send birthdates to subagents or web searches. Never invent a fact. The newest applicable date-specific official notice beats regular hours. A venue being open does not prove every promoted activity is available.
 
 Google Maps is navigation evidence only, never operating-status evidence. Do not overstate weather, reuse access wording from another venue, or show a numerical match score.
 
