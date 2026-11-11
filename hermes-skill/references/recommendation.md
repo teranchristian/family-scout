@@ -3,8 +3,8 @@
 This is the complete runtime contract for **undated/general** Family Scout
 recommendations. Do not open any other reference, helper source, validator
 source or unowned file—even after tool failure—except that a **dated
-event/weekend search** also reads `dated-events.md` and follows its explicit
-one-pass verified-shortlist route. General broad requests start with choices,
+event/weekend search** follows the simpler `dated-events.md` direct-response
+route instead. General broad requests start with choices,
 not a premature day plan.
 
 ## 1. Interpret once and start the run

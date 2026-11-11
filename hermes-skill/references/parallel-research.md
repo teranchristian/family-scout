@@ -1,98 +1,64 @@
-# Parallel research — three-agent batch
+# Parallel weekend discovery — three specialists
 
-Read only when a broad weekend search genuinely needs independent regional
-coverage or the user explicitly requests a thorough comparison. Not needed
-for routine searches, a single venue, a selected event follow-up or an
-ordinary undated menu.
+Read for a **broad dated weekend search**. Do not delegate a narrow venue
+check, a selected option follow-up or a routine undated menu.
 
-## One-call parallel delegation
+## One parallel call
 
-If a broad dated weekend search needs delegation, use **three subagents** in
-one batch, each covering a distinct region. Routine weekend discovery starts
-with bounded direct research instead. Undated general Family Scout requests
-do not need subagents unless the user explicitly requests a thorough comparison.
-Delegation changes orchestration, not budgets, evidence or finalization rules. More than three agents are not
-automatically better; each shares the same research-call limit.
+Call `delegate_task` **once with three tasks in one batch**, not as three
+serial calls. Give **every agent** the public geographic anchor and scope,
+absolute dates/timezone, attending age bands, free/paid preferences and the
+instruction to return direct source URLs and what remains unverified. Never
+send private birthdates, full family profiles or precise home coordinates.
 
-When delegation is useful:
+- **Agent 1 — local specialist:** nearest suburb/council and surrounding
+  neighbourhoods. Inspect the council's actual **general events calendar**
+  **and its library/program calendar** separately; seek community events,
+  sustainability hubs, parks, neighbourhood groups, workshops and swaps.
+  Don't stop after finding a few large advertised attractions.
+- **Agent 2 — adjacent-area specialist:** neighbouring councils/suburbs,
+  libraries, galleries, community organisations, small markets and seasonal
+  events inside the requested scope. Avoid duplicating Agent 1.
+- **Agent 3 — wider-area and weather specialist:** genuinely exceptional
+  city-wide experiences, worthwhile paid options, indoor rainy-day alternatives
+  and the relevant forecast. Do not dominate the result with familiar
+  attractions available every day.
 
-1. Split independent discovery across **(a) the named local area first,
-   (b) adjacent areas inside the requested scope, and (c) standout wider-area
-   options/indoor backups**. Respect any tighter user geographic priority.
-   Do not let the wider-area worker crowd out good local events. Local discovery
-   should explicitly inspect both general council events and library/program
-   calendars, and not stop at a few easy-to-find results. The wider-area
-   worker should not spend calls duplicating the same local council pages.
-2. Call `delegate_task` **exactly once with all three tasks in its `tasks`
-   array**. Do not submit three separate `delegate_task` calls: those can run
-   sequentially and caused a slow previous trial.
-3. Build each `goal` and `context` as a short, self-contained **single-line
-   string**; avoid embedded newlines and unnecessary quotation marks. Aim for
-   roughly 1.5 KB or less per task and under 8 KB for the complete payload.
-   Check that the JSON parses before dispatching. Pass the public area,
-   absolute dates/timezone, attending **age bands**, relevant constraints and
-   individual search/page-read limits to **each** child. Children have no
-   parent conversation history. Never pass names, home coordinates, full
-   profile, API keys or private state.
-4. Give each agent a share of the **existing total** search and external-call
-   allowance, reserving capacity for the parent's fresh general-attractions
-   sweep, missed local coverage, final verification and weather. A suggested
-   maximum allocation within the existing six-search ceiling is: **two local
-   searches, one neighbouring, one wider, and up to two parent searches**.
-   The parent can leave unused searches unspent. Reserve page reads within the
-   same **twenty-four total external calls**; never interpret these as 24
-   additional page reads after searches. Aggregate **actual** usage, including
-   failures and retries, across children and parent.
-   Three children do **not** create three fresh budgets. If usage is missing,
-   report that gap; never assume the run was under budget.
-5. Ask children to return one compact JSON result: a small set of **distinct**
-   candidate titles, exact dates/areas, experience classes, direct source URLs,
-   what is known vs unverified, concise reasons, calendars actually inspected
-   and actual tool counts. Do not return verbose transcripts or repeat JSON.
-   Agents gather leads rather than selecting the final top three. Search
-   snippets alone are not proof; the parent still checks current source pages
-   and the saved-link contract before displaying any claims or URLs.
-   **Wait for the entire batch**, collect its results (or explicit failures)
-   and any reserved parent discovery, then merge all leads **before final
-   ranking and saving**. A late local lead must compete with earlier picks;
-   never attach a post-save "bonus" discovery to the saved answer.
-
-One valid **illustrative JSON payload** (placeholders must be replaced by
-resolved request/profile values before dispatch). The example allocates four
-search calls and six page reads across the three agents, reserving up to two
-searches and remaining external calls for the
-parent's general-attractions sweep, coverage gaps, verification and weather:
+Ask each for several **distinct candidates**, so the combined pool aims for
+**10–15 across all three agents when available**. Each lead should identify
+event, venue/area, requested date and time if known, cost or unknown, age fit,
+direct source URL and a short note on uncertainty. **Search each requested day
+separately.** Return concise findings, not verbose transcripts or a forced
+ranking. Do not invent a lead to reach the target.
 
 <!-- begin single-batch-example -->
 ```json
 {
   "tasks": [
     {
-      "goal": "Find dated family activities in the named local area",
-      "context": "Resolved public anchor: <area from request or profile>; dates: <resolved date window and timezone>; ages: <resolved age bands>; priority: distinct local council event and library-program calendars, plus community one-offs; budget: 2 searches and up to 2 page reads; return compact JSON candidates with official URLs, verification and actual tool counts."
+      "goal": "Find small local family events for the requested dates",
+      "context": "Anchor: <public area>; dates/timezone: <resolved dates>; ages: <age bands>; priorities: official local council events calendar AND library programs, community venues, parks, swaps, workshops; find several distinct leads; return concise dated sources and unknowns."
     },
     {
-      "goal": "Find dated family activities in nearby areas",
-      "context": "Resolved public anchor: <area from request or profile>; adjacent areas: <nearby places inside scope>; dates: <resolved date window and timezone>; ages: <resolved age bands>; priority: neighbouring councils and community venues; budget: 1 search and up to 2 page reads; return compact JSON candidates with official URLs, verification and actual tool counts."
+      "goal": "Find nearby council and community events",
+      "context": "Anchor: <public area>; scope: <neighbouring areas>; dates/timezone: <resolved dates>; ages: <age bands>; priorities: neighbouring council calendars, libraries, galleries and community events; avoid duplicating local leads; return concise dated sources and unknowns."
     },
     {
-      "goal": "Find unusual wider-area options and weather-safe backups",
-      "context": "Resolved public anchor: <area from request or profile>; dates: <resolved date window and timezone>; ages: <resolved age bands>; priority: exceptional wider events and weather backups; budget: 1 search and up to 2 page reads; return compact JSON candidates with official URLs, verification and actual tool counts."
+      "goal": "Find exceptional wider events and weather alternatives",
+      "context": "Anchor: <public area>; scope: <wider area allowed by request>; dates/timezone: <resolved dates>; ages: <age bands>; priorities: special city-wide events, paid experiences worth the travel, weekend forecast and indoor backups; return concise dated sources and unknowns."
     }
   ]
 }
 ```
 <!-- end single-batch-example -->
 
-If the batched call is rejected for a parsing error, shorten the contexts,
-validate the whole `tasks` object and **retry the batch once**. If it still
-fails, report the delegation failure and perform only bounded direct research
-with the **remaining shared budget**. **Never recover by launching the three
-subagents separately.** Do not claim that the agents ran in parallel without
-evidence from the actual invocation. For gateway delivery, do not repeatedly
-poll the background handle.
+Wait for the batch if possible, deduplicate and compare **all results** before
+ranking, and verify the most promising entries against accountable current
+sources. If an agent fails or the tool is unavailable, search the missing
+area directly where possible, report the gap and still return a useful answer.
+Never recover by launching the three subagents separately. Do not modify
+Hermes configuration or skill files to make delegation work.
 
-Use the evidence, cache and finalization rules for the **selected** workflow:
-the undated two-stage flow or the dated-events one-pass flow. Do not modify
-Hermes configuration or installed files to enable this pattern.
-
+Do not spend remaining tool calls on a save schema or elaborate research
+telemetry. **Present the findings first**, with checked links and clearly
+labelled uncertainty. Optional persistence must not block the answer.

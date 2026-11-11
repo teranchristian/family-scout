@@ -1,6 +1,5 @@
-"""Checks for the date-specific local-event route and safe default routing."""
+"""Contract tests for the simple dated-weekend Family Scout workflow."""
 
-import json
 import unittest
 from pathlib import Path
 
@@ -19,146 +18,98 @@ PARALLEL = (
 
 
 class DatedEventsContractTests(unittest.TestCase):
-    def test_main_skill_routes_dated_events_but_preserves_undated_menu(self):
+    def test_routes_stay_distinct(self):
         self.assertIn("references/dated-events.md", SKILL)
         self.assertIn("this/next weekend", SKILL)
-        self.assertIn("undated general outings", SKILL)
-        self.assertIn("one-pass verified shortlist", SKILL)
+        self.assertIn("three local-to-wide research subagents", SKILL)
+        self.assertIn("references/recommendation.md", SKILL)
         self.assertIn("two-stage", RECOMMENDATION)
         self.assertIn("dated-events.md", RECOMMENDATION)
 
-    def test_dates_and_places_are_resolved_at_runtime_not_fixed(self):
+    def test_request_not_hardcoded_to_example_family(self):
         compact = " ".join(EVENTS.split())
-        for required in (
+        for phrase in (
             "activity location's IANA timezone",
             "explicit location and radius",
-            "saved **home/travel** profile",
+            "saved **home/travel**",
             "never assume a particular country, city, suburb",
             "date window",
-            "resolved anchor",
+            "age bands",
         ):
-            self.assertIn(required, compact)
-        for forbidden in ("Randwick", "Sydney", "November 2026", "2026-11-14"):
-            self.assertNotIn(forbidden, EVENTS)
-            self.assertNotIn(forbidden, SKILL)
+            self.assertIn(phrase, compact)
+        for example in ("Randwick", "Sydney", "Ema", "Haru",
+                        "November 2026", "2026-11-14"):
+            self.assertNotIn(example, SKILL)
+            self.assertNotIn(example, EVENTS)
 
-    def test_local_first_coverage_and_unverified_evidence(self):
-        for required in (
+    def test_local_council_events_before_big_venues(self):
+        compact = " ".join(EVENTS.split())
+        for phrase in (
             "Priority 1", "Priority 2", "Priority 3",
-            "general events calendars AND library/event-program calendars",
-            "day by day", "active participation", "source URL",
-            "Unknown hard", "verified", "link_checks",
+            "general event calendars", "library/event-program calendars",
+            "community centres", "sustainability/environment hubs",
+            "small one-off community events", "swaps",
+            "Search **Saturday and Sunday separately**",
+            "wider", "famous",
         ):
-            self.assertIn(required, EVENTS)
+            self.assertIn(phrase, compact)
 
-    def test_validated_one_pass_five_picks_and_shared_budget(self):
-        for required in (
-            'effort_mode: "deep"', 'result_mode = "verified"',
-            "up to five", "six searches and twenty-four",
-            "shared budget", "at most **ten retained",
-            "finalize_briefing.py", "numbered_options_markdown",
-            "one", "delegation", "Do not let coordination overhead prevent delivering the shortlist.",
-        ):
-            self.assertIn(required, EVENTS)
-
-    def test_weekend_uses_bounded_research_with_optional_delegation(self):
-        self.assertIn("start with bounded direct research", EVENTS)
-        self.assertIn("only use optional delegation", EVENTS.lower())
-        self.assertIn("once with three tasks in one batch", EVENTS)
-        self.assertIn("do not add more by", EVENTS.lower())
-        self.assertIn("narrow venue check", EVENTS)
-        self.assertIn("Do not call `evaluate`", EVENTS)
-        self.assertIn("Booking matters even when entry is free", EVENTS)
-        self.assertIn("fallback_markdown", EVENTS)
-
-    def test_weekend_discovery_rejects_three_and_done_regression(self):
+    def test_three_parallel_specialists_and_broader_discovery(self):
         compact = " ".join(EVENTS.split())
-        for required in (
-            "not events-only",
-            "6–8 plausible distinct leads",
-            "at least four useful experience classes",
-            "general attractions/experiences sweep",
-            "not framed only around children",
-            "separate discovery sources",
-            "Do not stop after three good leads",
-            "fresh pool before loading history or feedback",
-            "meaningful age-appropriate activity for each child",
-            "Weather affects ranking and backups, not discovery coverage",
-            "choices, not a fixed itinerary",
-            "state which calendars/classes were missed",
+        for phrase in (
+            "three parallel research specialists",
+            "once as one three-task batch",
+            "discover about 10–15 distinct relevant candidates",
+            "before final ranking",
+            "Do not stop when you have found five",
+            "5–8 distinct worthwhile choices",
+            "If delegation is unavailable",
         ):
-            self.assertIn(required, compact)
-        self.assertNotIn("Stop early if the shortlist is useful", EVENTS)
+            self.assertIn(phrase, compact)
+        self.assertIn("Agent 1 — local specialist", PARALLEL)
+        self.assertIn("Agent 2 — adjacent-area specialist", PARALLEL)
+        self.assertIn("Agent 3 — wider-area and weather specialist", PARALLEL)
 
-    def test_weekend_ranks_complete_pool_before_saving(self):
-        compact = " ".join(EVENTS.split())
-        for required in (
-            "cinema screenings",
-            "examples, never required picks",
-            "actual date/time, price and age fit",
-            "Finish discovery before choosing or saving",
-            "complete fresh pool",
-            "Never run a residual discovery sweep after finalization",
-            'unsaved "bonus find"',
-            "strong nearby find from the last search",
-            "free or low-cost preference",
-            "free-only",
+    def test_official_source_once_and_honest_uncertainty(self):
+        for phrase in (
+            "One trustworthy source is sufficient",
+            "current official council, organiser, venue or booking page",
+            "Search snippets alone",
+            "what each child can actively do",
+            "total family", "Needs checking",
+            "exact ticket slot",
+            "Rain changes", "outdoor",
+            "free council/community",
+            "Local events",
         ):
-            self.assertIn(required, compact)
-        parallel = " ".join(PARALLEL.split())
-        for required in (
-            "Wait for the entire batch",
-            "before final ranking and saving",
-            'post-save "bonus" discovery',
-        ):
-            self.assertIn(required, parallel)
+            self.assertIn(phrase, EVENTS)
 
-    def test_saved_preferences_reorder_without_filtering_novel_options(self):
-        dated = " ".join(EVENTS.split())
-        undated = " ".join(RECOMMENDATION.split())
-        for required in (
-            "Saved profile preferences are ranking signals, not discovery filters",
-            "profile.preferences",
-            "after fresh discovery and initial ranking",
-            "Keep genuinely new options visible",
-            "clear hard constraint",
-            "profile.constraints",
-            "A current user request takes precedence",
+    def test_save_not_required_for_dated_event_delivery(self):
+        for phrase in (
+            "Never discard a researched answer",
+            "do not call `evaluate`",
+            "`finalize_briefing.py`",
+            "`shortlist-save`",
+            "as a prerequisite",
+            "Respond directly from the source evidence",
+            "explicitly requests **saving**",
+            "show the useful shortlist regardless",
+            "same conversation",
+            "do not demand a saved",
         ):
-            self.assertIn(required, dated)
-        for required in (
-            "profile.preferences",
-            "soft ranking signals, not search or candidate filters",
-            "preserve unfamiliar categories and novel options",
-            "profile.constraints",
-        ):
-            self.assertIn(required, undated)
+            self.assertIn(phrase, EVENTS)
+        self.assertNotIn("Run `finalize_briefing.py` with the JSON input, once", EVENTS)
+        self.assertNotIn("paste `numbered_options_markdown` verbatim", EVENTS)
 
-    def test_parallel_example_keeps_budget_for_parent_discovery(self):
-        markers = ("<!-- begin single-batch-example -->", "<!-- end single-batch-example -->")
-        block = PARALLEL.split(markers[0], 1)[1].split(markers[1], 1)[0]
-        payload = json.loads(block.split("```json", 1)[1].split("```", 1)[0])
-        contexts = [task["context"] for task in payload["tasks"]]
-        self.assertEqual(len(contexts), 3)
-        self.assertIn("budget: 2 searches", contexts[0])
-        self.assertIn("budget: 1 search", contexts[1])
-        self.assertIn("budget: 1 search", contexts[2])
-        compact = " ".join(PARALLEL.split())
-        for required in (
-            "two local searches, one neighbouring, one wider, and up to two parent searches",
-            "twenty-four total external calls",
-            "calendars actually inspected",
-            "rather than selecting the final top three",
+    def test_preserve_profile_and_new_discovery(self):
+        compact = " ".join(EVENTS.split()).casefold()
+        for phrase in (
+            "Fresh discovery comes before history or feedback",
+            "Saved preferences are gentle ranking signals",
+            "hard constraint",
+            "Do not invent",
         ):
-            self.assertIn(required, compact)
-
-    def test_summary_requires_evidence_not_made_up_counts(self):
-        for required in (
-            "Subagents completed", "Distinct candidate events actually discovered",
-            "Priority 1 / 2 / 3", "actually checked", "not tracked",
-            "verification gaps", "retained for validation",
-        ):
-            self.assertIn(required, EVENTS)
+            self.assertIn(phrase.casefold(), compact)
 
 
 if __name__ == "__main__":

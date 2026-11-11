@@ -181,6 +181,10 @@ def normalize_family_fit(card, expected_member_ids, activities):
         seen.add(member_id)
         label = non_empty_text(item.get("label"), f"family_fit[{index}].label")
         fit = item.get("fit")
+        # Older/newer agent wording should not break a saved shortlist.
+        # "Fair" means the child can participate with meaningful limitations.
+        if isinstance(fit, str) and fit.strip().casefold() == "fair":
+            fit = "limited"
         require(fit in FIT_LEVELS, f"family_fit[{index}].fit is invalid")
         activity_names = text_list(
             item.get("activity_names"), f"family_fit[{index}].activity_names",
