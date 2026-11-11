@@ -25,6 +25,7 @@ class DatedEventsContractTests(unittest.TestCase):
         self.assertIn("dated-events.md", RECOMMENDATION)
 
     def test_dates_and_places_are_resolved_at_runtime_not_fixed(self):
+        compact = " ".join(EVENTS.split())
         for required in (
             "activity location's IANA timezone",
             "explicit location and radius",
