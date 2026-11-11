@@ -43,7 +43,8 @@ do not need agents.
 
 Aim to **discover about 10–15 distinct relevant candidates** across the
 specialists, if available, **before final ranking**. This is a discovery goal,
-not a required minimum and not a reason to invent events. Do not stop when
+not a required minimum and not a reason to invent events. Do not invent
+events, prices, schedules, availability or URLs. Do not stop when
 you have found five attractive options. Search **Saturday and Sunday separately**
 (or each requested date), including event calendars and organiser listings.
 Include unusual, educational, interactive, seasonal and free council/community
