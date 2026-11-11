@@ -821,7 +821,6 @@ def command_status(data_dir):
         sources = load_document(data_dir / "sources.yaml", "sources")
         shortlists = load_records(data_dir / "shortlists.jsonl", "shortlist")
         feedback = load_records(data_dir / "feedback.jsonl", "feedback")
-        places = load_places(data_dir / "places.jsonl")
     emit({
         "ok": True,
         "profile": {
@@ -833,7 +832,6 @@ def command_status(data_dir):
         "sources": {"total": len(sources["sources"]),
                     "enabled": sum(1 for item in sources["sources"] if item["enabled"])},
         "history": {"shortlists": len(shortlists), "feedback_events": len(feedback)},
-        "place_cache": {"places": len(places)},
     })
 
 
@@ -1263,8 +1261,8 @@ def normalize_option(option, number, timezone_name, request):
     for url in urls:
         valid_url(url, "option source URL")
     discovery_origin = result.get("discovery_origin", "fresh")
-    require(discovery_origin in ("fresh", "cache"),
-            "option.discovery_origin must be fresh or cache")
+    require(discovery_origin == "fresh",
+            "new recommendations cannot come from the saved venue cache")
     result["discovery_origin"] = discovery_origin
     stable_place = None
     if result.get("place") is not None:
@@ -1399,8 +1397,8 @@ def normalize_explore_option(option, number, request):
     valid_timestamp(result["checked_at"], "option.checked_at")
     result["status"] = "candidate"
     origin = result.get("discovery_origin", "fresh")
-    require(origin in ("fresh", "cache"),
-            "option.discovery_origin must be fresh or cache")
+    require(origin == "fresh",
+            "new recommendations cannot come from the saved venue cache")
     result["discovery_origin"] = origin
 
     urls = result.get("source_urls", [])
@@ -1510,11 +1508,6 @@ def command_shortlist_save(data_dir, args):
     else:
         options = [normalize_option(option, index, saved_request["timezone"], saved_request)
                    for index, option in enumerate(options_input, 1)]
-    cached_options = sum(1 for option in options
-                         if option["discovery_origin"] == "cache")
-    if effort_mode == "normal":
-        require(cached_options <= 1,
-                "normal effort allows at most one cache-seeded finalist")
     session_ids = [item["session_id"] for item in options]
     require(len(session_ids) == len(set(session_ids)),
             "duplicate activity session; combine its source evidence before saving")
@@ -1590,33 +1583,10 @@ def command_shortlist_save(data_dir, args):
             emit({"ok": True, "duplicate": True, "search_id": existing["search_id"]})
             return
         append_record(path, record)
-        cache_report = {"upserted": 0, "unchanged": 0,
-                        "skipped": sum(1 for option in options if not option.get("place"))}
-        place_options = [option for option in options if option.get("place")]
-        if place_options:
-            try:
-                places_path = data_dir / "places.jsonl"
-                places = load_places(places_path)
-                changed = False
-                for option in place_options:
-                    places, duplicate, unused_place_id = upsert_place_record(
-                        places, option["place"], option["checked_at"]
-                    )
-                    if duplicate:
-                        cache_report["unchanged"] += 1
-                    else:
-                        cache_report["upserted"] += 1
-                        changed = True
-                if changed:
-                    atomic_records(places_path, places)
-            except (ScoutError, OSError, UnicodeError) as exc:
-                cache_report = {"upserted": 0, "unchanged": 0,
-                                "skipped": len(options), "warning": str(exc)}
     emit({"ok": True, "duplicate": False, "search_id": record["search_id"],
           "option_count": len(options), "result_mode": result_mode,
           "budget_status": tool_usage["budget_status"],
-          "budget_violations": tool_usage["budget_violations"],
-          "place_cache": cache_report})
+          "budget_violations": tool_usage["budget_violations"]})
 
 
 def select_shortlist(records, search_id=None, conversation_ref=None):
