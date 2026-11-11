@@ -16,9 +16,8 @@ Repository: <https://github.com/teranchristian/family-scout>
   location's timezone.
 - Searches the live web, reads current source pages and obtains a dated forecast
   using the tools already available to Hermes.
-- Runs a fast-first generic discovery pass, then allows at most one stable cached
-  place lead alongside freshly discovered candidates; cached pointers never
-  prove current status.
+- Uses fresh discovery for every new recommendation, without reading or
+  automatically updating the previous venue cache.
 - Lets a radius-aware broad search cover plausible adjacent areas inside the
   existing query budget without moving the named geographic anchor.
 - Applies strict date, radius, group cost, indoor, age, closure and mandatory
@@ -37,8 +36,8 @@ Repository: <https://github.com/teranchristian/family-scout>
   requested-date hours, age fit, family cost, booking status and factual/map links.
 - For multi-day or weather-sensitive requests, recommends a plan for each day
   with a realistic backup.
-- Saves both the exact initial menu and selected verified options with stable identities and
-  automatically refreshes evidenced stable place pointers.
+- Saves both the exact initial menu and selected verified options with stable identities,
+  without persisting a separate venue cache.
 - Remembers explicit feedback across fresh conversations, including corrections
   and retractions, and can use it for “more like this”.
 - Supports explicit home/travel context, profile corrections and custom source
@@ -53,9 +52,10 @@ Phase 1 deliberately excludes databases, background scraping, provider
 frameworks, routing, booking integrations, web UI, accounts, machine learning
 and numerical match scores.
 
-For broad weekend/event discovery, Family Scout uses one batched
-`delegate_task(tasks=[...])` call with three geographic specialists.
-Ordinary undated menus and narrow venue follow-ups remain direct. The agents
+For broad weekend/event discovery, Family Scout starts with direct local-first
+research. Optional three-agent delegation is for genuinely broad or thorough
+regional comparisons. Ordinary undated menus and narrow venue follow-ups remain
+direct. When used, the agents
 share one research budget and do not replace parent-side verification.
 Adding more agents is not the default. See
 `hermes-skill/references/parallel-research.md` for the dispatch recipe.
@@ -203,7 +203,7 @@ seeded in example files or committed to Git.
 | `~/.local/share/family-scout/sources.yaml` | Private custom source list |
 | `~/.local/share/family-scout/shortlists.jsonl` | Append-only exact shortlist history |
 | `~/.local/share/family-scout/feedback.jsonl` | Append-only explicit feedback and corrections |
-| `~/.local/share/family-scout/places.jsonl` | Mutable stable-place candidate/verification pointers; never current opening/event truth |
+| `~/.local/share/family-scout/places.jsonl` | Legacy venue cache retained untouched; not used or updated by recommendation runs |
 
 The `.yaml` documents use indented JSON, which is valid YAML and can be handled
 without an added YAML package. Exact blank files created by Phase 0 are accepted
