@@ -5,37 +5,37 @@ description: Find fresh, age-appropriate activities near the family, with dates,
 
 # Family Scout
 
-Find useful outings for the people and dates the user requests. Keep the process small: **read the saved family context, search local and nearby events, check each day's weather, then recommend**.
+Find age-appropriate outings: **read family context, search local and nearby events, check daily weather, recommend**.
 
 ## Start every request
 
-1. Read `installation.json` beside this skill. Follow [references/profile.md](references/profile.md) to load the private profile and location-matched source URLs via `discovery_context.py`; do not inspect helper source.
-2. Resolve the user's requested dates in the activity location's timezone. Explicit location, dates, attendees, radius and other user-stated hard constraints override saved defaults. **Price, free-only, budget and booking are information, not default exclusion filters**; enforce a price cap, free-only requirement or booking preference only when the user explicitly requests it. For "my kids", use the children in the profile and their ages **on each activity date**; do not silently target adults or generic "all ages" events. If the date is unspecified, use the next seven days for an event search and say so; a request for timeless ideas can remain undated.
-3. Identify the anchor suburb and **nearby suburbs within the user's geographic preferences/radius**. Prefer local gems over equally good farther attractions. Do not hardcode a city, children or sample ages.
+1. Read `installation.json` and [references/profile.md](references/profile.md); load private context and location-matched URLs with `discovery_context.py`, without inspecting helper source.
+2. Resolve dates in the activity timezone. Explicit location, attendees, radius and hard requirements override defaults. **Free-only, budget and booking are not default exclusions**; enforce only when explicitly requested. "My kids" means the profile's children, aged **on each activity date**. Without dates, use the next seven days for event searches (state that), or leave timeless ideas undated.
+3. Find the anchor suburb and **nearby suburbs within the user's geographic preferences/radius**. Prefer strong local finds; never hardcode places or ages.
 
 ## Research
 
-For a **broad activity search**, read [references/research.md](references/research.md). Start **one `delegate_task` call containing three tasks** when delegation is available (four only when `location_sources.urls` is non-empty):
+For broad searches read [references/research.md](references/research.md). Make **one `delegate_task` call containing three tasks**, or four when `location_sources.urls` is non-empty:
 
-- **Agent 1 — local events:** discover events in the anchor suburb/immediate surroundings.
-- **Agent 2 — nearby events:** use **the same discovery instructions as Agent 1**, changing only the assigned suburbs/area. Avoid overlap.
-- **Agent 3 — weather:** forecast **each requested day**, with practical indoor/outdoor advice; do not repeat event discovery.
-- **Agent 4 — saved sources (conditional):** check only the URLs in `location_sources.urls` for activities on the requested dates. Do not launch if empty; see the shared verification rules in the research reference.
+- **Agent 1 — local events:** anchor suburb and immediate surroundings.
+- **Agent 2 — nearby events:** same discovery instructions, different nearby suburbs; avoid overlap.
+- **Agent 3 — weather:** forecast each requested day; no event research.
+- **Agent 4 — saved sources (optional):** check matched URLs on every requested date; skip if empty.
 
-Pass only public areas, absolute dates, derived age bands, requested budget, activity criteria and public saved-source URLs to their assigned agent. Never send the private profile, home coordinates, names or birthdates. If a batch fails, retry once with a shorter valid payload; if delegation is unavailable, cover the three scopes directly rather than running serial subagents. A named-venue check or follow-up needs direct verification, not three agents.
+Send only public areas, absolute dates, derived age bands, criteria and public URLs. Never send a private profile, home coordinates, names or birthdates. If delegation fails, retry once briefly; if unavailable, search directly. Named-venue checks need direct verification, not agents.
 
-Combine and deduplicate leads, confirm important facts against current official/organiser pages, then rank for actual participation by the requested children, novelty, convenience and weather. Include free and paid options; do not discard an interesting lead for its price, booking requirement or an unverified detail. **Fresh discovery comes before old shortlists or feedback**. No numeric match scores.
+Merge and deduplicate, verify official pages, then rank by child participation, novelty, convenience and weather, not source. Include free and paid options; unknowns go under Needs checking. **Fresh discovery comes before old shortlists or feedback**. No numeric match scores.
 
 ## Telegram-friendly answer
 
-Start with a short weather summary for each day. **Group options by requested day** and aim for **up to five worthwhile activities per day**, for any weekday or weekend day, when available. Do not apply one overall top-five cap across multiple dates or pad with invented events. Put promising leads with unverified details under **Needs checking** rather than silently dropping them. Each entry includes:
+Start with daily weather. **Group by requested day**, any weekday or weekend day; show **up to five worthwhile activities per day** when found, not a combined top-five. Never pad results. Include promising unverified leads under **Needs checking**. Each entry includes:
 
-**Title · day/date and time (or unverified) · suburb/venue · FREE / group price / price unknown · child-by-child fit for the actual attending children from the profile · a one-sentence description · direct official/event link · Google Maps link when an exact address is evidenced.** Label booking required / not required / unknown; flag missing details without pretending confirmation. State which child can actually participate, not just a vague age range.
+**Title · day/time (or unverified) · venue/suburb · FREE / group price / price unknown · child-by-child fit · brief description · direct official/event link · Google Maps link for evidenced addresses.** Show booking required / not required / unknown and what needs checking.
 
-For multi-day requests, still highlight one best pick per day and a realistic wet-weather alternative when available, **without hiding the other worthwhile options** or assuming a booking. Keep it readable and skip internal research telemetry unless asked.
+Highlight a best pick and wet-weather alternative per day without hiding other good options. Keep it Telegram-friendly; skip telemetry unless asked.
 
 ## Boundaries
 
-**Git-owned skill — read-only in Hermes.** Never edit, re-install or auto-improve this skill, repository, references or scripts via `skill_manage`, curator, background learning or subagents. Report a **proposed Git change** for deliberate review. Personal updates belong only in **private Family Scout state commands** when explicitly requested.
+**Git-owned skill — read-only in Hermes.** Never auto-edit it via `skill_manage`, curator, background learning or subagents. Propose Git changes for review. Update private state only with **private Family Scout state commands** when requested.
 
-Never invent a fact, event, age restriction, price, booking slot, URL or weather forecast. A venue being open does not prove that a particular activity is running. Google Maps is navigation evidence only, not opening-status evidence. If a hard requirement is unverified, say so rather than labelling it confirmed. Research does not require saving or a finalizer.
+Never invent events, dates, eligibility, prices, booking slots, URLs or forecasts. Venue opening hours and Google Maps do not verify an event session. Label unverified requirements honestly. Research needs no saving or finalizer.
