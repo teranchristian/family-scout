@@ -90,8 +90,8 @@ age-specific activities when worthwhile; state which child benefits.
 
 Show roughly **5–8 distinct worthwhile choices**, if they exist. For each:
 event and venue, exact day/time, family cost or **price unknown**, whether
-booking is required or **not confirmed**, **Ema/Haru-equivalent age-specific
-suitability** (use the current family names only in the private reply), area,
+booking is required or **not confirmed**, **per-child age-specific
+suitability**, area,
 official source link, and a Google Maps link when an evidenced address exists.
 Use short reasons and any weather warning. Clearly mark uncertain events.
 Finish with a brief list of the calendars/areas checked and important gaps;
